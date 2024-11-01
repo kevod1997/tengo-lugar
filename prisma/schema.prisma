@@ -12,3 +12,88 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id              String   @id @default(uuid())
+  firstName       String
+  lastName        String
+  birthDate       DateTime
+  age             Int
+  email           String   @unique
+  phone           String?
+  profileImageKey String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  identityCard    IdentityCard?
+  passenger       Passenger?
+  termsAcceptance UserTermsAcceptance[]
+}
+
+model IdentityCard {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  idNumber      Int?
+  frontFileKey  String?
+  backFileKey   String?
+  fileType      FileType?
+  isVerified    Boolean   @default(false)
+  verifiedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relación
+  user User @relation(fields: [userId], references: [id])
+}
+
+model TermsAndCondition {
+  id            String   @id @default(uuid())
+  version       String
+  content       String
+  effectiveDate DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relación
+  acceptances UserTermsAcceptance[]
+}
+
+model UserTermsAcceptance {
+  id         String   @id @default(uuid())
+  userId     String
+  termsId    String
+  acceptedAt DateTime @default(now())
+
+  // Relaciones
+  user  User              @relation(fields: [userId], references: [id])
+  terms TermsAndCondition @relation(fields: [termsId], references: [id])
+
+  @@unique([userId, termsId])
+}
+
+model Rating {
+  id          String   @id @default(uuid())
+  passengerId String   @unique
+  rating      Float
+  createdAt   DateTime @default(now())
+
+  // Relación
+  passenger Passenger @relation(fields: [passengerId], references: [id])
+}
+
+model Passenger {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Relaciones
+  ratings Rating?
+}
+
+
+enum FileType {
+  PDF
+  IMAGE
+}

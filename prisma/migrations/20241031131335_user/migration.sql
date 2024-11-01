@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "IdentityCard" ALTER COLUMN "fileType" DROP NOT NULL,
+ALTER COLUMN "idNumber" DROP NOT NULL;

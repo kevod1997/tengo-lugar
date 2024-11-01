@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth, useUser } from "@clerk/nextjs"
+import { useAuth, useClerk, useUser } from "@clerk/nextjs"
 import {
   ChevronsUpDown,
   LogOut,
@@ -34,9 +34,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-export function NavUser({open}: {open: boolean}) {
-  const { isSignedIn, signOut } = useAuth()
-  const { user } = useUser()
+export function NavUser({ open }: { open: boolean }) {
+  const { signOut } = useClerk()
+  const { user, isSignedIn } = useUser()
   const { isMobile } = useSidebar()
   const isVerified = false // This should be replaced with actual verification status
 

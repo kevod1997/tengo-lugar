@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { openSans } from "@/config/fonts";
 import { Providers } from "@/components/providers/Providers";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: {
@@ -30,6 +30,7 @@ export default function RootLayout({
               </main>
             </div>
           </div>
+          <Toaster />
         </Providers>
       </body>
     </html>

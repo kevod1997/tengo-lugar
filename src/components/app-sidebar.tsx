@@ -21,7 +21,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { useAuth } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 import { Skeleton } from "@/components/ui/skeleton"
 
 const data = {
@@ -52,9 +52,9 @@ const data = {
 
 function NavMainSkeleton() {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-1">
       {[...Array(5)].map((_, i) => (
-        <Skeleton key={i} className="h-10 w-full" />
+        <Skeleton key={i} className="h-10 w-full bg-fuchsia-100" />
       ))}
     </div>
   )
@@ -62,16 +62,16 @@ function NavMainSkeleton() {
 
 function NavUserSkeleton({ open }: { open: boolean }) {
   return (
-    <div className="space-y-2">
-      <Skeleton className="h-10 w-full" />
-      {open && <Skeleton className="h-10 w-full" />}
+    <div className="space-y-2 p-1">
+      <Skeleton className="h-10 w-full bg-fuchsia-100" />
+      {open && <Skeleton className="h-10 w-full bg-fuchsia-100" />}
     </div>
   )
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { open } = useSidebar()
-  const { isSignedIn, isLoaded } = useAuth()
+  const { isSignedIn, isLoaded } = useUser()
 
   const authenticatedNavItems = [
     {

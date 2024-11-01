@@ -61,7 +61,7 @@ export default function Header({ breadcrumbs, className = '', showBackButton = t
                   {index === breadcrumbs.length - 1 ? (
                     <BreadcrumbPage className='text-xl font-semibold'>{item.label}</BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink href={item.href || '#'}>{item.label}</BreadcrumbLink>
+                    <BreadcrumbLink className='text-xl hover:font-semibold' href={item.href || '#'}>{item.label}</BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
               </React.Fragment>

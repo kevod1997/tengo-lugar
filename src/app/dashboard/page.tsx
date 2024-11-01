@@ -1,15 +1,6 @@
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import RegistrationFlow from "./ui/registration-flow"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import Header from "@/components/header/header"
+import RegistrationFlow from "./ui/registration/registration-flow"
 
 export default function DashboardPage() {
 
@@ -19,7 +10,7 @@ export default function DashboardPage() {
   ]
   return (
     <>
-      <Header breadcrumbs={breadcrumbs}/>
+      <Header breadcrumbs={breadcrumbs} />
       <Separator className="mb-6" />
       <div className="flex flex-col gap-6">
         <RegistrationFlow />

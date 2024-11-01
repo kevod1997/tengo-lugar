@@ -13,7 +13,7 @@ export const Providers = ({ children }: Props) => {
     const [open, setOpen] = React.useState(false)
 
     return (
-        <ClerkProvider localization={esES} dynamic>
+        <ClerkProvider localization={esES}>
             <SidebarProvider open={open} onOpenChange={setOpen}>
             {children}
             </SidebarProvider>

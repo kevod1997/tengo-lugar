@@ -110,3 +110,11 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
+
+:root {
+  --toaster-z-index: 100000;
+}
+
+.sonner-toast-container {
+  z-index: var(--toaster-z-index) !important;
+}
