@@ -1,7 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { getUserByClerkId } from './actions/user';
+import { NextResponse } from 'next/server';
 
 const isProtectedRoute = createRouteMatcher([
     '/viajes',
+    '/dashboard',
+    '/perfil',
 ]);
 
 const isProtectedAdminRoute = createRouteMatcher([
@@ -19,9 +23,8 @@ export default clerkMiddleware(async (auth, req) => {
         })
     }
     // Restrict organization routes to signed in users
-    if (isProtectedRoute(req)) await auth.protect(
+    if (isProtectedRoute(req)) await auth.protect()
         
-    )
 })
 
 

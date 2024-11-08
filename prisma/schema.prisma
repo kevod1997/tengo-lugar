@@ -15,11 +15,13 @@ datasource db {
 
 model User {
   id              String   @id @default(uuid())
+  clerkId         String   @unique
   firstName       String
   lastName        String
   birthDate       DateTime
   age             Int
   email           String   @unique
+  gender          Gender
   phone           String?
   profileImageKey String?
   createdAt       DateTime @default(now())
@@ -29,19 +31,21 @@ model User {
   identityCard    IdentityCard?
   passenger       Passenger?
   termsAcceptance UserTermsAcceptance[]
+  driver          Driver?
 }
 
 model IdentityCard {
-  id            String    @id @default(uuid())
-  userId        String    @unique
-  idNumber      Int?
-  frontFileKey  String?
-  backFileKey   String?
-  fileType      FileType?
-  isVerified    Boolean   @default(false)
+  id            String             @id @default(uuid())
+  userId        String             @unique
+  idNumber      Int
+  frontFileKey  String
+  backFileKey   String
+  fileType      FileType
+  status        VerificationStatus @default(PENDING)
   verifiedAt    DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  failureReason String?
 
   // Relación
   user User @relation(fields: [userId], references: [id])
@@ -76,11 +80,13 @@ model UserTermsAcceptance {
 model Rating {
   id          String   @id @default(uuid())
   passengerId String   @unique
+  driverId    String   @unique
   rating      Float
   createdAt   DateTime @default(now())
 
   // Relación
   passenger Passenger @relation(fields: [passengerId], references: [id])
+  driver   Driver    @relation(fields: [driverId], references: [id])
 }
 
 model Passenger {
@@ -92,8 +98,46 @@ model Passenger {
   ratings Rating?
 }
 
+model Driver {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  // Relaciones
+  user   User   @relation(fields: [userId], references: [id])
+  licence Licence?
+  ratings Rating?
+}
+
+model Licence {
+  id          String             @id @default(uuid())
+  driverId    String             @unique
+  expiration  DateTime
+  frontFileKey String
+  backFileKey  String
+  fileType    FileType
+  status      VerificationStatus @default(PENDING)
+  verifiedAt  DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  failureReason String?
+
+  // Relación
+  driver Driver @relation(fields: [driverId], references: [id])
+}
 
 enum FileType {
   PDF
   IMAGE
+}
+
+enum Gender {
+  MASCULINO
+  FEMENINO
+  NO_BINARIO
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  FAILED
 }

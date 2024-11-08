@@ -1,14 +1,20 @@
-
 'use server'
 
-import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { userSchema, CreateUserInput } from "@/lib/validations/user-validation";
 import { ApplicationError } from "@/lib/exceptions";
+import { auth } from "@clerk/nextjs/server";
+import { formatUserResponse } from "@/lib/user-formatter";
 
 export async function createUser(input: CreateUserInput) {
   try {
     const validatedData = userSchema.parse(input);
+    const { userId }: { userId: string | null } = await auth()
+    console.log('userId', userId)
+
+    if (!userId) {
+      throw new ApplicationError('Usuario no autenticado', 401);
+    }
 
     // Verificar si el email ya está registrado
     const existingUser = await prisma.user.findFirst({
@@ -38,10 +44,12 @@ export async function createUser(input: CreateUserInput) {
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
+          clerkId: userId!,
           firstName: validatedData.firstName,
           lastName: validatedData.lastName,
           email: validatedData.email,
           phone: validatedData.phone,
+          gender: validatedData.gender,
           birthDate: birthDate,
           age: age,
         },
@@ -54,14 +62,21 @@ export async function createUser(input: CreateUserInput) {
         },
       });
 
+      await tx.passenger.create({
+        data: {
+          userId: newUser.id,
+        },
+      });
+
       return newUser;
     });
 
-    revalidatePath('/users'); // Ajusta según tu estructura de rutas
-    
+    // revalidatePath('/users'); // Ajusta según tu estructura de rutas
+
     return {
       success: true,
-      data: { userId: user.id },
+      message: 'Usuario creado exitosamente',
+      data: user,
     };
 
   } catch (error) {
@@ -78,3 +93,27 @@ export async function createUser(input: CreateUserInput) {
   }
 }
 
+export async function getUserByClerkId(clerkId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+      include: {
+        identityCard: true,
+        termsAcceptance: {
+          orderBy: { acceptedAt: 'desc' },
+          take: 1,
+        },
+      },
+    })
+
+    if (!user) {
+      return null
+    }
+
+    return formatUserResponse(user)
+
+  } catch (error) {
+    console.error('Error fetching user by Clerk ID:', error)
+    throw error
+  }
+}

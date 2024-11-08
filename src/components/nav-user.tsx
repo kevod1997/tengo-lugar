@@ -33,12 +33,14 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useUserStore } from "@/store/user-store"
 
 export function NavUser({ open }: { open: boolean }) {
   const { signOut } = useClerk()
   const { user, isSignedIn } = useUser()
   const { isMobile } = useSidebar()
-  const isVerified = false // This should be replaced with actual verification status
+  const { user: userDb } = useUserStore()
+  const isVerified = userDb?.identityStatus === 'VERIFIED' ? true : false
 
   if (!isSignedIn) {
     return (
@@ -124,11 +126,9 @@ export function NavUser({ open }: { open: boolean }) {
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{user?.fullName}</span>
                   <span className="truncate text-xs">{user?.primaryEmailAddress?.emailAddress}</span>
-                  {isMobile && (
-                    <span className="text-xs text-muted-foreground">
-                      {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
-                    </span>
-                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
+                  </span>
                 </div>
                 {isVerified ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />

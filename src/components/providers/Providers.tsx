@@ -5,6 +5,7 @@ import { esES } from '@clerk/localizations';
 import { SidebarProvider } from '../ui/sidebar';
 import React from 'react';
 
+
 interface Props {
     children: React.ReactNode;
 }
@@ -14,9 +15,9 @@ export const Providers = ({ children }: Props) => {
 
     return (
         <ClerkProvider localization={esES}>
-            <SidebarProvider open={open} onOpenChange={setOpen}>
-            {children}
-            </SidebarProvider>
+                <SidebarProvider open={open} onOpenChange={setOpen}>
+                    {children}
+                </SidebarProvider>
         </ClerkProvider>
     );
 };

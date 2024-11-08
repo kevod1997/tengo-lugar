@@ -8,7 +8,7 @@ import Cropper from 'react-easy-crop'
 import { cn } from "@/lib/utils"
 
 interface ImageCaptureProps {
-  onCapture: (file: File) => void
+  onCapture: (file: File, preview: string) => void
   onError: (error: string) => void
   aspectRatio?: number
   id: string
@@ -126,7 +126,7 @@ export function ImageCapture({ onCapture, onError, aspectRatio = 1.6, id }: Imag
   const finalizeCrop = useCallback(async () => {
     try {
       if (!imageSrc || !croppedAreaPixels) return
-
+  
       const canvas = document.createElement('canvas')
       const image = await createImage(imageSrc)
       
@@ -135,7 +135,7 @@ export function ImageCapture({ onCapture, onError, aspectRatio = 1.6, id }: Imag
       
       const ctx = canvas.getContext('2d')
       if (!ctx) return
-
+  
       ctx.drawImage(
         image,
         croppedAreaPixels.x,
@@ -147,12 +147,15 @@ export function ImageCapture({ onCapture, onError, aspectRatio = 1.6, id }: Imag
         croppedAreaPixels.width,
         croppedAreaPixels.height
       )
-
+  
+      // Get the preview first
+      const preview = canvas.toDataURL('image/jpeg', 0.8)
+  
       canvas.toBlob(
         (blob) => {
           if (blob) {
             const file = new File([blob], `${id}-${Date.now()}.jpg`, { type: 'image/jpeg' })
-            onCapture(file)
+            onCapture(file, preview) // Pass both file and preview
             handleClose()
           }
         },
