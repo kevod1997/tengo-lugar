@@ -64,7 +64,8 @@ const fileSchema = z.object({
       "Solo se aceptan archivos .jpg, .jpeg, o .png"
     )
     .optional(),
-  source: z.enum(["camera", "upload"])
+  source: z.enum(["camera", "upload"]),
+  preview: z.string() 
 }).optional();
 
 export const identityCardSchema = z.object({
@@ -100,63 +101,42 @@ export const serverIdentityCardSchema = z.object({
   idNumber: z.number()
     .min(1000000, "El número de identificación debe tener al menos 7 caracteres")
     .max(99999999, "El número de identificación no debe exceder 8 caracteres"),
-  frontImage: z.object({
-    // En el servidor, file será un objeto con los datos del archivo
-    file: z.any(), // Aquí podrías validar la estructura específica que llega
-    source: z.enum(["camera", "upload"])
-  }),
-  backImage: z.object({
-    file: z.any(),
-    source: z.enum(["camera", "upload"])
-  })
+    frontImage: fileSchema,
+    backImage: fileSchema,
 });
 
 // Schema para el cliente
 export const driverLicenseSchema = z.object({
-  isVerificationRequired: z.boolean(),
   expirationDate: z.string()
-  .refine((date) => {
-    const expDate = new Date(date);
-    const today = new Date();
-    const maxDate = new Date();
-    maxDate.setFullYear(today.getFullYear() + 10); 
-    return expDate > today && expDate <= maxDate;
-  }, "La fecha de vencimiento debe ser futura y no puede exceder 10 años")
-    .optional(),
+    .refine((date) => {
+      const expDate = new Date(date);
+      const today = new Date();
+      const maxDate = new Date();
+      maxDate.setFullYear(today.getFullYear() + 10);
+      return expDate > today && expDate <= maxDate;
+    }, "La fecha de vencimiento debe ser futura y no puede exceder 10 años"),
   frontImage: fileSchema,
   backImage: fileSchema,
 }).refine(
-  (data) => {
-    if (data.isVerificationRequired) {
-      return !!data.expirationDate && !!data.frontImage?.file && !!data.backImage?.file;
-    }
-    return true;
-  },
+  (data) => !!data.expirationDate && !!data.frontImage?.file && !!data.backImage?.file,
   {
-    message: "Todos los campos son obligatorios para la verificación",
+    message: "Todos los campos son obligatorios para la licencia de conducir",
     path: ["expirationDate", "frontImage", "backImage"],
   }
 );
 
 // Schema para el servidor
 export const serverDriverLicenseSchema = z.object({
-  isVerificationRequired: z.boolean(),
   expirationDate: z.string()
-  .refine((date) => {
-    const expDate = new Date(date);
-    const today = new Date();
-    const maxDate = new Date();
-    maxDate.setFullYear(today.getFullYear() + 10); 
-    return expDate > today && expDate <= maxDate;
-  }, "La fecha de vencimiento debe ser futura y no puede exceder 10 años"),
-  frontImage: z.object({
-    file: z.any(),
-    source: z.enum(["camera", "upload"])
-  }),
-  backImage: z.object({
-    file: z.any(),
-    source: z.enum(["camera", "upload"])
-  })
+    .refine((date) => {
+      const expDate = new Date(date);
+      const today = new Date();
+      const maxDate = new Date();
+      maxDate.setFullYear(today.getFullYear() + 10);
+      return expDate > today && expDate <= maxDate;
+    }, "La fecha de vencimiento debe ser futura y no puede exceder 10 años"),
+    frontImage: fileSchema,
+    backImage: fileSchema,
 });
 
 // Tipo para TypeScript

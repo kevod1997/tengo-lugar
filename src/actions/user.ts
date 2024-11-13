@@ -99,6 +99,11 @@ export async function getUserByClerkId(clerkId: string) {
       where: { clerkId },
       include: {
         identityCard: true,
+        driver: {
+          include: {
+            licence: true,
+          },
+        },
         termsAcceptance: {
           orderBy: { acceptedAt: 'desc' },
           take: 1,
@@ -109,7 +114,7 @@ export async function getUserByClerkId(clerkId: string) {
     if (!user) {
       return null
     }
-
+    console.log('user', user)
     return formatUserResponse(user)
 
   } catch (error) {

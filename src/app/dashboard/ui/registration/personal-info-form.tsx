@@ -23,7 +23,7 @@ interface PersonalInfoFormProps {
 export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps) {
   const { user: clerkUser } = useUser()
   const { user: storeUser } = useUserStore()
-  
+
   const { control, register, handleSubmit, formState: { errors, isValid }, reset } = useForm({
     resolver: zodResolver(userSchema),
     mode: 'onChange',
@@ -33,13 +33,13 @@ export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps
       lastName: storeUser?.lastName || data?.personalInfo?.lastName || clerkUser?.lastName || '',
       email: storeUser?.email || data?.personalInfo?.email || clerkUser?.primaryEmailAddress?.emailAddress || '',
       phone: storeUser?.phone || data?.personalInfo?.phone || '',
-      birthDate: storeUser?.birthDate 
+      birthDate: storeUser?.birthDate
         ? new Date(storeUser.birthDate).toISOString().split('T')[0]
         : data?.personalInfo?.birthDate
-        ? new Date(data.personalInfo.birthDate).toISOString().split('T')[0]
-        : '',
+          ? new Date(data.personalInfo.birthDate).toISOString().split('T')[0]
+          : '',
       gender: storeUser?.gender || data?.personalInfo?.gender || '',
-      termsAccepted: Boolean(storeUser?.termsAcceptance?.length) || Boolean(data?.personalInfo?.termsAccepted) || false,
+      termsAccepted: Boolean(storeUser?.termsAccepted) || Boolean(data?.personalInfo?.termsAccepted) || false,
     }
   })
 
@@ -50,13 +50,13 @@ export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps
         lastName: storeUser?.lastName || data?.personalInfo?.lastName || clerkUser?.lastName || '',
         email: storeUser?.email || data?.personalInfo?.email || clerkUser?.primaryEmailAddress?.emailAddress || '',
         phone: storeUser?.phone || data?.personalInfo?.phone || '',
-        birthDate: storeUser?.birthDate 
+        birthDate: storeUser?.birthDate
           ? new Date(storeUser.birthDate).toISOString().split('T')[0]
           : data?.personalInfo?.birthDate
-          ? new Date(data.personalInfo.birthDate).toISOString().split('T')[0]
-          : '',
+            ? new Date(data.personalInfo.birthDate).toISOString().split('T')[0]
+            : '',
         gender: storeUser?.gender || data?.personalInfo?.gender || '',
-        termsAccepted: Boolean(storeUser?.termsAcceptance?.length) || Boolean(data?.personalInfo?.termsAccepted) || false,
+        termsAccepted: Boolean(storeUser?.termsAccepted) || Boolean(data?.personalInfo?.termsAccepted) || false,
       }
       reset(initialData)
     }
@@ -135,12 +135,12 @@ export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps
                 id="termsAccepted"
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={Boolean(storeUser?.termsAcceptance?.length)}
+                disabled={Boolean(storeUser?.termsAccepted)}
               />
             )}
           />
           <Label htmlFor="termsAccepted" className="text-sm">
-            {storeUser?.termsAcceptance && storeUser.termsAcceptance.length > 0
+            {storeUser?.termsAccepted && storeUser.termsAccepted
               ? "Términos y condiciones aceptados"
               : "Acepto los términos y condiciones"}
           </Label>

@@ -14,5 +14,6 @@ export interface FormattedUser {
     createdAt: string
     updatedAt: string
     identityStatus: VerificationStatus | null
+    licenseStatus: VerificationStatus | null
     termsAccepted: boolean
   }

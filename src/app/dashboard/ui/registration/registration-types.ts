@@ -9,6 +9,7 @@ export type Step = {
 }
 
 export type FormData = {
+  [x: string]: any
   role: UserRole | null
   personalInfo: any | null
   identityCard: any | null

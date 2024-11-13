@@ -15,6 +15,7 @@ export function formatUserResponse(user: any): FormattedUser {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     identityStatus: user.identityCard?.status || null,
+    licenseStatus: user.driver?.licence?.status || null,
     termsAccepted: Array.isArray(user.termsAcceptance) && user.termsAcceptance.length > 0
   }
 }

@@ -23,7 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useUserStore } from '@/store/user-store'
 
 interface IdentityCardFormProps {
-  onSubmit: (data: IdentityCardInput) => void
+  onSubmit: (data: IdentityCardInput) => any
   onSkip: () => void
   data: {
     role: 'traveler' | 'driver'
@@ -110,11 +110,11 @@ export default function IdentityCardForm({ onSubmit, onSkip, data }: IdentityCar
     if (side === 'front') {
       setFrontImage(file)
       setFrontPreview(preview)
-      setValue('frontImage', { file, source }, { shouldValidate: true })
+      setValue('frontImage', { file, source, preview }, { shouldValidate: true })
     } else {
       setBackImage(file)
       setBackPreview(preview)
-      setValue('backImage', { file, source }, { shouldValidate: true })
+      setValue('backImage', { file, source, preview }, { shouldValidate: true })
     }
 
     // Update form data immediately after capturing image
@@ -208,11 +208,17 @@ export default function IdentityCardForm({ onSubmit, onSkip, data }: IdentityCar
     try {
       const processedData = {
         ...formData,
-        frontImage: frontImage ? { file: frontImage, source: 'upload' as 'upload', preview: frontPreview } : undefined,
-        backImage: backImage ? { file: backImage, source: 'upload' as 'upload', preview: backPreview } : undefined,
+        frontImage: frontImage ? { file: frontImage, source: 'upload' as 'upload', preview: frontPreview || '' } : undefined,
+        backImage: backImage ? { file: backImage, source: 'upload' as 'upload', preview: backPreview || '' } : undefined,
       }
-      localStorage.removeItem(formKey) // Clear saved data on successful submit
-      onSubmit(processedData)
+      const result = await onSubmit(formData);
+
+      // Si el resultado fue exitoso
+      if (result?.success) {
+        localStorage.removeItem(formKey);
+        return;
+      }
+
     } catch (error) {
       console.error('Error submitting form:', error)
     }
@@ -271,7 +277,7 @@ export default function IdentityCardForm({ onSubmit, onSkip, data }: IdentityCar
               Verificar Identidad
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            {!user && !isVerificationRequired && (
+            {!user && !isVerificationRequired && data.role !== 'driver' && (
               <Button
                 type="button"
                 variant="outline"

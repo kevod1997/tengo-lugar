@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { AlertCircle, UserCheck, UserX, Loader2 } from 'lucide-react'
+import { AlertCircle, UserCheck, UserX, Loader2, Car } from 'lucide-react'
 import { useUserStore } from '@/store/user-store'
 import RegistrationFlow from './registration/registration-flow'
 import { LoadingOverlay } from '@/components/loader/loading-overlay'
@@ -12,123 +12,141 @@ export default function DashboardContent() {
   const { user, setUser, updateUser } = useUserStore()
   const [showRegistration, setShowRegistration] = useState(false)
   const [showIdVerification, setShowIdVerification] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  console.log('user', user)
+  const [isLoading, setIsLoading] = useState(true)
+  const [registrationStep, setRegistrationStep] = useState<'role' | 'personalInfo' | 'identityCard' | 'driverLicense'>('role')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (user === null) {
+      setShowIdVerification(false)
+      setIsLoading(true)
+    }
+  }, [user])
 
   const handleRegistrationComplete = () => {
     setShowRegistration(false)
+    setIsLoading(false)
   }
 
   const handleIdVerificationComplete = () => {
     setShowIdVerification(false)
+    updateUser({ ...user, identityStatus: 'PENDING' })
   }
 
-  const renderVerificationStatus = () => {
-    if (!user?.identityStatus) {
-      return (
-        <Card className="w-full max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserX className="text-yellow-500" />
-              Verificación de Identidad
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">Por favor, complete el proceso de verificación de identidad.</p>
-            <Button className="w-full sm:w-auto" onClick={() => setShowIdVerification(true)}>
-              Completar Verificación
-            </Button>
-          </CardContent>
-        </Card>
-      )
-    }
-
-    switch (user.identityStatus) {
-      case 'PENDING':
-        return (
-          <Card className="w-full max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Loader2 className="animate-spin text-blue-500" />
-                Verificación en Proceso
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Su verificación de identidad está en proceso. Le notificaremos cuando esté completa.</p>
-            </CardContent>
-          </Card>
-        )
-      case 'VERIFIED':
-        return (
-          <Card className="w-full max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-600">
-                <UserCheck />
-                Identidad Verificada
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Su identidad ha sido verificada exitosamente.</p>
-            </CardContent>
-          </Card>
-        )
-      case 'FAILED':
-        return (
-          <Card className="w-full max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="text-red-600 flex items-center gap-2">
-                <AlertCircle size={20} />
-                Verificación Fallida
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Lo sentimos, la verificación de su identidad ha fallado. Motivo: {user.identityStatus === 'FAILED' || 'No especificado'}.</p>
-              <p className="mt-2">Por favor, vuelva a subir sus documentos de identidad.</p>
-              <Button onClick={() => setShowIdVerification(true)} className="w-full sm:w-auto mt-4">
-                Volver a Subir Documentos
-              </Button>
-            </CardContent>
-          </Card>
-        )
-      default:
-        return null
-    }
+  const startDriverRegistration = () => {
+    setRegistrationStep('driverLicense')
+    setShowRegistration(true)
   }
 
   if (isLoading) {
     return <LoadingOverlay isLoading={true} />
   }
-
-  if (!user && !showRegistration) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+  console.log(user)
+  return (
+    <div className="flex flex-col gap-6 p-4 md:p-6 items-center">
+      {user ? (
+        <>
+          <h1 className="text-2xl md:text-3xl font-bold text-center md:text-left">Bienvenido, {user.firstName}!</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {!user.identityStatus && <UserX className="text-yellow-500" />}
+                  {user.identityStatus === 'PENDING' && <Loader2 className="animate-spin text-blue-500" />}
+                  {user.identityStatus === 'VERIFIED' && <UserCheck className="text-green-600" />}
+                  {user.identityStatus === 'FAILED' && <AlertCircle className="text-red-600" />}
+                  Verificación de Identidad
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!user.identityStatus && (
+                  <>
+                    <p className="mb-4">Complete el proceso de verificación de identidad para acceder a todas las funciones.</p>
+                    <Button className="w-full" onClick={() => setShowIdVerification(true)}>
+                      Completar Verificación
+                    </Button>
+                  </>
+                )}
+                {user.identityStatus === 'PENDING' && (
+                  <p>Su verificación de identidad está en proceso. Le notificaremos cuando esté completa.</p>
+                )}
+                {user.identityStatus === 'VERIFIED' && (
+                  <p>Su identidad ha sido verificada exitosamente.</p>
+                )}
+                {user.identityStatus === 'FAILED' && (
+                  <>
+                    <p>Lo sentimos, la verificación de su identidad ha fallado. Motivo: {user.identityStatus === 'FAILED' || 'No especificado'}.</p>
+                    <p className="mt-2">Por favor, vuelva a subir sus documentos de identidad.</p>
+                    <Button onClick={() => setShowIdVerification(true)} className="w-full mt-4">
+                      Volver a Subir Documentos
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Car className="text-primary" />
+                  Registro de Conductor
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {user.licenseStatus === 'VERIFIED' ? (
+                  <p>Ya estás registrado como conductor. ¡Gracias por ofrecer viajes en Tengo Lugar!</p>
+                ) : user.licenseStatus === 'PENDING' ? (
+                  <p>Su registro como conductor está en proceso. Le notificaremos cuando esté completo.</p>
+                ) : (
+                  <>
+                    <p className="mb-4">¿Quieres ofrecer viajes? Regístrate como conductor.</p>
+                    <Button
+                      className="w-full"
+                      onClick={startDriverRegistration}
+                      disabled={user.termsAccepted === false}
+                    >
+                      Convertirme en Conductor
+                    </Button>
+                    {(!user.identityStatus || user.identityStatus !== 'VERIFIED') && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Ten a mano tu licencia, datos del vehiculo y seguro.
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      ) : (
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Completa tu registro</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="mb-4">Para acceder a todas las funciones de Tengo Lugar, por favor completa tu registro.</p>
-            <Button className="w-full sm:w-auto" onClick={() => setShowRegistration(true)}>
+            <Button className="w-full" onClick={() => {
+              setShowRegistration(true)
+              setRegistrationStep('role')
+            }}>
               Completar Registro
             </Button>
           </CardContent>
         </Card>
-      </div>
-    )
-  }
+      )}
 
-  return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      {user && <h1 className="text-2xl md:text-3xl font-bold text-center md:text-left">Bienvenido, {user.firstName}!</h1>}
-      {user && renderVerificationStatus()}
-      {showRegistration && (
+      {(showRegistration || (user === null && !isLoading)) && (
         <RegistrationFlow
           onComplete={handleRegistrationComplete}
-          initialStep="role"
+          initialStep={registrationStep}
           onClose={() => setShowRegistration(false)}
+          initialRole={registrationStep === 'driverLicense' ? 'driver' : undefined}
         />
       )}
-      {showIdVerification && (
+      {showIdVerification && user?.identityStatus !== 'VERIFIED' && (
         <RegistrationFlow
           onComplete={handleIdVerificationComplete}
           initialStep="identityCard"

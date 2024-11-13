@@ -1,29 +1,12 @@
 'use server'
 
-import { StorageService } from "@/lib/storage";
-import { identityCardSchema, IdentityCardInput, serverIdentityCardSchema } from "@/lib/validations/user-validation";
+import { StorageService } from "@/lib/s3/storage";
+import { IdentityCardInput, serverIdentityCardSchema } from "@/lib/validations/user-validation";
 import { ApplicationError } from "@/lib/exceptions";
 import { FileType } from "@prisma/client";
-import sharp from "sharp";
 import prisma from "@/lib/prisma";
+import { processImage } from "@/lib/images/process-image";
 
-async function processImage(buffer: Buffer) {
-  try {
-    // Procesar la imagen con sharp
-    const processedBuffer = await sharp(buffer)
-      .resize(1200, 1200, { // Tamaño máximo manteniendo aspecto
-        fit: 'inside',
-        withoutEnlargement: true
-      })
-      .jpeg({ quality: 80 }) // Convertir a JPEG con calidad 80
-      .toBuffer();
-
-    return processedBuffer;
-  } catch (error) {
-    console.error('Error processing image:', error);
-    throw new Error('Error al procesar la imagen');
-  }
-}
 
 export async function uploadIdentityCard(
   userId: string,
@@ -61,18 +44,24 @@ export async function uploadIdentityCard(
       if (!validatedData.frontImage) {
         throw new ApplicationError('La imagen frontal es requerida', 400);
       }
-      const base64Data = (validatedData.frontImage.file as any).preview;
+      const base64Data = validatedData.frontImage.preview;
+      if (!base64Data) {
+        throw new ApplicationError('La imagen frontal es requerida', 400);
+      }
       return Buffer.from(
         base64Data.replace(/^data:image\/\w+;base64,/, ''),
         'base64'
       );
     };
-
+    
     const getBackImageData = () => {
       if (!validatedData.backImage) {
         throw new ApplicationError('La imagen trasera es requerida', 400);
       }
-      const base64Data = (validatedData.backImage.file as any).preview;
+      const base64Data = validatedData.backImage.preview;
+      if (!base64Data) {
+        throw new ApplicationError('La imagen trasera es requerida', 400);
+      }
       return Buffer.from(
         base64Data.replace(/^data:image\/\w+;base64,/, ''),
         'base64'

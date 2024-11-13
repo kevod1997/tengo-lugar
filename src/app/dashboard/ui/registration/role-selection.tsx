@@ -7,10 +7,11 @@ type UserRole = 'traveler' | 'driver'
 
 interface RoleSelectionProps {
   onNext: (role: UserRole) => void
+  data: any
 }
 
-export function RoleSelection({ onNext }: RoleSelectionProps) {
-  const [selectedRole, setSelectedRole] = useState<UserRole>('traveler')
+export function RoleSelection({ onNext, data }: RoleSelectionProps) {
+  const [selectedRole, setSelectedRole] = useState<UserRole>(data.role || 'traveler')
 
   const roles = [
     {
@@ -23,7 +24,7 @@ export function RoleSelection({ onNext }: RoleSelectionProps) {
     {
       id: 'driver',
       title: 'Conductor',
-      description: 'Ofrece viajes y genera ingresos extra de manera segura.',
+      description: 'Ofrece viajes y divide los gastos de tu viaje con otros pasajeros.',
       icon: Car,
       disabled: false
     }
