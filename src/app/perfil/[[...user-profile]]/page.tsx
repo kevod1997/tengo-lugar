@@ -1,6 +1,8 @@
 import Header from '@/components/header/header'
 import { UserProfile } from '@clerk/nextjs'
 
+//todo VER BIEN EL TEMA DE BORRAR EL USUARIO SI SE PUEDE EVITAR O NO
+
 const UserProfilePage = () => (
   <div className="flex flex-col w-full">
     <Header 

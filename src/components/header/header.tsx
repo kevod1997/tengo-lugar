@@ -26,7 +26,7 @@ interface HeaderProps {
   showBackButton?: boolean
 }
 
-export default function Header({ breadcrumbs, className = '', showBackButton = true }: HeaderProps) {
+export default function Header({ breadcrumbs, className = '', showBackButton = false }: HeaderProps) {
   const router = useRouter()
 
   const handleGoBack = () => {

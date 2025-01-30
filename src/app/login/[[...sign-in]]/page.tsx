@@ -24,7 +24,6 @@ export default function LoginPage() {
   return (
     <div className="flex justify-center mt-10">
       <DynamicSignIn
-        signUpUrl="/registro"
         forceRedirectUrl={redirectUrl}
       />
     </div>

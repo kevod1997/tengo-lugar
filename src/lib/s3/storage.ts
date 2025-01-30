@@ -37,6 +37,19 @@ export class StorageService {
     return await s3Service.getSignedDownloadUrl(key);
   }
 
+  static async getInsuranceDocumentUploadUrl(
+    fileExtension: string, 
+    contentType: string,
+    userInfo: UserInfo
+  ) {
+    const fileName = `${uuidv4()}.${fileExtension}`;
+    return await s3Service.getSignedUploadUrl('insurance', fileName, contentType, userInfo);
+  }
+
+  static async getInsuranceDocumentUrl(key: string) {
+    return await s3Service.getSignedDownloadUrl(key);
+  }
+
   static getProfileImageUrl(key: string) {
     return s3Service.getPublicUrl(key);
   }

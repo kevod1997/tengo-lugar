@@ -9,6 +9,7 @@ import {
   Map,
   LayoutDashboard,
   CarFrontIcon,
+  UserIcon,
 } from "lucide-react"
 import Image from "next/image"
 import { NavMain } from "@/components/nav-main"
@@ -71,7 +72,8 @@ function NavUserSkeleton({ open }: { open: boolean }) {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { open } = useSidebar()
-  const { isSignedIn, isLoaded } = useUser()
+  const { isSignedIn, isLoaded, user } = useUser()
+  const userIsAutheticated = user?.publicMetadata?.role === "admin"
 
   const authenticatedNavItems = [
     {
@@ -101,16 +103,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ]
 
-  const navItems = isSignedIn
-    ? [...data.navMain, ...authenticatedNavItems]
-    : data.navMain
+  const authethicatedNavItems = [
+    {
+      title: "Admin",
+      url: "/admin",
+      icon: UserIcon,
+    }
+  ]
+
+  const navItems = isSignedIn && userIsAutheticated
+    ? [...data.navMain, ...authenticatedNavItems, ...authethicatedNavItems] : isSignedIn ? [...data.navMain, ...authenticatedNavItems]
+      : data.navMain
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <div className={`relative overflow-hidden rounded-full ${
-            open? 'h-48 w-48' : 'h-16 w-16'}`}>
+          <div className={`relative overflow-hidden rounded-full ${open ? 'h-48 w-48' : 'h-16 w-16'}`}>
             <Image
               src="/imgs/logo.svg"
               alt="Tengo Lugar Logo"

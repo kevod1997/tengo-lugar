@@ -72,32 +72,48 @@ export function NavUser({ open }: { open: boolean }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground relative z-10"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground relative z-10 overflow-visible"
+              style={{ overflow: 'visible' }}
             >
-              <div className="relative">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user?.imageUrl} alt={user?.fullName || ""} />
-                  <AvatarFallback className="rounded-lg">
-                    {user?.firstName?.charAt(0)}
-                    {user?.lastName?.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="absolute -top-1 -right-1 z-20">
-                        {isVerified ? (
-                          <CheckCircle className="h-4 w-4 text-green-500 bg-white rounded-full" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-yellow-500 bg-white rounded-full" />
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <div className="relative w-full">
+                {/* Contenedor principal con overflow visible */}
+                <div className="relative" style={{ overflow: 'visible' }}>
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage
+                      src={userDb?.profileImageKey ?? undefined}
+                      alt={userDb?.firstName || ""}
+                    />
+                    <AvatarFallback className="rounded-lg bg-slate-500 text-white">
+                      {userDb?.firstName?.charAt(0)}
+                      {userDb?.lastName?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* Ícono posicionado absolutamente con overflow visible */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="absolute -top-1 -right-1 rounded-full bg-white"
+                          style={{
+                            zIndex: 50,
+                            transform: 'translate(0, 0)', // Asegura que la transformación no se corte
+                            isolation: 'isolate' // Crea un nuevo contexto de apilamiento
+                          }}
+                        >
+                          {isVerified ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-yellow-500" />
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
               {open && (
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -117,10 +133,10 @@ export function NavUser({ open }: { open: boolean }) {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user?.imageUrl} alt={user?.fullName || ""} />
-                  <AvatarFallback className="rounded-lg">
-                    {user?.firstName?.charAt(0)}
-                    {user?.lastName?.charAt(0)}
+                  <AvatarImage src={userDb?.profileImageKey ?? undefined} alt={userDb?.firstName || ""} />
+                  <AvatarFallback className="rounded-lg bg-slate-500 text-white">
+                    {userDb?.firstName?.charAt(0)}
+                    {userDb?.lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">

@@ -1,5 +1,4 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import { getUserByClerkId } from './actions/user';
 import { NextResponse } from 'next/server';
 
 const isProtectedRoute = createRouteMatcher([
@@ -9,19 +8,20 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 const isProtectedAdminRoute = createRouteMatcher([
-    '/admin',
+    '/admin(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
     // Restrict admin routes to users with specific permissions
-    if (isProtectedAdminRoute(req)) {
-        await auth.protect((has) => {
-            return (
-                has({ permission: 'org:sys_memberships:manage' }) ||
-                has({ permission: 'org:sys_domains_manage' })
-            )
-        })
-    }
+    if (isProtectedAdminRoute(req) && (await auth()).sessionClaims?.metadata?.role !== 'admin') {
+        console.log(
+            'User tried to access admin route without permission',
+            (await auth()).sessionClaims
+        )
+        const url = new URL('/', req.url)
+        return NextResponse.redirect(url)
+      }
+
     // Restrict organization routes to signed in users
     if (isProtectedRoute(req)) await auth.protect()
         

@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
 import { useUserStore } from '@/store/user-store'
-import { getUserByClerkId } from '@/actions/user'
+import { getUserByClerkId } from '@/actions'
 import Loading from '../loading'
+
+//todo ajustar bien a donde enviar segun el caso y estado 
 
 export default function AuthRedirect() {
   const router = useRouter()
@@ -19,11 +21,9 @@ export default function AuthRedirect() {
       if (isLoaded && isSignedIn && clerkUser) {
         try {
           const dbUser = await getUserByClerkId(clerkUser.id)
-          console.log('dbUser', dbUser)
           if (dbUser) {
             // Usuario existe en la base de datos
             const redirectUrl = searchParams.get('redirect_url') || '/'
-            console.log('redirectUrl', redirectUrl)
             setUser(dbUser)
             if (dbUser.identityStatus === 'VERIFIED') {
               return router.push(redirectUrl)

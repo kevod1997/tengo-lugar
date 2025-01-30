@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { S3ServiceError } from "../exceptions/s3-service-error";
 
 export interface UserInfo {
   firstName: string;
@@ -13,7 +14,7 @@ export class S3Service {
 
   constructor() {
     if (!process.env.AWS_BUCKET_REGION || !process.env.AWS_ACCESS_KEY || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_BUCKET_NAME) {
-      throw new Error('Missing required AWS configuration');
+      throw S3ServiceError.S3ConfigFailed('s3.ts', 'constructor');
     }
 
     this.s3Client = new S3Client({
@@ -26,11 +27,12 @@ export class S3Service {
     this.bucketName = process.env.AWS_BUCKET_NAME;
   }
 
-  private getObjectKey(type: 'profile' | 'identity' | 'license', fileName: string, userInfo: UserInfo) {
+  private getObjectKey(type: 'profile' | 'identity' | 'license' | 'insurance', fileName: string, userInfo: UserInfo) {
     const prefix = {
       profile: 'public/profile-images',
       identity: 'private/identity-documents',
-      license: 'private/driver-licenses'
+      license: 'private/driver-licenses',
+      insurance: 'private/insurance-documents',
     }[type];
 
     const timestamp = Date.now();
@@ -43,15 +45,13 @@ export class S3Service {
   }
 
   async getSignedUploadUrl(
-    type: 'profile' | 'identity' | 'license',
+    type: 'profile' | 'identity' | 'license' | 'insurance',
     fileName: string,
     contentType: string,
     userInfo: UserInfo,
     expiresIn: number = 3600
   ) {
     const key = this.getObjectKey(type, fileName, userInfo);
-    console.log('Getting signed URL for:', { type, fileName, key, contentType, userInfo });
-
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: key,
@@ -61,31 +61,40 @@ export class S3Service {
     try {
       const signedUrl = await getSignedUrl(this.s3Client, command, { expiresIn });
       return { signedUrl, key };
-    } catch (error) {
-      console.error('Error getting signed URL:', error);
-      throw error;
+    } catch (error: any) {
+      throw S3ServiceError.UrlGenerationFailed('s3.ts', 'getSignedUploadUrl', `Error generando URL firmada: ${error.message}`);
     }
   }
 
   async getSignedDownloadUrl(key: string, expiresIn: number = 3600) {
-    const command = new GetObjectCommand({
-      Bucket: this.bucketName,
-      Key: key,
-    });
-
-    return await getSignedUrl(this.s3Client, command, { expiresIn });
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+      return await getSignedUrl(this.s3Client, command, { expiresIn });
+    } catch (error: any) {
+      throw S3ServiceError.DownloadFailed('s3.ts', 'getSignedDownloadUrl', `Error generando URL de descarga: ${error.message}`);
+    }
   }
 
   async deleteObject(key: string) {
-    const command = new DeleteObjectCommand({
-      Bucket: this.bucketName,
-      Key: key,
-    });
-
-    return await this.s3Client.send(command);
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+      return await this.s3Client.send(command);
+    } catch (error: any) {
+      throw S3ServiceError.DeleteFailed('s3.ts', 'deleteObject', `Error eliminando objeto: ${error.message}`);
+    }
   }
 
   getPublicUrl(key: string) {
+    if (!key || !this.bucketName || !process.env.AWS_BUCKET_REGION) {
+      throw S3ServiceError.InvalidBucketOperation('s3.ts', 'getPublicUrl', `
+        ${!key ? 'Key no puede ser vacío' : 'Nombre de bucket o region no configurado'}`);
+    }
     return `https://${this.bucketName}.s3.${process.env.AWS_BUCKET_REGION}.amazonaws.com/${key}`;
   }
 }
