@@ -37,7 +37,7 @@ export class ApiHandler {
             } else if (error instanceof S3ServiceError) {
                 origin = 'S3 Service';
             } else if (error instanceof AuxiliaryError) {
-                origin = `Auxiliary Function: ${error.functionName}`;
+                origin = `Auxiliary Function`;
             }
         } else if (error instanceof Error) {
             details = error.stack || error.message;

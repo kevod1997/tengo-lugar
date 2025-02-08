@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useUserStore } from '@/store/user-store'
 import { toast } from 'sonner'
-import { FormattedUser } from '@/types/user'
+import { FormattedUser } from '@/types/user-types'
 
 export function AuthCheck() {
   const { isSignedIn, isLoaded } = useUser()

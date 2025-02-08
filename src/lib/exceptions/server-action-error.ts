@@ -95,6 +95,15 @@ export class ServerActionError extends BaseError {
         );
     }
 
+    static RateLimitExceeded(fileName: string, functionName: string, details: string) {
+        return new ServerActionError(
+            details,
+            'RATE_LIMIT_EXCEEDED',
+            fileName,
+            functionName
+        );
+    }
+
     static DatabaseError(fileName: string, functionName: string, details: string) {
         return new ServerActionError(
             `Error en la base de datos: ${details}`,

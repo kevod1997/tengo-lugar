@@ -1,3 +1,4 @@
+import CarCardForm from "@/app/dashboard/ui/registration/steps/car-card-form";
 import CarForm from "@/app/dashboard/ui/registration/steps/car-form";
 import DriverLicenseForm from "@/app/dashboard/ui/registration/steps/driver-license-form";
 import IdentityCardForm from "@/app/dashboard/ui/registration/steps/identity-card-form";
@@ -11,7 +12,7 @@ export interface Step {
   component: React.ComponentType<any>;
 }
 
-export type StepId = 'role' | 'personalInfo' | 'identityCard' | 'driverLicense' | 'carInfo' | 'insurance';
+export type StepId = 'role' | 'personalInfo' | 'identityCard' | 'driverLicense' | 'carInfo' | 'insurance' | "carCard";
 export type UserRole = 'traveler' | 'driver' ;
 
 export interface FormData {
@@ -21,6 +22,7 @@ export interface FormData {
   driverLicense: any;
   carInfo: any;
   insurance: any;
+  carCard: any
 }
 
 export const allSteps: Record<string, Step> = {
@@ -36,7 +38,8 @@ export const allSteps: Record<string, Step> = {
   // Bloque 3: Vehículo
   carInfo: { id: 'carInfo', title: 'Información del Vehículo', component: CarForm },
   insurance: { id: 'insurance', title: 'Seguro del Vehículo', component: InsuranceForm },
+  carCard: { id: 'carCard', title: 'Cedula', component: CarCardForm },
 };
 
 export const travelerStepIds = ['role', 'personalInfo', 'identityCard'];
-export const driverStepIds = ['role', 'personalInfo', 'identityCard', 'driverLicense', 'carInfo', 'insurance'];
+export const driverStepIds = ['role', 'personalInfo', 'identityCard', 'driverLicense', 'carInfo', 'insurance', 'carCard'];

@@ -9,6 +9,7 @@ import { auth } from "@clerk/nextjs/server"
 import { FileType } from "@prisma/client"
 import { uploadDocuments } from "@/lib/file/upload-documents"
 import { z } from "zod"
+import { getUserByClerkId } from "../register/user/get-user"
 
 export async function submitInsuranceInfo(userId: string, insuranceInfo: InsuranceInput) {
     try {
@@ -25,7 +26,7 @@ export async function submitInsuranceInfo(userId: string, insuranceInfo: Insuran
         const validatedData = insuranceSchema.parse(insuranceInfo)
 
         // Ejecutamos todas las operaciones en una transacción
-        const result = await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx) => {
             // Buscamos el driver y su información relacionada
             const driver = await tx.driver.findUnique({
                 where: { userId },
@@ -56,6 +57,7 @@ export async function submitInsuranceInfo(userId: string, insuranceInfo: Insuran
                 )
             }
 
+            //todo esto hay que optimizarlo bien  para que sea el auto el que se valide bien, para ser reutilizable
             const car = driver.Car[0].car
 
             // Verificamos si ya existe una póliza activa
@@ -86,7 +88,8 @@ export async function submitInsuranceInfo(userId: string, insuranceInfo: Insuran
                 validatedData.policyFile,
                 undefined,
                 userInfo,
-                'insurance'
+                'insurance',
+                car.plate
             )
 
             if (!uploadResult.frontFileKey) {
@@ -189,17 +192,18 @@ export async function submitInsuranceInfo(userId: string, insuranceInfo: Insuran
                     throw handlePrismaError(error, 'submitInsuranceInfo.updateCar', 'submit-insurance.ts')
                 })
             }
-
-            return {
-                insuredCar,
-                policy,
-                insuranceCompany: policy.insurance
-            }
         })
 
-        return ApiHandler.handleSuccess(
-            result
-        )
+        const updatedUser = await getUserByClerkId();
+
+
+        return {
+            success: true,
+            data: {
+                updatedUser,
+                message: 'Póliza de seguro cargada exitosamente',
+            }
+        }
 
     } catch (error) {
         if (error instanceof z.ZodError) {

@@ -6,8 +6,8 @@ import { useUser } from '@clerk/nextjs'
 import { useUserStore } from '@/store/user-store'
 import { getUserByClerkId } from '@/actions'
 import Loading from '../loading'
+import { VerificationStatus } from '@prisma/client'
 
-//todo ajustar bien a donde enviar segun el caso y estado 
 
 export default function AuthRedirect() {
   const router = useRouter()
@@ -22,9 +22,19 @@ export default function AuthRedirect() {
         try {
           const dbUser = await getUserByClerkId(clerkUser.id)
           if (dbUser) {
+            setUser(dbUser)
+
+            const needsVerification =
+              dbUser.identityStatus === VerificationStatus.FAILED ||
+              dbUser.licenseStatus === VerificationStatus.FAILED ||
+              dbUser.cars.some(car => car.insurance.status === VerificationStatus.FAILED)
+
+            if (needsVerification) {
+              return router.push('/dashboard')
+            }
+
             // Usuario existe en la base de datos
             const redirectUrl = searchParams.get('redirect_url') || '/'
-            setUser(dbUser)
             if (dbUser.identityStatus === 'VERIFIED') {
               return router.push(redirectUrl)
             }
@@ -34,7 +44,6 @@ export default function AuthRedirect() {
             router.push('/dashboard')
           }
         } catch (error) {
-          console.error('Error al verificar el usuario:', error)
           setError('Ocurrió un error al verificar tu cuenta. Por favor, intenta de nuevo.')
         }
       } else if (isLoaded && !isSignedIn) {

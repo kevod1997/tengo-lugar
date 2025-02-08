@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
-import { INFOAUTO_API_URL, INFOAUTO_USERNAME, INFOAUTO_PASSWORD } from './infoauto-config';
+import { CAR_API_PASSWORD, CAR_API_URL, CAR_API_USERNAME } from '@/config/car-api';
+import { ServiceError } from '@/lib/exceptions/service-error';
 
 const redis = Redis.fromEnv();
 
@@ -8,71 +9,126 @@ interface AuthResponse {
   refresh_token: string;
 }
 
+interface CarApiError {
+  message: string;
+  status: number;
+  details?: string;
+}
+
 export async function getAccessToken(): Promise<string> {
-  const cachedToken = await redis.get<string>('infoauto_access_token');
-  if (cachedToken) return cachedToken;
+  try {
+    const cachedToken = await redis.get<string>('car_api_access_token');
+    if (cachedToken) return cachedToken;
 
-  const response = await fetch(`${INFOAUTO_API_URL}/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Basic ${Buffer.from(`${INFOAUTO_USERNAME}:${INFOAUTO_PASSWORD}`).toString('base64')}`
+    const response = await fetch(`${CAR_API_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${Buffer.from(`${CAR_API_USERNAME}:${CAR_API_PASSWORD}`).toString('base64')}`
+      }
+    });
+
+    if (!response.ok) {
+      throw ServiceError.ExternalApiError(
+        `Authentication failed: ${response.statusText}`,
+        'car-api.ts',
+        'getAccessToken'
+      );
     }
-  });
-  console.log('response', response);
-  if (!response.ok) {
-    throw new Error('Failed to obtain access token');
+
+    const { access_token, refresh_token }: AuthResponse = await response.json();
+
+    await redis.set('car_api_access_token', access_token, { ex: 3000 });
+    await redis.set('car_api_refresh_token', refresh_token, { ex: 86400 });
+
+    return access_token;
+  } catch (error) {
+    if (error instanceof ServiceError) throw error;
+    
+    throw ServiceError.ExternalApiError(
+      'Failed to obtain access token',
+      'car-api.ts',
+      'getAccessToken'
+    );
   }
-
-  const { access_token, refresh_token }: AuthResponse = await response.json();
-
-  // Cache the access token for 50 minutes (considering it's valid for 1 hour)
-  await redis.set('infoauto_access_token', access_token, { ex: 3000 });
-  await redis.set('infoauto_refresh_token', refresh_token, { ex: 86400 }); // 24 hours
-
-  return access_token;
 }
 
 export async function refreshAccessToken(): Promise<void> {
-  const refreshToken = await redis.get<string>('infoauto_refresh_token');
-  if (!refreshToken) {
-    throw new Error('Refresh token not found');
-  }
-
-  const response = await fetch(`${INFOAUTO_API_URL}/auth/refresh`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${refreshToken}`
+  try {
+    const refreshToken = await redis.get<string>('car_api_refresh_token');
+    if (!refreshToken) {
+      throw ServiceError.InvalidOperation(
+        'Refresh token not found',
+        'car-api.ts',
+        'refreshAccessToken'
+      );
     }
-  });
 
-  if (!response.ok) {
-    throw new Error('Failed to refresh access token');
+    const response = await fetch(`${CAR_API_URL}/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${refreshToken}`
+      }
+    });
+
+    if (!response.ok) {
+      throw ServiceError.ExternalApiError(
+        `Token refresh failed: ${response.statusText}`,
+        'car-api.ts',
+        'refreshAccessToken'
+      );
+    }
+
+    const { access_token }: AuthResponse = await response.json();
+    await redis.set('car_api_access_token', access_token, { ex: 3000 });
+  } catch (error) {
+    if (error instanceof ServiceError) throw error;
+    
+    throw ServiceError.ExternalApiError(
+      'Failed to refresh access token',
+      'car-api.ts',
+      'refreshAccessToken'
+    );
   }
-
-  const { access_token }: AuthResponse = await response.json();
-
-  await redis.set('infoauto_access_token', access_token, { ex: 3000 });
 }
 
-export async function fetchFromInfoAuto(endpoint: string): Promise<any> {
-  const accessToken = await getAccessToken();
+export async function fetchFromCarApi<T>(endpoint: string): Promise<T> {
+  try {
+    const accessToken = await getAccessToken();
 
-  const response = await fetch(`${INFOAUTO_API_URL}/pub${endpoint}`, {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
-    }
-  });
+    const response = await fetch(`${CAR_API_URL}/${endpoint}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
 
-  if (!response.ok) {
-    if (response.status === 401) {
-      await refreshAccessToken();
-      return fetchFromInfoAuto(endpoint);
+    if (!response.ok) {
+      if (response.status === 401) {
+        await refreshAccessToken();
+        return fetchFromCarApi<T>(endpoint);
+      }
+
+      const errorData: CarApiError = await response.json().catch(() => ({
+        message: response.statusText,
+        status: response.status
+      }));
+
+      throw ServiceError.ExternalApiError(
+        `API request failed: ${errorData.message}`,
+        'car-api.ts',
+        'fetchFromCarApi'
+      );
     }
-    throw new Error(`API request failed: ${response.statusText}`);
+
+    return response.json();
+  } catch (error) {
+    if (error instanceof ServiceError) throw error;
+    
+    throw ServiceError.ExternalApiError(
+      'Failed to fetch data from car API',
+      'car-api.ts',
+      'fetchFromCarApi'
+    );
   }
-
-  return response.json();
 }
-

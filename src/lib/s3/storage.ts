@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class StorageService {
   static async getProfileImageUploadUrl(
-    fileExtension: string, 
+    fileExtension: string,
     contentType: string,
     userInfo: UserInfo
   ) {
@@ -11,8 +11,12 @@ export class StorageService {
     return await s3Service.getSignedUploadUrl('profile', fileName, contentType, userInfo);
   }
 
+  static getProfileImageUrl(key: string) {
+    return s3Service.getPublicUrl(key);
+  }
+
   static async getIdentityDocumentUploadUrl(
-    fileExtension: string, 
+    fileExtension: string,
     contentType: string,
     userInfo: UserInfo
   ) {
@@ -21,7 +25,7 @@ export class StorageService {
   }
 
   static async getDriverLicenseUploadUrl(
-    fileExtension: string, 
+    fileExtension: string,
     contentType: string,
     userInfo: UserInfo
   ) {
@@ -29,30 +33,52 @@ export class StorageService {
     return await s3Service.getSignedUploadUrl('license', fileName, contentType, userInfo);
   }
 
-  static async getIdentityDocumentUrl(key: string) {
+  // static async getIdentityDocumentUrl(key: string) {
+  //   return await s3Service.getSignedDownloadUrl(key);
+  // }
+
+  // static async getDriverLicenseUrl(key: string) {
+  //   return await s3Service.getSignedDownloadUrl(key);
+  // }
+
+  static async getIdentityDocumentUrl(key: string | null): Promise<string | null> {
+    if (!key) return null;
     return await s3Service.getSignedDownloadUrl(key);
   }
 
-  static async getDriverLicenseUrl(key: string) {
+  static async getDriverLicenseUrl(key: string | null): Promise<string | null> {
+    if (!key) return null;
     return await s3Service.getSignedDownloadUrl(key);
   }
 
   static async getInsuranceDocumentUploadUrl(
-    fileExtension: string, 
+    fileExtension: string,
     contentType: string,
-    userInfo: UserInfo
+    userInfo: UserInfo,
+    carPlate?: string
   ) {
     const fileName = `${uuidv4()}.${fileExtension}`;
-    return await s3Service.getSignedUploadUrl('insurance', fileName, contentType, userInfo);
+    return await s3Service.getSignedUploadUrl('insurance', fileName, contentType, userInfo, carPlate);
   }
 
   static async getInsuranceDocumentUrl(key: string) {
     return await s3Service.getSignedDownloadUrl(key);
   }
 
-  static getProfileImageUrl(key: string) {
-    return s3Service.getPublicUrl(key);
+  static async getCarCardDocumentUploadUrl(
+    fileExtension: string,
+    contentType: string,
+    userInfo: UserInfo,
+    carPlate?: string
+  ) {
+    const fileName = `${uuidv4()}.${fileExtension}`;
+    return await s3Service.getSignedUploadUrl('car-card', fileName, contentType, userInfo, carPlate);
   }
+
+  static async getCarCardDocumentUrl(key: string) {
+    return await s3Service.getSignedDownloadUrl(key);
+  }
+
 
   // Función de utilidad para eliminar archivos si es necesario
   // static async deleteFile(key: string) {

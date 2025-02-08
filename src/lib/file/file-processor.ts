@@ -8,7 +8,9 @@ export interface ProcessedFile {
 }
 
 export async function processFile(file: File): Promise<ProcessedFile> {
+  
   try {
+
     const processResult = file.type === 'application/pdf'
       ? await processPDFAction(file)
       : await processImageAction(file);

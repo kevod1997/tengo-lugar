@@ -5,3 +5,4 @@ export const ACCEPTED_FILE_TYPES = [
   "image/png", 
   "application/pdf"
 ];
+export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"]

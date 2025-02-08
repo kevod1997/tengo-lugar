@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth, useClerk, useUser } from "@clerk/nextjs"
+import { useClerk, useUser } from "@clerk/nextjs"
 import {
   ChevronsUpDown,
   LogOut,
@@ -41,7 +41,7 @@ export function NavUser({ open }: { open: boolean }) {
   const { isMobile } = useSidebar()
   const { user: userDb } = useUserStore()
   const isVerified = userDb?.identityStatus === 'VERIFIED' ? true : false
-
+  console.log(open)
   if (!isSignedIn) {
     return (
       <SidebarMenu>
@@ -70,59 +70,59 @@ export function NavUser({ open }: { open: boolean }) {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground relative z-10 overflow-visible"
-              style={{ overflow: 'visible' }}
-            >
-              <div className="relative w-full">
-                {/* Contenedor principal con overflow visible */}
-                <div className="relative" style={{ overflow: 'visible' }}>
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage
-                      src={userDb?.profileImageKey ?? undefined}
-                      alt={userDb?.firstName || ""}
-                    />
-                    <AvatarFallback className="rounded-lg bg-slate-500 text-white">
-                      {userDb?.firstName?.charAt(0)}
-                      {userDb?.lastName?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+          <SidebarMenuButton
+  size="lg"
+  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground relative z-10 flex items-center w-full gap-3 p-2 overflow-visible"
+>
+  {/* Container del Avatar y badge */}
+  <div className="relative flex-shrink-0">
+    <Avatar className="h-8 w-8 rounded-lg">
+      <AvatarImage
+        src={userDb?.profileImageKey ?? undefined}
+        alt={userDb?.firstName || ""}
+      />
+      <AvatarFallback className="rounded-lg bg-slate-500 text-white">
+        {userDb?.firstName?.charAt(0)}
+        {userDb?.lastName?.charAt(0)}
+      </AvatarFallback>
+    </Avatar>
 
-                  {/* Ícono posicionado absolutamente con overflow visible */}
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div
-                          className="absolute -top-1 -right-1 rounded-full bg-white"
-                          style={{
-                            zIndex: 50,
-                            transform: 'translate(0, 0)', // Asegura que la transformación no se corte
-                            isolation: 'isolate' // Crea un nuevo contexto de apilamiento
-                          }}
-                        >
-                          {isVerified ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <AlertCircle className="h-4 w-4 text-yellow-500" />
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-              {open && (
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user?.fullName}</span>
-                  <span className="truncate text-xs">{user?.primaryEmailAddress?.emailAddress}</span>
-                </div>
-              )}
-              {open && <ChevronsUpDown className="ml-auto size-4" />}
-            </SidebarMenuButton>
+    {/* Badge de verificación con z-index más alto */}
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div 
+            className="absolute -top-1 -right-1 rounded-full bg-white shadow-sm"
+            style={{ zIndex: 100 }}
+          >
+            {isVerified ? (
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-yellow-500" />
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  </div>
+
+  {/* Información del usuario con mejor manejo de espacio */}
+  {open && (
+    <div className="flex flex-1 items-center gap-2 min-w-0">
+      <div className="flex-1 grid text-sm leading-tight">
+        <span className="truncate font-semibold">{user?.fullName}</span>
+        <span className="truncate text-xs text-muted-foreground">
+          {user?.primaryEmailAddress?.emailAddress}
+        </span>
+      </div>
+      <ChevronsUpDown className="h-4 w-4 flex-shrink-0" />
+    </div>
+  )}
+</SidebarMenuButton>
+            
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
@@ -154,7 +154,7 @@ export function NavUser({ open }: { open: boolean }) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+            {userDb ? <DropdownMenuGroup>
               <DropdownMenuItem asChild>
                 <a href="/perfil">
                   <User className="mr-2 h-4 w-4" />
@@ -167,25 +167,19 @@ export function NavUser({ open }: { open: boolean }) {
                   Alertas
                 </a>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <a href="/documentos">
-                  <Paperclip className="mr-2 h-4 w-4" />
-                  Documentos
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              {userDb?.cars.some((car) => car.insurance.status === "VERIFIED") ? <DropdownMenuItem asChild>
                 <a href="/vehiculos">
                   <Car className="mr-2 h-4 w-4" />
                   Vehiculos
                 </a>
-              </DropdownMenuItem>
+              </DropdownMenuItem> : null}
               <DropdownMenuItem asChild>
                 <a href="/reviews">
                   <ClipboardCheck className="mr-2 h-4 w-4" />
                   Reviews
                 </a>
               </DropdownMenuItem>
-            </DropdownMenuGroup>
+            </DropdownMenuGroup> : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut()}>
               <LogOut className="mr-2 h-4 w-4" />

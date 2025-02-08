@@ -8,7 +8,7 @@ import { UserRegistrationService } from "@/services/registration/user-service"
 import { FormattedUser } from "@/types/user-types"
 import { useApiResponse } from "../ui/useApiResponse"
 
-export function useRegistrationFlow(initialStep: StepId, onComplete: () => void, initialRole?: UserRole) {
+export function useRegistrationFlow(initialStep: StepId, onComplete: () => void, onClose: (() => void) | undefined, initialRole?: UserRole) {
     // Estados
     const router = useRouter()
     const { user, setUser } = useUserStore()
@@ -20,79 +20,99 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         identityCard: null,
         driverLicense: null,
         carInfo: null,
-        insurance: null
+        insurance: null,
+        carCard: null,
     }))
     const [userProfile, setUserProfile] = useState<FormattedUser | null>(null)
 
     // Memos
     // const steps = useMemo(() => {
+    //     // If no role selected, only show role selection
     //     if (!formData.role) return [allSteps.role]
 
+    //     // Get initial steps based on role
     //     let stepIds = formData.role === 'driver' ? [...driverStepIds] : [...travelerStepIds]
 
-    //     // Filtrar pasos según el estado del usuario
+    //     // Filter steps based on user state and verification status
     //     if (user?.termsAccepted) {
     //         stepIds = stepIds.filter(id => id !== 'personalInfo')
     //     }
 
+    //     // Handle identity verification
     //     if (user?.identityStatus === VerificationStatus.VERIFIED ||
     //         user?.identityStatus === VerificationStatus.PENDING) {
     //         stepIds = stepIds.filter(id => id !== 'identityCard')
     //     }
 
-    //     if (formData.role === 'driver' &&
-    //         (user?.licenseStatus === VerificationStatus.VERIFIED ||
-    //             user?.licenseStatus === VerificationStatus.PENDING)) {
-    //         stepIds = stepIds.filter(id => id !== 'driverLicense')
+    //     // Handle driver-specific verifications
+    //     if (formData.role === 'driver') {
+    //         // Filter out license step if already verified or pending
+    //         if (user?.licenseStatus === VerificationStatus.VERIFIED ||
+    //             user?.licenseStatus === VerificationStatus.PENDING) {
+    //             stepIds = stepIds.filter(id => id !== 'driverLicense')
+    //         }
+
+    //         // Handle car verification
+    //         if (user?.hasRegisteredCar) {
+    //             stepIds = stepIds.filter(id => id !== 'carInfo')
+    //         }
+
+    //         // Handle insurance verification separately
+    //         if (user?.allCarsInsured && !user?.hasPendingInsurance) {
+    //             stepIds = stepIds.filter(id => id !== 'insurance')
+    //         }
     //     }
 
-    //     //todo incluir paso de carInfo ? como seria porque se verifica junto con el seguro
-
-    //     // Incluir paso actual si fue filtrado
+    //     // Ensure current step is included if it was filtered
     //     if (!stepIds.includes(currentStepId) && currentStepId !== 'role') {
     //         stepIds.push(currentStepId)
     //     }
 
     //     return stepIds.map(id => allSteps[id])
-    // }, [formData.role, currentStepId, user?.termsAccepted, user?.identityStatus, user?.licenseStatus])
+    // }, [
+    //     formData.role,
+    //     currentStepId,
+    //     user?.termsAccepted,
+    //     user?.identityStatus,
+    //     user?.licenseStatus,
+    //     user?.hasRegisteredCar,
+    //     user?.allCarsInsured,
+    //     user?.hasPendingInsurance
+    // ])
+
     const steps = useMemo(() => {
-        // If no role selected, only show role selection
         if (!formData.role) return [allSteps.role]
 
-        // Get initial steps based on role
         let stepIds = formData.role === 'driver' ? [...driverStepIds] : [...travelerStepIds]
 
-        // Filter steps based on user state and verification status
         if (user?.termsAccepted) {
             stepIds = stepIds.filter(id => id !== 'personalInfo')
         }
 
-        // Handle identity verification
         if (user?.identityStatus === VerificationStatus.VERIFIED ||
             user?.identityStatus === VerificationStatus.PENDING) {
             stepIds = stepIds.filter(id => id !== 'identityCard')
         }
 
-        // Handle driver-specific verifications
         if (formData.role === 'driver') {
-            // Filter out license step if already verified or pending
             if (user?.licenseStatus === VerificationStatus.VERIFIED ||
                 user?.licenseStatus === VerificationStatus.PENDING) {
                 stepIds = stepIds.filter(id => id !== 'driverLicense')
             }
 
-            // Handle car verification
             if (user?.hasRegisteredCar) {
                 stepIds = stepIds.filter(id => id !== 'carInfo')
             }
 
-            // Handle insurance verification separately
             if (user?.allCarsInsured && !user?.hasPendingInsurance) {
                 stepIds = stepIds.filter(id => id !== 'insurance')
             }
+
+            if (user?.hasAllRequiredCards && !user?.hasPendingCards) {
+                stepIds = stepIds.filter(id => id !== 'carCard')
+            }
         }
 
-        // Ensure current step is included if it was filtered
         if (!stepIds.includes(currentStepId) && currentStepId !== 'role') {
             stepIds.push(currentStepId)
         }
@@ -106,7 +126,9 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         user?.licenseStatus,
         user?.hasRegisteredCar,
         user?.allCarsInsured,
-        user?.hasPendingInsurance
+        user?.hasPendingInsurance,
+        user?.hasAllRequiredCards,
+        user?.hasPendingCards
     ])
 
     const currentStepIndex = useMemo(() =>
@@ -141,99 +163,41 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         throw new Error('No se encontró un ID de usuario válido')
     }
 
+    // MANEJADORES PRINCIPALES
+
     const handleTravelerFlow = async (stepId: string, data: any) => {
         const { handleResponse } = useApiResponse()
         const userRegistrationService = new UserRegistrationService()
         setIsLoading(true)
+
         try {
-            if (stepId === 'personalInfo') {
-                const createdUser = await userRegistrationService.createBaseProfile(data)
-                setUserProfile(createdUser.data as FormattedUser)
-                handleResponse({ success: createdUser.success, message: createdUser.message })
-                moveToNextStep()
-                //todo para que sirve el null
-                return null
-            } else if (stepId === 'identityCard') {
+            switch (stepId) {
+                case 'personalInfo':
+                    const createdUser = await userRegistrationService.createBaseProfile(data)
+                    setUserProfile(createdUser.data as FormattedUser)
+                    handleResponse({ success: createdUser.success, message: createdUser.message })
+                    moveToNextStep()
+                    break;
 
-                const userId = getUserId()
-                const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data)
-                handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
+                case 'identityCard':
+                    const userId = getUserId()
+                    const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null)
+                    handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
 
-                if (identityCardResult.success) {
-                    setUser(identityCardResult.data!);
-                    router.refresh()
-                    onComplete()
-                }
+                    if (identityCardResult.success) {
+                        setUser(identityCardResult.data!)
+                        router.refresh()
+                        onClose?.()
+                        onComplete()
+                    }
+                    break;
             }
         } catch (error) {
-            console.log('error', error)
             handleResponse({ success: false, message: (error as Error).message })
         } finally {
             setIsLoading(false)
         }
     }
-
-    // const handleDriverFlow = async (stepId: string, data: any) => {
-    //     const { handleResponse } = useApiResponse()
-    //     const userId = getUserId()
-    //     const userRegistrationService = new UserRegistrationService()
-    //     const driverService = new DriverRegistrationService()
-    //     setIsLoading(true)
-
-    //     try {
-    //         switch (stepId) {
-    //             case 'personalInfo':
-    //                 const createdUser = await userRegistrationService.createBaseProfile(data)
-    //                 handleResponse({ success: createdUser.success, message: createdUser.message })
-    //                 if (createdUser.success) {  
-    //                     setUserProfile(createdUser.data as FormattedUser)
-    //                     moveToNextStep()
-    //                 }
-    //                 break;
-
-    //             case 'identityCard':
-    //                 if (data) {
-    //                     const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data)
-    //                     handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
-    //                     if (identityCardResult.success) {
-    //                         setUserProfile(identityCardResult.data!);
-    //                         moveToNextStep()  
-    //                     }
-    //                 }
-    //                 break;
-
-    //             case 'driverLicense':
-    //                 if (data) {
-    //                     const uploadResult = await driverService.uploadDriverLicense(userId, data)
-    //                     handleResponse({ success: uploadResult.success, message: uploadResult.message })
-    //                     if (uploadResult.success) {
-    //                         setUser(uploadResult.data!)
-    //                         moveToNextStep()  
-    //                     }
-    //                 }
-    //                 break;
-
-    //             case 'carInfo':
-    //                 if (data) {
-    //                     console.log('data', data)
-    //                     const carInfoResult = await driverService.submitCarInfo(userId, data);
-    //                     handleResponse({ success: carInfoResult.success, message: carInfoResult.message });
-    //                     if (carInfoResult.success) {
-    //                         setUserProfile(carInfoResult.data!);
-    //                         onComplete();
-    //                         // router.refresh();
-    //                     }
-    //                 }
-    //                 break;
-    //         }
-    //     } catch (error) {
-    //         handleResponse({ success: false, message: (error as Error).message })
-    //     } finally {
-    //         setIsLoading(false)
-    //     }
-    // }
-
-    // MANEJADORES PRINCIPALES
 
     const handleDriverFlow = async (stepId: string, data: any) => {
         const { handleResponse } = useApiResponse()
@@ -255,7 +219,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
 
                 case 'identityCard':
                     if (data) {
-                        const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data)
+                        const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null)
                         handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
                         if (identityCardResult.success) {
                             setUserProfile(identityCardResult.data!);
@@ -266,7 +230,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
 
                 case 'driverLicense':
                     if (data) {
-                        const uploadResult = await driverService.uploadDriverLicense(userId, data)
+                        const uploadResult = await driverService.uploadDriverLicense(userId, data, user?.licenseStatus ?? null)
                         handleResponse({ success: uploadResult.success, message: uploadResult.message })
                         if (uploadResult.success) {
                             setUser(uploadResult.data!)
@@ -288,10 +252,21 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
 
                 case 'insurance':
                     if (data) {
-                        const insuranceResult = await driverService.submitInsurance(userId, data)
+                        const insuranceResult = await driverService.submitInsurance(userId, data, user?.cars[0].insurance.status ?? null)
                         handleResponse({ success: insuranceResult.success, message: insuranceResult.message })
                         if (insuranceResult.success) {
                             setUser(insuranceResult.data!)
+                            moveToNextStep()
+                        }
+                    }
+                    break;
+
+                case 'carCard':
+                    if (data) {
+                        const carCard = await driverService.submitCardCar(userId, data, user?.cars[0].vehicleCard?.status ?? null)
+                        handleResponse({ success: carCard.success, message: carCard.message })
+                        if (carCard.success) {
+                            setUser(carCard.data!)
                             router.refresh()
                             onComplete()
                         }
@@ -306,37 +281,36 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
     }
 
     // const handleRoleSelection = useCallback((role: UserRole) => {
-    //     // Si hay un initialRole, lo usamos; de lo contrario, usamos el role proporcionado
     //     const selectedRole = initialRole || role;
     //     setFormData((prev: any) => ({ ...prev, role: selectedRole }));
 
-    //     // Check if we need to show any other steps
+    //     // Check which steps are needed
     //     const needsPersonalInfo = !user?.termsAccepted;
-    //     const needsIdentity = user?.identityStatus === null || user?.identityStatus === VerificationStatus.FAILED;
+    //     const needsIdentity = user?.identityStatus === null ||
+    //         user?.identityStatus === VerificationStatus.FAILED;
     //     const needsLicense = selectedRole === 'driver' &&
-    //         (user?.licenseStatus === null || user?.licenseStatus === VerificationStatus.FAILED);
+    //         (user?.licenseStatus === null ||
+    //             user?.licenseStatus === VerificationStatus.FAILED);
+    //     const needsCarInfo = selectedRole === 'driver' && !user?.hasRegisteredCar;
+    //     const needsInsurance = selectedRole === 'driver' &&
+    //         (!user?.allCarsInsured || user?.hasPendingInsurance);
 
-    //     if (!needsPersonalInfo && !needsIdentity && !needsLicense) {
-    //         return null
-    //     } else {
-    //         // Find the first required step
-    //         let nextStep = needsPersonalInfo ? 'personalInfo' :
-    //             needsIdentity ? 'identityCard' :
-    //                 needsLicense ? 'driverLicense' : null;
-    //         if (nextStep) {
-    //             setCurrentStepId(nextStep as StepId);
-    //         }
+
+    //     // If all verifications are complete, we can finish
+    //     if (!needsPersonalInfo && !needsIdentity && !needsLicense &&
+    //         !needsCarInfo && !needsInsurance) {
+    //         return null;
     //     }
 
-    //     // Si hay un initialRole, saltamos directamente al siguiente paso
-    //     if (initialRole) {
-    //         const nextStep = needsPersonalInfo ? 'personalInfo' :
-    //             needsIdentity ? 'identityCard' :
-    //                 needsLicense ? 'driverLicense' : null;
+    //     // Find the first required step
+    //     const nextStep = needsPersonalInfo ? 'personalInfo' :
+    //         needsIdentity ? 'identityCard' :
+    //             needsLicense ? 'driverLicense' :
+    //                 needsCarInfo ? 'carInfo' :
+    //                     needsInsurance ? 'insurance' : null;
 
-    //         if (nextStep) {
-    //             setCurrentStepId(nextStep);
-    //         }
+    //     if (nextStep) {
+    //         setCurrentStepId(nextStep as StepId);
     //     }
     // }, [user, initialRole]);
 
@@ -354,10 +328,12 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         const needsCarInfo = selectedRole === 'driver' && !user?.hasRegisteredCar;
         const needsInsurance = selectedRole === 'driver' &&
             (!user?.allCarsInsured || user?.hasPendingInsurance);
+        const needsVehicleCards = selectedRole === 'driver' &&
+            (!user?.hasAllRequiredCards || user?.hasPendingCards);
 
         // If all verifications are complete, we can finish
         if (!needsPersonalInfo && !needsIdentity && !needsLicense &&
-            !needsCarInfo && !needsInsurance) {
+            !needsCarInfo && !needsInsurance && !needsVehicleCards) {
             return null;
         }
 
@@ -366,7 +342,8 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
             needsIdentity ? 'identityCard' :
                 needsLicense ? 'driverLicense' :
                     needsCarInfo ? 'carInfo' :
-                        needsInsurance ? 'insurance' : null;
+                        needsInsurance ? 'insurance' :
+                            needsVehicleCards ? 'carCard' : null;
 
         if (nextStep) {
             setCurrentStepId(nextStep as StepId);
@@ -387,16 +364,6 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         }
     }, [currentStep, formData.role])
 
-    const handleBack = useCallback(() => {
-        if (currentStepIndex > 0) {
-            const prevStepId = steps[currentStepIndex - 1]?.id
-            if (prevStepId) setCurrentStepId(prevStepId as StepId)
-        } else if (formData.role) {
-            setFormData((prev: any) => ({ ...prev, role: null }))
-            setCurrentStepId('role')
-        }
-    }, [currentStepIndex, steps, formData.role])
-
     return {
         currentStep,
         currentStepIndex,
@@ -405,7 +372,6 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         formData,
         isLoading,
         handleNext,
-        handleBack,
         setFormData,
         userProfile,
         setUser,

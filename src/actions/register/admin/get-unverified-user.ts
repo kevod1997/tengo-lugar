@@ -1,127 +1,3 @@
-// 'use server'
-
-// import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
-// import prisma from "@/lib/prisma";
-// import { formatUserForAdminDashboard } from "@/utils/format/user-formatter";
-// import { Prisma } from "@prisma/client";
-
-// type GetUsersParams = {
-//   page?: number;
-//   pageSize?: number;
-// }
-
-// export async function getUnverifiedUsers({
-//   page = 1,
-//   pageSize = 10
-// }: GetUsersParams = {}) {
-//   try {
-//     const skip = (page - 1) * pageSize;
-
-//     const where: Prisma.UserWhereInput = {
-//       OR: [
-//         {
-//           identityCard: {
-//             AND: [
-//               { 
-//                 status: { 
-//                   in: ['FAILED', 'PENDING'] 
-//                 } 
-//               },
-//               {
-//                 AND: [
-//                   { 
-//                     frontFileKey: {
-//                       not: ''
-//                     }
-//                   },
-//                   { 
-//                     backFileKey: {
-//                       not: ''
-//                     }
-//                   }
-//                 ]
-//               }
-//             ]
-//           }
-//         },
-//         {
-//           driver: {
-//             licence: {
-//               AND: [
-//                 { 
-//                   status: { 
-//                     in: ['FAILED', 'PENDING'] 
-//                   } 
-//                 },
-//                 {
-//                   AND: [
-//                     { 
-//                       frontFileKey: {
-//                         not: '',
-//                       }
-//                     },
-//                     { 
-//                       backFileKey: {
-//                         not: '',
-//                       }
-//                     }
-//                   ]
-//                 }
-//               ]
-//             }
-//           }
-//         }
-//       ]
-//     };
-
-//     const [users, total] = await Promise.all([
-//       prisma.user.findMany({
-//         skip,
-//         take: pageSize,
-//         where,
-//         orderBy: {
-//           createdAt: 'desc'
-//         },
-//         select: {
-//           id: true,
-//           firstName: true,
-//           lastName: true,
-//           email: true,
-//           phone: true,
-//           createdAt: true,
-//           identityCard: {
-//             select: {
-//               status: true
-//             }
-//           },
-//           driver: {
-//             select: {
-//               licence: {
-//                 select: {
-//                   status: true
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       }),
-//       prisma.user.count({ where })
-//     ]);
-
-//     return {
-//       users: users.map(formatUserForAdminDashboard),
-//       pagination: {
-//         total,
-//         pageCount: Math.ceil(total / pageSize),
-//         currentPage: page,
-//         pageSize
-//       }
-//     };
-//   } catch (error) {
-//     throw handlePrismaError(error, 'getUsers', 'get-unverified-user.ts');
-//   }
-// }
-
 'use server'
 
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
@@ -132,45 +8,88 @@ import { Prisma } from "@prisma/client";
 type GetUsersParams = {
   page?: number;
   pageSize?: number;
+  filter?: 'all' | 'pending';
 }
 
-export async function getUnverifiedUsers({
+export async function getUsers({
   page = 1,
-  pageSize = 10
+  pageSize = 10,
+  filter = 'all'
 }: GetUsersParams = {}) {
   try {
     const skip = (page - 1) * pageSize;
 
-    const where: Prisma.UserWhereInput = {
-      OR: [
-        {
-          identityCard: {
-            AND: [
-              { 
-                status: { 
-                  in: ['FAILED', 'PENDING'] 
-                } 
-              },
-              {
-                AND: [
-                  { 
-                    frontFileKey: {
-                      not: ''
+    // Base query for including related data
+    const include = {
+      identityCard: {
+        select: {
+          status: true,
+          failureReason: true,
+          frontFileKey: true,
+          backFileKey: true
+        }
+      },
+      driver: {
+        include: {
+          licence: {
+            select: {
+              status: true,
+              failureReason: true,
+              frontFileKey: true,
+              backFileKey: true
+            }
+          },
+          Car: {
+            include: {
+              car: {
+                select: {
+                  id: true,
+                  plate: true,
+                  insuredCar: {
+                    include: {
+                      currentPolicy: {
+                        select: {
+                          status: true,
+                          failureReason: true,
+                          fileKey: true
+                        }
+                      }
                     }
                   },
-                  { 
-                    backFileKey: {
-                      not: ''
+                  carModel: {
+                    select: {
+                      model: true,
+                      year: true,
+                      brand: {
+                        select: {
+                          name: true
+                        }
+                      }
                     }
                   }
-                ]
+                }
               }
-            ]
+            }
           }
-        },
-        {
-          driver: {
-            licence: {
+        }
+      },
+      termsAcceptance: {
+        orderBy: { acceptedAt: Prisma.SortOrder.desc },
+        take: 1,
+        select: {
+          acceptedAt: true
+        }
+      }
+    };
+
+    // Define where clause based on filter
+    let where: Prisma.UserWhereInput = {};
+
+    if (filter === 'pending') {
+      where = {
+        OR: [
+          {
+            identityCard: {
               AND: [
                 { 
                   status: { 
@@ -179,24 +98,35 @@ export async function getUnverifiedUsers({
                 },
                 {
                   AND: [
-                    { 
-                      frontFileKey: {
-                        not: '',
-                      }
-                    },
-                    { 
-                      backFileKey: {
-                        not: '',
-                      }
-                    }
+                    { frontFileKey: { not: '' } },
+                    { backFileKey: { not: '' } }
                   ]
                 }
               ]
             }
+          },
+          {
+            driver: {
+              licence: {
+                AND: [
+                  { 
+                    status: { 
+                      in: ['FAILED', 'PENDING'] 
+                    } 
+                  },
+                  {
+                    AND: [
+                      { frontFileKey: { not: '' } },
+                      { backFileKey: { not: '' } }
+                    ]
+                  }
+                ]
+              }
+            }
           }
-        }
-      ]
-    };
+        ]
+      };
+    }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -206,67 +136,7 @@ export async function getUnverifiedUsers({
         orderBy: {
           createdAt: 'desc'
         },
-        include: {
-          identityCard: {
-            select: {
-              status: true,
-              failureReason: true,
-              frontFileKey: true,
-              backFileKey: true
-            }
-          },
-          driver: {
-            include: {
-              licence: {
-                select: {
-                  status: true,
-                  failureReason: true,
-                  frontFileKey: true,
-                  backFileKey: true
-                }
-              },
-              Car: {
-                include: {
-                  car: {
-                    select: {
-                      id: true,
-                      plate: true,
-                      insuredCar: {
-                        include: {
-                          currentPolicy: {
-                            select: {
-                              status: true,
-                              failureReason: true,
-                              fileKey: true
-                            }
-                          }
-                        }
-                      },
-                      carModel: {
-                        select: {
-                          model: true,
-                          year: true,
-                          brand: {
-                            select: {
-                              name: true
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          termsAcceptance: {
-            orderBy: { acceptedAt: 'desc' },
-            take: 1,
-            select: {
-              acceptedAt: true
-            }
-          }
-        }
+        include
       }),
       prisma.user.count({ where })
     ]);
@@ -281,6 +151,6 @@ export async function getUnverifiedUsers({
       }
     };
   } catch (error) {
-    throw handlePrismaError(error, 'getUsers', 'get-unverified-user.ts');
+    throw handlePrismaError(error, 'getUsers', 'get-users.ts');
   }
 }

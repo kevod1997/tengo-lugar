@@ -12,11 +12,17 @@ import { VerificationTab } from './VerificationTab'
 import { DriverTab } from './DriverTab'
 import { ProfileCard } from './ProfileCard'
 import { AlertTriangle } from 'lucide-react'
+import { VerificationAlert } from './VerificationAlert'
+import { useApiResponse } from '@/hooks/ui/useApiResponse'
+import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
+import { toast } from 'sonner'
 
 
 export default function DashboardContent() {
 
-  const { user } = useUserStore()
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const { user, setUser } = useUserStore()
+  const { handleResponse } = useApiResponse()
 
   const [showRegistration, setShowRegistration] = useState(false)
   const [showIdVerification, setShowIdVerification] = useState(false)
@@ -43,7 +49,7 @@ export default function DashboardContent() {
 
   const startDriverRegistration = () => {
     if (!user) return;
-
+  
     if (user.identityStatus === 'FAILED') {
       setRegistrationStep('identityCard');
     } else if (!user.licenseStatus) {
@@ -54,8 +60,10 @@ export default function DashboardContent() {
       (user.licenseStatus === 'PENDING' || user.licenseStatus === 'VERIFIED') &&
       !user.hasRegisteredCar) {
       setRegistrationStep('carInfo');
-    } else if (user.hasRegisteredCar && !user.allCarsInsured) {
+    } else if (user.hasRegisteredCar && !user.allCarsInsured && !user.hasPendingInsurance) {
       setRegistrationStep('insurance');
+    } else if (user.hasRegisteredCar && !user.hasAllRequiredCards && !user.hasPendingCards) {
+      setRegistrationStep('carCard');
     } else {
       setRegistrationStep('identityCard');
     }
@@ -63,8 +71,21 @@ export default function DashboardContent() {
     setShowRegistration(true);
   };
 
-  const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    //todo
+  const onProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user) {
+      toast.error("Usuario no encontrado", {
+        description: "Debes completar tu registro primero"
+      })
+      return
+    }
+
+    await handleProfileImageUpload({
+      event,
+      user,
+      setIsUploadingImage,
+      setUser,
+      handleResponse
+    })
   }
 
   if (isLoading) {
@@ -83,12 +104,20 @@ export default function DashboardContent() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 items-center">
+      {user && (
+        <VerificationAlert
+          user={user}
+          startDriverRegistration={startDriverRegistration}
+          setShowIdVerification={setShowIdVerification}
+        />
+      )}
       {user ? (
         <>
           <ProfileCard
             user={user}
-            calculateProfileCompletion={calculateProfileCompletion}
-            handleProfileImageUpload={handleProfileImageUpload}
+            completion={calculateProfileCompletion()}
+            isUploadingImage={isUploadingImage}
+            onImageUpload={onProfileImageUpload}
           />
 
           <Tabs defaultValue="verification" className="w-full max-w-4xl">

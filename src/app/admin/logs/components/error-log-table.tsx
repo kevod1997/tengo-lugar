@@ -9,6 +9,7 @@ interface ErrorLog {
     code: string
     message: string
     createdAt: string
+    details: string
 }
 
 interface ErrorLogTableProps {
@@ -120,18 +121,36 @@ export function ErrorLogTable({
                         <th className="py-2 px-4 border-b">Origin</th>
                         <th className="py-2 px-4 border-b">Code</th>
                         <th className="py-2 px-4 border-b">Message</th>
+                        <th className="py-2 px-4 border-b">Details</th>
                         <th className="py-2 px-4 border-b">Created At</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {errorLogs.map((log) => (
-                        <tr key={log.id}>
-                            <td className="py-2 px-4 border-b">{log.origin}</td>
-                            <td className="py-2 px-4 border-b">{log.code}</td>
-                            <td className="py-2 px-4 border-b">{log.message}</td>
-                            <td className="py-2 px-4 border-b">{formatDate(log.createdAt)}</td>
-                        </tr>
-                    ))}
+                    {errorLogs.map((log) => {
+                        // Intentamos parsear los details como JSON
+                        let parsedDetails;
+                        try {
+                            parsedDetails = JSON.parse(log.details || '{}');
+                        } catch (e) {
+                            parsedDetails = {};
+                        }
+
+                        return (
+                            <tr key={log.id}>
+                                <td className="py-2 px-4 border-b">{log.origin}</td>
+                                <td className="py-2 px-4 border-b">{log.code}</td>
+                                <td className="py-2 px-4 border-b">{log.message}</td>
+                                <td className="py-2 px-4 border-b">
+                                    {parsedDetails.fileName && <div>Archivo: {parsedDetails.fileName}</div>}
+                                    {parsedDetails.functionName && <div>Funcion: {parsedDetails.functionName}</div>}
+                                    {parsedDetails.additionalDetails && (
+                                        <div>Additional: {parsedDetails.additionalDetails}</div>
+                                    )}
+                                </td>
+                                <td className="py-2 px-4 border-b">{formatDate(log.createdAt)}</td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
             <div className="mt-4 flex justify-between">

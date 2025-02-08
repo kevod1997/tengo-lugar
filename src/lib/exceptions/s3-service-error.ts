@@ -25,7 +25,7 @@ export class S3ServiceError extends BaseError {
 
     static DownloadFailed(fileName: string, functionName: string, details: string) {
         return new S3ServiceError(
-            `Error al descargar archivo: ${details}`,
+            `${details}`,
             'DOWNLOAD',
             fileName,
             functionName

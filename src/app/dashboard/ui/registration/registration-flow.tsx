@@ -1,11 +1,9 @@
 'use client'
 
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useRegistrationFlow } from '@/hooks/registration/UseRegistrationFlow'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ChevronLeft } from 'lucide-react'
 import ProgressBar from '@/components/progress-bar/progress-bar'
 import { StepId, UserRole } from '@/types/registration-types'
 import { ConfirmationDialog } from '@/components/dialog/ConfirmationDialog'
@@ -30,11 +28,10 @@ export default function RegistrationFlow({ onComplete, initialStep = 'role', ini
     formData,
     isLoading,
     handleNext,
-    handleBack,
     userProfile,
     setUser,
     user,
-  } = useRegistrationFlow(initialStep, onComplete, initialRole)
+  } = useRegistrationFlow(initialStep, onComplete, onClose, initialRole)
 
   const handleCloseAttempt = useCallback(() => {
     if (currentStepIndex > 0) {
@@ -66,12 +63,6 @@ export default function RegistrationFlow({ onComplete, initialStep = 'role', ini
       <Dialog open={isOpen} onOpenChange={handleCloseAttempt}>
         <DialogContent className="flex flex-col max-w-[425px] sm:max-w-[600px] p-0 gap-0 h-[90vh] max-h-[90vh]">
           <DialogHeader className="flex-none p-6 pb-4 flex flex-row items-center justify-between border-b">
-            {currentStepIndex < 1 && (
-              <Button variant="ghost" size="icon" onClick={handleBack}>
-                <ChevronLeft className="h-4 w-4" />
-                <span className="sr-only">Volver</span>
-              </Button>
-            )}
             <DialogTitle className="text-xl font-semibold">{currentStep.title}</DialogTitle>
             <div className="text-sm text-muted-foreground">
               {

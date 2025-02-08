@@ -7,8 +7,9 @@ import prisma from "@/lib/prisma"
 import { carRegistrationSchema } from "@/schemas/validation/car-schema"
 import { auth } from "@clerk/nextjs/server"
 import { findDriver } from "../driver/find-driver"
+import { getUserByClerkId } from "../register/user/get-user"
 
-export async function createCarModel(userId: string, data: unknown) {
+export async function createCarModel(userId: string, data: any) {
   console.log('data', data)
   try {
     // Authentication check
@@ -21,7 +22,7 @@ export async function createCarModel(userId: string, data: unknown) {
     const validatedData = carRegistrationSchema.parse(data)
 
     // Run all database operations in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // 1. Primero buscar o crear la marca
       const existingBrand = await tx.brand.findFirst({
         where: { name: validatedData.brand.name }
@@ -69,48 +70,48 @@ export async function createCarModel(userId: string, data: unknown) {
         throw handlePrismaError(error, 'createCarModel.car', 'create-car-model.ts')
       })
 
-    //Buscar driver
-    
-    const driver = await findDriver(userId, tx)
+      //Buscar driver
 
-    const existingCarDriverRelation = await tx.driverCar.findFirst({
-      where: {
-        driverId: driver.id,
-        carId: car.id
+      const driver = await findDriver(userId, tx)
+
+      const existingCarDriverRelation = await tx.driverCar.findFirst({
+        where: {
+          driverId: driver.id,
+          carId: car.id
+        }
+      })
+
+      if (existingCarDriverRelation) {
+        throw ServerActionError.DuplicateEntry('create-car-model.ts', 'createCarModel', 'Automóvil con la misma patente ya registrado')
+      }
+
+      // 4. Create driver-car relationship
+      const driverCar = await tx.driverCar.create({
+        data: {
+          driverId: driver.id,
+          carId: car.id
+        }
+      }).catch(error => {
+        throw handlePrismaError(error, 'createCarModel.driverCar', 'create-car-model.ts')
+      })
+
+      return {
+        brand,
+        carModel,
+        car,
+        driverCar
       }
     })
 
-    if (existingCarDriverRelation) {
-      throw ServerActionError.DuplicateEntry('create-car-model.ts', 'createCarModel', 'Automóvil con la misma patente ya registrado')
-    }
+    const updatedUser = await getUserByClerkId();
 
-    // 4. Create driver-car relationship
-    const driverCar = await tx.driverCar.create({
-      data: {
-        driverId: driver.id,
-        carId: car.id
-      }
-    }).catch(error => {
-      throw handlePrismaError(error, 'createCarModel.driverCar', 'create-car-model.ts')
-    })
 
-    return {
-      brand,
-      carModel,
-      car,
-      driverCar
-    }
-  })
+    return ApiHandler.handleSuccess(
+      updatedUser,
+      'Vehículo registrado exitosamente'
+    )
 
-  // Revalidate any cached data
-  // revalidatePath('/dashboard')
-
-  return ApiHandler.handleSuccess(
-    result,
-    'Vehículo registrado exitosamente'
-  )
-
-} catch (error) {
-  return ApiHandler.handleError(error)
-}
+  } catch (error) {
+    return ApiHandler.handleError(error)
+  }
 }

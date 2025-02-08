@@ -76,9 +76,11 @@ export async function createUser(input: CreateUserInput) {
 
     return {
       success: true,
-      data: user,
+      data: {
+        user,
+        message: 'Usuario creado correctamente.',
+      },
     };
-
   } catch (error) {
     throw error;
   }

@@ -7,13 +7,13 @@ import { auth } from "@clerk/nextjs/server";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import { uploadDocuments } from "@/lib/file/upload-documents";
+import { getUserByClerkId } from "./get-user";
 
 export async function uploadIdentityCard(
   userId: string,
-  input: IdentityCardInput
+  input: IdentityCardInput,
 ) {
   try {
-    console.log('uploadIdentityCard', userId, input);
     const validatedData = serverIdentityCardSchema.parse(input);
     const { userId: UserServerId }: { userId: string | null } = await auth()
 
@@ -107,8 +107,14 @@ export async function uploadIdentityCard(
       });
     }
 
+    const updatedUser = await getUserByClerkId();
+
     return {
       success: true,
+      data: {
+        updatedUser,
+        message: 'Documento de identidad subido correctamente.'
+      }
     };
 
   } catch (error) {

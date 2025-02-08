@@ -3,28 +3,32 @@
 import { StorageService } from "@/lib/s3/storage";
 import { AuxiliaryError } from "../exceptions/auxiliary-error";
 import { S3ServiceError } from "../exceptions/s3-service-error";
+import { s3Service } from "../s3/s3";
 
-interface FileInput {
+export interface FileInput {
   file?: File;
   preview?: string;
 }
 
-interface UserInfo {
+export interface UserInfo {
   id: string;
   firstName: string;
   lastName: string;
 }
 
-interface UploadResult {
+export interface UploadResult {
   frontFileKey: string;
   backFileKey: string;
+  frontFileUrl?: string;  // Añadimos estos campos para URLs públicas
+  backFileUrl?: string;
 }
 
 export async function uploadDocuments(
   frontDocument: FileInput | undefined,
   backDocument: FileInput | undefined,
   userInfo: UserInfo,
-  type: 'identity' | 'license' | 'insurance'
+  type: 'identity' | 'license' | 'insurance' | 'profile' | 'car-card',
+  carPlate?: string
 ): Promise<Partial<UploadResult>> {
   try {
     if (!frontDocument?.file && !backDocument?.file) {
@@ -60,7 +64,9 @@ export async function uploadDocuments(
     const getUploadUrl = {
       identity: StorageService.getIdentityDocumentUploadUrl,
       license: StorageService.getDriverLicenseUploadUrl,
-      insurance: StorageService.getInsuranceDocumentUploadUrl
+      insurance: StorageService.getInsuranceDocumentUploadUrl,
+      profile: StorageService.getProfileImageUploadUrl,
+      'car-card': StorageService.getCarCardDocumentUploadUrl
     }[type];
 
     // Procesamos los documentos que existan
@@ -73,11 +79,11 @@ export async function uploadDocuments(
     const uploadDataPromises = [];
     if (frontDocument?.file) {
       const extension = frontDocument.file.type === 'application/pdf' ? 'pdf' : 'jpg';
-      uploadDataPromises.push(getUploadUrl(extension, frontDocument.file.type, userInfo));
+      uploadDataPromises.push(getUploadUrl(extension, frontDocument.file.type, userInfo, carPlate));
     }
     if (backDocument?.file) {
       const extension = backDocument.file.type === 'application/pdf' ? 'pdf' : 'jpg';
-      uploadDataPromises.push(getUploadUrl(extension, backDocument.file.type, userInfo));
+      uploadDataPromises.push(getUploadUrl(extension, backDocument.file.type, userInfo, carPlate));
     }
 
     const uploadData = await Promise.all(uploadDataPromises);
@@ -85,41 +91,88 @@ export async function uploadDocuments(
 
     // Subimos los documentos
     const uploadPromises = [];
-    if (processedDocuments[0] && uploadData[0]) {
-      uploadPromises.push(
-        fetch(uploadData[0].signedUrl, {
-          method: 'PUT',
-          body: processedDocuments[0],
-          headers: {
-            'Content-Type': frontDocument!.file!.type,
-            'Cache-Control': 'no-store'
-          },
-          cache: 'no-store'
-        })
-      );
-      resultData.frontFileKey = uploadData[0].key;
-    }
+    // if (processedDocuments[0] && uploadData[0]) {
+    //   uploadPromises.push(
+    //     fetch(uploadData[0].signedUrl, {
+    //       method: 'PUT',
+    //       body: processedDocuments[0],
+    //       headers: {
+    //         'Content-Type': frontDocument!.file!.type,
+    //         'Cache-Control': 'no-store'
+    //       },
+    //       cache: 'no-store'
+    //     })
+    //   );
+    //   resultData.frontFileKey = uploadData[0].key;
+    // }
 
-    if (processedDocuments[1] && uploadData[uploadData.length - 1]) {
-      uploadPromises.push(
-        fetch(uploadData[uploadData.length - 1].signedUrl, {
-          method: 'PUT',
-          body: processedDocuments[1],
-          headers: {
-            'Content-Type': backDocument!.file!.type,
-            'Cache-Control': 'no-store'
-          },
-          cache: 'no-store'
-        })
-      );
-      resultData.backFileKey = uploadData[uploadData.length - 1].key;
-    }
+    // if (processedDocuments[1] && uploadData[uploadData.length - 1]) {
+    //   uploadPromises.push(
+    //     fetch(uploadData[uploadData.length - 1].signedUrl, {
+    //       method: 'PUT',
+    //       body: processedDocuments[1],
+    //       headers: {
+    //         'Content-Type': backDocument!.file!.type,
+    //         'Cache-Control': 'no-store'
+    //       },
+    //       cache: 'no-store'
+    //     })
+    //   );
+    //   resultData.backFileKey = uploadData[uploadData.length - 1].key;
+    // }
 
-    await Promise.all(uploadPromises).catch(error => {
-      throw S3ServiceError.UploadFailed('upload-images.ts', 'uploadImages', error.message);
-    });
+    // await Promise.all(uploadPromises).catch(error => {
+    //   throw S3ServiceError.UploadFailed('upload-images.ts', 'uploadImages', error.message);
+    // });
 
-    return resultData;
+    // return resultData;
+
+        // Modificamos esta parte para manejar URLs públicas para imágenes de perfil
+        if (processedDocuments[0] && uploadData[0]) {
+          uploadPromises.push(
+            fetch(uploadData[0].signedUrl, {
+              method: 'PUT',
+              body: processedDocuments[0],
+              headers: {
+                'Content-Type': frontDocument!.file!.type,
+                'Cache-Control': 'no-store'
+              },
+              cache: 'no-store'
+            })
+          );
+          
+          if (type === 'profile') {
+            resultData.frontFileUrl = s3Service.getPublicUrl(uploadData[0].key);
+          } else {
+            resultData.frontFileKey = uploadData[0].key;
+          }
+        }
+    
+        if (processedDocuments[1] && uploadData[uploadData.length - 1]) {
+          uploadPromises.push(
+            fetch(uploadData[uploadData.length - 1].signedUrl, {
+              method: 'PUT',
+              body: processedDocuments[1],
+              headers: {
+                'Content-Type': backDocument!.file!.type,
+                'Cache-Control': 'no-store'
+              },
+              cache: 'no-store'
+            })
+          );
+          
+          if (type === 'profile') {
+            resultData.backFileUrl = s3Service.getPublicUrl(uploadData[uploadData.length - 1].key);
+          } else {
+            resultData.backFileKey = uploadData[uploadData.length - 1].key;
+          }
+        }
+    
+        await Promise.all(uploadPromises).catch(error => {
+          throw S3ServiceError.UploadFailed('upload-images.ts', 'uploadImages', error.message);
+        });
+    
+        return resultData;
 
   } catch (error) {
     throw error;

@@ -2,14 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { BarChart3, Users, FileText, Settings, Bell, HelpCircle, LayoutDashboard } from 'lucide-react'
+import { BarChart3, Users, FileText, Settings, Bell } from 'lucide-react'
 
 interface NavItem {
   title: string
@@ -33,9 +26,9 @@ const navItems: NavItem[] = [
   },
   {
     title: "Gestión de Usuarios",
-    href: "/admin/users",
+    href: "/admin/usuarios",
     icon: Users,
-    description: "Administra cuentas de usuarios y permisos"
+    description: "Administra cuentas de usuarios, documentacion y permisos"
   },
   {
     title: "Configuración",

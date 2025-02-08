@@ -7,22 +7,13 @@ import { auth } from "@clerk/nextjs/server";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { ServiceError } from "@/lib/exceptions/service-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
-import { headers } from "next/headers";
 import { uploadDocuments } from "@/lib/file/upload-documents";
+import { getUserByClerkId } from "./get-user";
 
 export async function uploadDriverLicense(
   userId: string,
   input: DriverLicenseInput
 ) {
-  // const headersList = await headers();
-  // const contentLength = parseInt(headersList.get('content-length') || '0', 10);
-  // console.log(`Tamaño de la solicitud: ${contentLength} bytes`);
-
-  // Verificar el tamaño antes de procesar
-  // const MAX_SIZE = 3 * 1024 * 1024; // 3 MB
-  // if (contentLength > MAX_SIZE) {
-  //   throw new Error(`Tamaño de archivo excedido. Máximo permitido: ${MAX_SIZE} bytes`);
-  // }
 
   try {
     const validatedData = serverDriverLicenseSchema.parse(input);
@@ -92,7 +83,7 @@ export async function uploadDriverLicense(
 
     // Crear o actualizar la licencia
     if (existingLicense) {
-      const licence = await prisma.licence.update({
+      await prisma.licence.update({
         where: { id: existingLicense.id },
         data: {
           expiration: new Date(validatedData.expirationDate).toISOString(),
@@ -105,10 +96,12 @@ export async function uploadDriverLicense(
         throw handlePrismaError(error, 'uploadDriverLicense.updateLicence', 'license.ts');
       });
 
+      const updatedUser = await getUserByClerkId();
+
       return {
         success: true,
         data: {
-          id: licence.id,
+          updatedUser,
           message: 'Licencia actualizada exitosamente',
         },
       };
@@ -125,18 +118,18 @@ export async function uploadDriverLicense(
         throw handlePrismaError(error, 'uploadDriverLicense.createLicence', 'license.ts');
       });
 
+      const updatedUser = await getUserByClerkId();
+
       return {
         success: true,
         data: {
-          id: licence.id,
+          updatedUser,
           message: 'Licencia cargada exitosamente',
         },
       };
     }
 
   } catch (error) {
-    console.log('Error uploading driver license:', error);
     throw error;
-
   }
 }

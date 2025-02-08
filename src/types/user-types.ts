@@ -1,4 +1,4 @@
-import { Gender, VerificationStatus } from "@prisma/client"
+import { CardType, Gender, VerificationStatus } from "@prisma/client"
 
 interface CarInsurance {
   status: VerificationStatus | null;
@@ -8,6 +8,16 @@ interface CarInsurance {
   policy?: any;
 }
 
+interface VehicleCardInfo {
+  id: string;
+  cardType: CardType;
+  status: VerificationStatus;
+  failureReason: string | null;
+  hasFileKey: boolean;
+  expirationDate: string | Date;
+  url?: string;
+}
+
 export interface UserCar {
   id: string;
   plate: string;
@@ -15,6 +25,10 @@ export interface UserCar {
   brand: string;
   model: string;
   year: number ;
+  vehicleCard: VehicleCardInfo | null;
+  hasGreenCard: boolean;  
+  hasBlueCard: boolean;  
+  hasPendingCards: boolean;
 }
 
 export interface FormattedUser {
@@ -44,10 +58,13 @@ export interface FormattedUser {
   hasRegisteredCar: boolean;
   allCarsInsured: boolean;
   hasPendingInsurance: boolean;
+  hasAllRequiredCards: boolean;
+  hasPendingCards: boolean; 
 }
 
   export type FormattedUserForAdminDashboard = {
     id: string;
+    profileImageUrl: string;
     fullName: string;
     email: string;
     phone: string;

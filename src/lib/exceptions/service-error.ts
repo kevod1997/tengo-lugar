@@ -79,7 +79,7 @@ export class ServiceError extends BaseError {
 
     static DocumentAccessFailed(documentType: string, fileName: string, functionName: string) {
         return new ServiceError(
-            `Error al acceder a los documentos: ${documentType}`,
+            `Error al acceder a los documentos: ${documentType}.`,
             'DOCUMENT_ACCESS_FAILED',
             fileName,
             functionName

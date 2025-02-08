@@ -34,7 +34,7 @@ export class AuxiliaryError extends BaseError {
 
     static FileProcessingFailed(fileName: string, functionName: string, details: string) {
         return new AuxiliaryError(
-            `Error procesando archivo: ${details}`,
+            `${details}`,
             'FILE_PROCESSING_FAILED',
             fileName,
             functionName

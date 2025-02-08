@@ -27,16 +27,18 @@ export class S3Service {
     this.bucketName = process.env.AWS_BUCKET_NAME;
   }
 
-  private getObjectKey(type: 'profile' | 'identity' | 'license' | 'insurance', fileName: string, userInfo: UserInfo) {
+  private getObjectKey(type: 'profile' | 'identity' | 'license' | 'insurance' | 'car-card', fileName: string, userInfo: UserInfo, carPlate?: string) {
     const prefix = {
       profile: 'public/profile-images',
       identity: 'private/identity-documents',
       license: 'private/driver-licenses',
       insurance: 'private/insurance-documents',
+      'car-card': 'private/car-card',
     }[type];
 
     const timestamp = Date.now();
-    const sanitizedName = `${userInfo.firstName}-${userInfo.lastName}`.toLowerCase()
+    const hasCarPlate = carPlate ? `-${carPlate}` : `${userInfo.firstName}-${userInfo.lastName}`;
+    const sanitizedName = `${hasCarPlate}`.toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
       .replace(/[^a-z0-9-]/g, '-'); // Reemplazar caracteres especiales con guiones
@@ -45,13 +47,14 @@ export class S3Service {
   }
 
   async getSignedUploadUrl(
-    type: 'profile' | 'identity' | 'license' | 'insurance',
+    type: 'profile' | 'identity' | 'license' | 'insurance' | 'car-card',
     fileName: string,
     contentType: string,
     userInfo: UserInfo,
+    carPlate?: string,
     expiresIn: number = 3600
   ) {
-    const key = this.getObjectKey(type, fileName, userInfo);
+    const key = this.getObjectKey(type, fileName, userInfo, carPlate);
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: key,
@@ -78,15 +81,44 @@ export class S3Service {
     }
   }
 
-  async deleteObject(key: string) {
+  // async deleteObject(key: string) {
+  //   console.log('Deleting object', key);
+  //   try {
+  //     const command = new DeleteObjectCommand({
+  //       Bucket: this.bucketName,
+  //       Key: key,
+  //     });
+  //     return await this.s3Client.send(command);
+  //   } catch (error: any) {
+  //     throw S3ServiceError.DeleteFailed('s3.ts', 'deleteObject', `Error eliminando objeto: ${error.message}`);
+  //   }
+  // }
+
+  async deleteObject(keyOrUrl: string) {
     try {
+      // Extraer la key si se proporciona una URL
+      let key = keyOrUrl;
+      if (keyOrUrl.startsWith('http')) {
+        // Extraer la key de la URL
+        const urlParts = keyOrUrl.split(`${this.bucketName}.s3.${process.env.AWS_BUCKET_REGION}.amazonaws.com/`);
+        if (urlParts.length > 1) {
+          key = urlParts[1];
+        } else {
+          throw S3ServiceError.DeleteFailed('s3.ts', 'deleteObject', 'URL inválida');
+        }
+      }
+
       const command = new DeleteObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
       return await this.s3Client.send(command);
     } catch (error: any) {
-      throw S3ServiceError.DeleteFailed('s3.ts', 'deleteObject', `Error eliminando objeto: ${error.message}`);
+      throw S3ServiceError.DeleteFailed(
+        's3.ts',
+        'deleteObject',
+        `Error eliminando objeto: ${error.message}`
+      );
     }
   }
 

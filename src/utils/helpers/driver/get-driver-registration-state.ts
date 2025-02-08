@@ -7,24 +7,26 @@ interface DriverRegistrationState {
 }
 
 export function getDriverRegistrationState(user: FormattedUser): DriverRegistrationState {
-  // Si todos los pasos están pending o verified, deshabilitar el botón
   const allVerified = 
     user.identityStatus === 'VERIFIED' &&
     user.licenseStatus === 'VERIFIED' &&
     user.hasRegisteredCar &&
-    user.allCarsInsured;
+    user.allCarsInsured &&
+    user.hasAllRequiredCards;
 
   const allPending = 
     user.identityStatus === 'PENDING' &&
     user.licenseStatus === 'PENDING' &&
     user.hasRegisteredCar &&
-    user.hasPendingInsurance;
+    user.hasPendingInsurance &&
+    user.hasPendingCards;
 
   const mixedPendingAndVerified = 
     (user.identityStatus === 'PENDING' || user.identityStatus === 'VERIFIED') &&
     (user.licenseStatus === 'PENDING' || user.licenseStatus === 'VERIFIED') &&
     user.hasRegisteredCar &&
-    (user.hasPendingInsurance || user.allCarsInsured);
+    (user.hasPendingInsurance || user.allCarsInsured) &&
+    (user.hasPendingCards || user.hasAllRequiredCards);
 
   if (allVerified) {
     return {
@@ -47,6 +49,7 @@ export function getDriverRegistrationState(user: FormattedUser): DriverRegistrat
     if (user.identityStatus === 'PENDING') pendingItems.push('documento de identidad');
     if (user.licenseStatus === 'PENDING') pendingItems.push('licencia de conducir');
     if (user.hasPendingInsurance) pendingItems.push('seguro del vehículo');
+    if (user.hasPendingCards) pendingItems.push('tarjeta vehicular');
 
     return {
       isButtonDisabled: true,
@@ -89,6 +92,15 @@ export function getDriverRegistrationState(user: FormattedUser): DriverRegistrat
     return {
       isButtonDisabled: false,
       buttonText: 'Cargar Seguro del Vehículo',
+      statusMessage: ''
+    };
+  }
+
+  // Si faltan las tarjetas vehiculares
+  if (user.hasRegisteredCar && !user.hasAllRequiredCards && !user.hasPendingCards) {
+    return {
+      isButtonDisabled: false,
+      buttonText: 'Cargar Tarjeta Vehicular',
       statusMessage: ''
     };
   }
