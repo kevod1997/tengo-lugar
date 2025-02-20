@@ -129,7 +129,7 @@ model Licence {
 
 model Brand {
   id        String     @id @default(uuid())
-  name      String
+  name      String     @unique
   carModels CarModel[]
 }
 
@@ -145,6 +145,7 @@ model CarModel {
   // Relaciones
   cars Car[]
 
+  @@unique([brandId, model, year], name: "brandId_model_year")
   @@index([brandId])
 }
 
@@ -246,7 +247,7 @@ enum CardType {
 model VehicleCard {
   id             String             @id @default(uuid())
   carId          String
-  driverCarId    String?            
+  driverCarId    String?
   cardType       CardType
   fileKey        String
   fileType       FileType

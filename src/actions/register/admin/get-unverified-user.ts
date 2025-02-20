@@ -60,6 +60,8 @@ export async function getUsers({
                     select: {
                       model: true,
                       year: true,
+                      fuelType: true,
+                      averageFuelConsume: true,
                       brand: {
                         select: {
                           name: true

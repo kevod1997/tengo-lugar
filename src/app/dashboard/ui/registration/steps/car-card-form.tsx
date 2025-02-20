@@ -20,8 +20,6 @@ interface CarCardFormProps {
 }
 
 export default function CarCardForm({ onSubmit, data }: CarCardFormProps) {
-    console.log('CarCardForm', data)
-
     const { user } = useUserStore()
 
     const {
@@ -44,6 +42,7 @@ export default function CarCardForm({ onSubmit, data }: CarCardFormProps) {
     const watchCardType = watch('cardType')
     const watchExpirationDate = watch('expirationDate')
     const watchCardFile = watch('cardFile')
+    const hasMoreThanOneCar = (user?.cars?.length ?? 0) > 1
 
     const isFormValid = () => {
         return isValid && watchCardType && watchExpirationDate && watchCardFile
@@ -76,7 +75,7 @@ export default function CarCardForm({ onSubmit, data }: CarCardFormProps) {
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
                 <div className="space-y-4">
 
-                    {user && (
+                    {hasMoreThanOneCar  && (
                         <div className="space-y-2">
                             <Label htmlFor="carId">Vehículo</Label>
                             <Select

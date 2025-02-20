@@ -16,6 +16,10 @@ export default function AuthRedirect() {
   const { setUser } = useUserStore()
   const [error, setError] = useState<string | null>(null)
 
+
+//todo ver bien cuando se registra por primera vez un user, no tenemos que ejecutar el getUserByClerkId, sino hay que hacer el redirect direct a /dashboard
+// todo, VER QUE ESTE ERROR NO SE ME ESTA GUARDANDO EN LOS LOGS, ServerActionError: Error en la base de datos: Error inesperado en la base de datos: Usuario no encontrado at ServerActionError.DatabaseError (C:\Users\Kevin\OneDrive\Escritorio\Dev\tengo-lugar\.next\server\chunks\ssr\[root of the server]__0b8565._.js:150:16) at handlePrismaError (C:\Users\Kevin\OneDrive\Escritorio\Dev\tengo-lugar\.next\server\chunks\ssr\[root of the server]__0b8565._.js:200:182) at getUserByClerkId (C:\Users\Kevin\OneDrive\Escritorio\Dev\tengo-lugar\.next\server\chunks\ssr\[root of the server]__0b8565._.js:703:191) digest: "544400510"
+
   useEffect(() => {
     async function checkUserAndRedirect() {
       if (isLoaded && isSignedIn && clerkUser) {

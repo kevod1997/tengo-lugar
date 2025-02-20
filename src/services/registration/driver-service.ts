@@ -8,6 +8,7 @@ import { VerificationStatus } from "@prisma/client";
 import { logActionWithErrorHandling } from "../logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { submitCardCarInfo } from "@/actions/car-card/submit-car-card";
+import { VehicleCardInput } from "@/schemas/validation/car-card-schema";
 
 const fileAndFunctionName = {
   fileName: 'driver-service.ts',
@@ -88,9 +89,10 @@ export class DriverRegistrationService {
   async submitCarInfo(userId: string, carInfo: any) {
     try {
       const carInfoResult = await createCarModel(userId, carInfo);
-      if (!carInfoResult.success) {
-        throw ServiceError.DataSubmissionFailed('Información del vehículo', 'driver-service.ts', 'submitCarInfo');
-      }
+     //todo optimizar este codigo en los servicios, ya que se repite en varios lugares y hay que sacar los api handlers de las server action cuando es el caso del error, ya que la respuesta esperada depende si hay success o no me genera un error y devuelve la respuesta posterior, por ejemplo aca me tiraba error en la funcion createCarMOdel pero me tomaba el error del codigo de abajo.
+      // if (!carInfoResult.success) {
+      //   throw ServiceError.DataSubmissionFailed('Información del vehículo', 'driver-service.ts', 'submitCarInfo');
+      // }
 
       await logActionWithErrorHandling(
         {
@@ -188,14 +190,14 @@ export class DriverRegistrationService {
     }
   }
 
-  async submitCardCar(userId: string, cardCarInfo: any, cardCarStatus: VerificationStatus | null) {
+  async submitCardCar(userId: string, cardCarInfo: VehicleCardInput, cardCarStatus: VerificationStatus | null) {
     try {
-      if (cardCarInfo.policyFile?.file) {
-        const processedFile = await processFile(cardCarInfo.policyFile.file);
-        cardCarInfo.policyFile = {
-          ...cardCarInfo.policyFile,
+      if (cardCarInfo.cardFile?.file) {
+        const processedFile = await processFile(cardCarInfo.cardFile.file);
+        cardCarInfo.cardFile = {
+          ...cardCarInfo.cardFile,
           file: processedFile.file,
-          preview: processedFile.preview
+          preview: processedFile.preview!
         };
       }
 

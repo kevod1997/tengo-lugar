@@ -59,11 +59,11 @@ export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
     },
     {
       title: 'Tarjetas Vehiculares',
-      status: getStepStatus(null, user.hasAllRequiredCards),
+      status: getStepStatus(user.cars[0]?.vehicleCard?.status, user.hasAllRequiredCards),
       description: user.hasAllRequiredCards ? 'Todas las tarjetas verificadas' :
         user.hasPendingCards ? 'Tarjetas en proceso de verificación' :
           user.cars.some(car => car.vehicleCard?.status === 'FAILED') ?
-            'Verificación de tarjetas fallida' : 'Pendiente de registro'
+            'Verificación de tarjeta fallida' : 'Pendiente de registro'
     }
   ]
 

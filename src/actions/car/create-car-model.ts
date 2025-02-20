@@ -10,7 +10,6 @@ import { findDriver } from "../driver/find-driver"
 import { getUserByClerkId } from "../register/user/get-user"
 
 export async function createCarModel(userId: string, data: any) {
-  console.log('data', data)
   try {
     // Authentication check
     const { userId: clerkId } = await auth()
@@ -20,6 +19,16 @@ export async function createCarModel(userId: string, data: any) {
 
     // Validate input data
     const validatedData = carRegistrationSchema.parse(data)
+
+    //buscar patente
+
+    const existingPlate = await prisma.car.findFirst({
+      where: { plate: validatedData.car.plate.toUpperCase() }
+    })
+
+    if (existingPlate) {
+      throw ServerActionError.DuplicateEntry('create-car-model.ts', 'createCarModel', `La patente ${validatedData.car.plate.toUpperCase()} ya está registrada`)
+    }
 
     // Run all database operations in a transaction
     await prisma.$transaction(async (tx) => {
@@ -48,8 +57,8 @@ export async function createCarModel(userId: string, data: any) {
           brandId: brand.id,
           model: validatedData.model.name,
           year: validatedData.model.year,
-          fuelType: undefined,
-          averageFuelConsume: undefined
+          fuelType: validatedData.model.fuelType,
+          averageFuelConsume: validatedData.model.averageFuelConsume
         }
       }).catch(error => {
         throw handlePrismaError(error, 'createCarModel.car', 'create-car-model.ts')
@@ -74,17 +83,6 @@ export async function createCarModel(userId: string, data: any) {
 
       const driver = await findDriver(userId, tx)
 
-      const existingCarDriverRelation = await tx.driverCar.findFirst({
-        where: {
-          driverId: driver.id,
-          carId: car.id
-        }
-      })
-
-      if (existingCarDriverRelation) {
-        throw ServerActionError.DuplicateEntry('create-car-model.ts', 'createCarModel', 'Automóvil con la misma patente ya registrado')
-      }
-
       // 4. Create driver-car relationship
       const driverCar = await tx.driverCar.create({
         data: {
@@ -105,13 +103,12 @@ export async function createCarModel(userId: string, data: any) {
 
     const updatedUser = await getUserByClerkId();
 
-
     return ApiHandler.handleSuccess(
       updatedUser,
       'Vehículo registrado exitosamente'
     )
 
   } catch (error) {
-    return ApiHandler.handleError(error)
+    throw error
   }
 }

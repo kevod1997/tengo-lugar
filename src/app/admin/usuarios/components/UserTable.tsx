@@ -11,8 +11,9 @@ import { getUserDocuments } from '@/actions'
 import { DocumentResponse } from '@/services/registration/admin/user-service'
 import { Eye, FileText } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { UserLogsView } from './UserLogsDetail'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { UserLogsView } from './UserLogs/UserLogsDetail'
+import { getVehicleStatus } from '@/utils/helpers/driver/get-vehicle-status'
 
 interface UserTableProps {
   users: FormattedUserForAdminDashboard[]
@@ -26,7 +27,6 @@ export function UserTable({ users }: UserTableProps) {
   const { handleResponse } = useApiResponse()
 
   const handleViewDetails = async (user: FormattedUserForAdminDashboard) => {
-    console.log(user)
     setIsLoading(true)
     setSelectedUser(user)
     try {
@@ -50,7 +50,7 @@ export function UserTable({ users }: UserTableProps) {
     if (!date) return 'N/A'
     return new Date(date).toLocaleDateString()
   }
-  console.log(users)
+
   return (
     <>
       <Table>
@@ -70,10 +70,12 @@ export function UserTable({ users }: UserTableProps) {
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
-              <Avatar className="h-10 w-10 mt-4">
-                <AvatarImage src={user.profileImageUrl || "/placeholder.svg"} alt={user.fullName} />
-                <AvatarFallback>{user.profileImageUrl}</AvatarFallback>
-              </Avatar>
+              <TableCell>
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={user.profileImageUrl || "/placeholder.svg"} alt={user.fullName} />
+                  <AvatarFallback>{user.profileImageUrl}</AvatarFallback>
+                </Avatar>
+              </TableCell>
               <TableCell>{user.fullName}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.phone}</TableCell>
@@ -85,12 +87,9 @@ export function UserTable({ users }: UserTableProps) {
                 <Badge variant={getBadgeVariant(user.licenseStatus)}>{user.licenseStatus}</Badge>
               </TableCell>
               <TableCell>
-                {user.cars?.some((car: UserCar) => car.insurance.status === 'PENDING') ?
-                  <Badge variant={getBadgeVariant('PENDING')}>PENDIENTE</Badge> :
-                  user.cars?.some((car: UserCar) => car.insurance.status === 'FAILED') ?
-                    <Badge variant={getBadgeVariant('FAILED')}>FALLIDO</Badge> :
-                    null
-                }
+                <Badge variant={getBadgeVariant(getVehicleStatus(user.cars))}>
+                  {getVehicleStatus(user.cars) || 'SIN VEHÍCULO'}
+                </Badge>
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">

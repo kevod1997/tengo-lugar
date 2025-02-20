@@ -41,7 +41,6 @@ export function NavUser({ open }: { open: boolean }) {
   const { isMobile } = useSidebar()
   const { user: userDb } = useUserStore()
   const isVerified = userDb?.identityStatus === 'VERIFIED' ? true : false
-  console.log(open)
   if (!isSignedIn) {
     return (
       <SidebarMenu>
@@ -70,59 +69,74 @@ export function NavUser({ open }: { open: boolean }) {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-          <SidebarMenuButton
-  size="lg"
-  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground relative z-10 flex items-center w-full gap-3 p-2 overflow-visible"
->
-  {/* Container del Avatar y badge */}
-  <div className="relative flex-shrink-0">
-    <Avatar className="h-8 w-8 rounded-lg">
-      <AvatarImage
-        src={userDb?.profileImageKey ?? undefined}
-        alt={userDb?.firstName || ""}
-      />
-      <AvatarFallback className="rounded-lg bg-slate-500 text-white">
-        {userDb?.firstName?.charAt(0)}
-        {userDb?.lastName?.charAt(0)}
-      </AvatarFallback>
-    </Avatar>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground relative z-10 flex items-center w-full gap-3 p-2 overflow-visible"
+            >
+              {/* Container del Avatar y badge */}
+              <div className="relative flex-shrink-0">
+                <Avatar className="h-8 w-8 rounded-lg">
+                  <AvatarImage
+                    src={userDb?.profileImageKey ?? undefined}
+                    alt={userDb?.firstName || ""}
+                  />
+                  <AvatarFallback className="rounded-lg bg-slate-500 text-white">
+                    {userDb?.firstName?.charAt(0)}
+                    {userDb?.lastName?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
 
-    {/* Badge de verificación con z-index más alto */}
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div 
-            className="absolute -top-1 -right-1 rounded-full bg-white shadow-sm"
-            style={{ zIndex: 100 }}
-          >
-            {isVerified ? (
-              <CheckCircle className="h-4 w-4 text-green-500" />
-            ) : (
-              <AlertCircle className="h-4 w-4 text-yellow-500" />
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  </div>
+                {/* Badge de verificación con z-index más alto */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="absolute -top-1 -right-1 rounded-full bg-white shadow-sm"
+                        style={{ zIndex: 100 }}
+                      >
+                        {isVerified ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-yellow-500" />
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
 
-  {/* Información del usuario con mejor manejo de espacio */}
-  {open && (
-    <div className="flex flex-1 items-center gap-2 min-w-0">
-      <div className="flex-1 grid text-sm leading-tight">
-        <span className="truncate font-semibold">{user?.fullName}</span>
-        <span className="truncate text-xs text-muted-foreground">
-          {user?.primaryEmailAddress?.emailAddress}
-        </span>
-      </div>
-      <ChevronsUpDown className="h-4 w-4 flex-shrink-0" />
-    </div>
-  )}
-</SidebarMenuButton>
-            
+              {/* Información del usuario con mejor manejo de espacio */}
+              {/* {open && (
+                <div className="flex flex-1 items-center gap-1 sm:gap-2 min-w-0">
+                  <div className="flex-1 grid text-xs sm:text-sm leading-tight w-full">
+                    <span className="truncate font-semibold">
+                      {userDb?.firstName} {userDb?.lastName}
+                    </span>
+                    <span className="truncate text-[10px] sm:text-xs text-muted-foreground">
+                      {user?.primaryEmailAddress?.emailAddress}
+                    </span>
+                  </div>
+                  <ChevronsUpDown className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                </div>
+              )} */}
+              {open && (
+                <div className="flex flex-1 items-center gap-1 sm:gap-2 min-w-0 overflow-visible">
+                  <div className="flex-1 grid text-xs sm:text-sm leading-tight w-full">
+                    <span className="truncate font-semibold">
+                      {userDb?.firstName} {userDb?.lastName}
+                    </span>
+                    <span className="truncate text-[10px] sm:text-xs text-muted-foreground">
+                      {user?.primaryEmailAddress?.emailAddress}
+                    </span>
+                  </div>
+                  <ChevronsUpDown className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                </div>
+              )}
+            </SidebarMenuButton>
+
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
@@ -140,8 +154,8 @@ export function NavUser({ open }: { open: boolean }) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user?.fullName}</span>
-                  <span className="truncate text-xs">{user?.primaryEmailAddress?.emailAddress}</span>
+                  <span className="truncate font-semibold">{userDb?.firstName}</span>
+                  <span className="truncate text-xs">{userDb?.email}</span>
                   <span className="text-xs text-muted-foreground">
                     {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
                   </span>

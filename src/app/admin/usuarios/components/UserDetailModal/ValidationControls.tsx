@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 
 interface ValidationControlsProps {
-  documentType: "IDENTITY" | "LICENCE" | "INSURANCE"
+  documentType: "IDENTITY" | "LICENCE" | "INSURANCE" | "CARD"
   documentId: string
   currentStatus: string
   onValidate: (validationRequest: any) => Promise<void>

@@ -21,12 +21,12 @@ interface VerificationAlertProps {
 
 export function VerificationAlert({ user, startDriverRegistration, setShowIdVerification }: VerificationAlertProps) {
   const [open, setOpen] = useState(false)
-  
+
   useEffect(() => {
     // Verificar estados fallidos cuando el componente se monta
-    if (user.identityStatus === 'FAILED' || 
-        user.licenseStatus === 'FAILED' || 
-        user.cars.some(car => car.insurance.status === 'FAILED')) {
+    if (user.identityStatus === 'FAILED' ||
+      user.licenseStatus === 'FAILED' ||
+      user.cars.some(car => car.insurance.status === 'FAILED') || user.cars.some(car => car.vehicleCard?.status === 'FAILED')) {
       setOpen(true)
     }
   }, [user])
@@ -67,6 +67,19 @@ export function VerificationAlert({ user, startDriverRegistration, setShowIdVeri
           setOpen(false)
         },
         buttonText: 'Volver a cargar seguro'
+      }
+    }
+
+    const failedCarCard = user.cars.find((car) => car.vehicleCard?.status === 'FAILED')
+    if (failedCarCard) {
+      return {
+        title: 'Verificación de Tarjeta Vehicular Pendiente',
+        description: `La tarjeta vehicular del vehículo ${failedCarCard.plate} fue rechazada: ${failedCarCard.vehicleCard?.failureReason}`,
+        action: () => {
+          startDriverRegistration()
+          setOpen(false)
+        },
+        buttonText: 'Volver a cargar tarjeta vehicular'
       }
     }
 

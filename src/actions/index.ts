@@ -13,7 +13,6 @@ export * from './file/process-image';
 export * from './file/process-pdf';
 
 // car
-export * from './car/car-info';
 export * from './car/create-car-model';
 
 // driver

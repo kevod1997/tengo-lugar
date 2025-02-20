@@ -7,12 +7,13 @@ import type { DocumentResponse } from "@/services/registration/admin/user-servic
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from "react"
 import { useApiResponse } from "@/hooks/ui/useApiResponse"
-import { CheckCircle, Clock, XCircle } from "lucide-react"
 import { validateDocument } from "@/actions/register/admin/validate-document"
 import { BasicInfo } from "./UserDetailModal/BasicInfo"
 import { IdentityTab } from "./UserDetailModal/IdentityTab"
 import { LicenseTab } from "./UserDetailModal/LicenseTab"
 import { VehicleTab } from "./UserDetailModal/VehicleTab"
+import { StatusIndicator } from "@/components/status-indicator/StatusIndicator"
+import { getVehicleStatus } from "@/utils/helpers/driver/get-vehicle-status"
 
 interface UserDetailsModalProps {
   user: FormattedUserForAdminDashboard & { documents?: DocumentResponse }
@@ -25,7 +26,6 @@ export function UserDetailsModal({ user, onClose, isLoading }: UserDetailsModalP
   const [validating, setValidating] = useState(false)
 
   const handleValidation = async (validationRequest: any) => {
-    console.log(validationRequest, user.email)
     try {
       setValidating(true)
 
@@ -56,35 +56,15 @@ export function UserDetailsModal({ user, onClose, isLoading }: UserDetailsModalP
               <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 max-sm:mb-12">
                 <TabsTrigger value="identity" className="flex items-center justify-center">
                   DNI
-                  {user.documents?.identityCard?.status === "PENDING" && (
-                    <Clock className="ml-2 h-4 w-4 text-yellow-500" />
-                  )}
-                  {user.documents?.identityCard?.status === "FAILED" && (
-                    <XCircle className="ml-2 h-4 w-4 text-red-500" />
-                  )}
-                  {user.documents?.identityCard?.status === "VERIFIED" && (
-                    <CheckCircle className="ml-2 h-4 w-4 text-green-500" />
-                  )}
+                  <StatusIndicator status={user.documents?.identityCard?.status} />
                 </TabsTrigger>
                 <TabsTrigger value="license" className="flex items-center justify-center">
                   Licencia
-                  {user.documents?.licence?.status === "PENDING" && <Clock className="ml-2 h-4 w-4 text-yellow-500" />}
-                  {user.documents?.licence?.status === "FAILED" && <XCircle className="ml-2 h-4 w-4 text-red-500" />}
-                  {user.documents?.licence?.status === "VERIFIED" && (
-                    <CheckCircle className="ml-2 h-4 w-4 text-green-500" />
-                  )}
+                  <StatusIndicator status={user.documents?.licence?.status} />
                 </TabsTrigger>
                 <TabsTrigger value="vehicle" disabled={!user.documents?.cars?.length} className="flex items-center justify-center">
                   Vehículo
-                  {user.documents?.cars?.some((car) => car.insurance.status === "PENDING") && (
-                    <Clock className="ml-2 h-4 w-4 text-yellow-500" />
-                  )}
-                  {user.documents?.cars?.some((car) => car.insurance.status === "FAILED") && (
-                    <XCircle className="ml-2 h-4 w-4 text-red-500" />
-                  )}
-                  {user.documents?.cars && user.documents.cars.length > 0 && user.documents.cars.every((car) => car.insurance.status === "VERIFIED") && (
-                    <CheckCircle className="ml-2 h-4 w-4 text-green-500" />
-                  )}
+                  <StatusIndicator status={getVehicleStatus(user.documents?.cars ?? [])} />
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="identity">

@@ -1,5 +1,5 @@
-import { ApiResponse } from "@/types/api-types";
 import { FuelType } from "@prisma/client";
+import { ApiResponse } from "./api-types";
 
 export interface Brand {
   id: number;
@@ -22,13 +22,15 @@ export interface Model {
 export interface DetailedModel {
   id: number;
   name: string;
-  transmission: string;
-  fuelConsume: number | undefined;
   fuelType: FuelType | undefined;
+  fuelConsume: number;
   brand: Brand;
-  group: Group;
-  years: Array<{ id: number; year: number }>;
+  group: {
+    id: number;
+    name: string;
+  };
 }
+
 
 export type BrandsResponse = ApiResponse<Brand[]>;
 export type GroupsResponse = ApiResponse<Group[]>;

@@ -1,4 +1,4 @@
-import { CardType, Gender, VerificationStatus } from "@prisma/client"
+import { CardType, FileType, FuelType, Gender, VerificationStatus } from "@prisma/client"
 
 interface CarInsurance {
   status: VerificationStatus | null;
@@ -15,6 +15,7 @@ interface VehicleCardInfo {
   failureReason: string | null;
   hasFileKey: boolean;
   expirationDate: string | Date;
+  fileType: FileType;
   url?: string;
 }
 
@@ -24,6 +25,8 @@ export interface UserCar {
   insurance: CarInsurance;
   brand: string;
   model: string;
+  fuelType: FuelType | null;
+  averageFuelConsume: number | null;
   year: number ;
   vehicleCard: VehicleCardInfo | null;
   hasGreenCard: boolean;  

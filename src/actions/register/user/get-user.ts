@@ -135,6 +135,8 @@ export async function getUserByClerkId(clerkId?: string) {
                       select: {
                         model: true,
                         year: true,
+                        fuelType: true,
+                        averageFuelConsume: true,
                         brand: {
                           select: {
                             name: true

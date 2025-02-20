@@ -48,6 +48,15 @@ export class AdminDocumentService {
     }
   }
 
+  private static async getCarCardUrl(fileKey: string): Promise<string | null> {
+    try {
+      return await StorageService.getCarCardDocumentUrl(fileKey);
+    } catch (error) {
+      console.error('Error getting vehicle card URL:', error);
+      return null;
+    }
+  }
+
   static async getUserDocuments(user: any): Promise<ApiResponse<DocumentResponse>> {
     try {
       const documentUrls: {
@@ -79,6 +88,33 @@ export class AdminDocumentService {
       }
 
       // Procesar cars y sus seguros
+      // const cars: UserCar[] = await Promise.all(
+      //   user.driver?.Car.map(async (driverCar: any) => {
+      //     const car = driverCar.car;
+      //     const policy = car.insuredCar?.currentPolicy;
+      //     let insuranceUrl = null;
+
+      //     if (policy?.fileKey) {
+      //       insuranceUrl = await this.getInsuranceUrl(policy.fileKey);
+      //     }
+
+      //     return {
+      //       id: car.id,
+      //       plate: car.plate,
+      //       brand: car.carModel?.brand?.name || '',
+      //       model: car.carModel?.model || '',
+      //       year: car.carModel?.year || null,
+      //       insurance: {
+      //         status: policy?.status || null,
+      //         failureReason: policy?.failureReason || null,
+      //         hasFileKey: Boolean(policy?.fileKey),
+      //         url: insuranceUrl,
+      //         policy: policy || null
+      //       }
+      //     };
+      //   }) || []
+      // );
+
       const cars: UserCar[] = await Promise.all(
         user.driver?.Car.map(async (driverCar: any) => {
           const car = driverCar.car;
@@ -89,19 +125,55 @@ export class AdminDocumentService {
             insuranceUrl = await this.getInsuranceUrl(policy.fileKey);
           }
 
+          // Procesar tarjetas vehiculares
+          const vehicleCards = driverCar.vehicleCards || [];
+          let vehicleCard = null;
+          let hasGreenCard = false;
+          let hasBlueCard = false;
+          let hasPendingCards = false;
+
+          for (const card of vehicleCards) {
+            const cardUrl = card.fileKey ? await this.getCarCardUrl(card.fileKey) : null;
+
+            if (card.status === 'PENDING') {
+              hasPendingCards = true;
+            }
+
+            hasGreenCard = hasGreenCard || card.cardType === 'GREEN';
+            hasBlueCard = hasBlueCard || card.cardType === 'BLUE';
+
+            // Usamos la última tarjeta procesada como la tarjeta principal
+            vehicleCard = {
+              id: card.id,
+              cardType: card.cardType,
+              status: card.status,
+              failureReason: card.failureReason,
+              hasFileKey: Boolean(card.fileKey),
+              expirationDate: card.expirationDate,
+              fileType: card.fileType,
+              url: cardUrl || undefined
+            };
+          }
+
           return {
             id: car.id,
             plate: car.plate,
             brand: car.carModel?.brand?.name || '',
             model: car.carModel?.model || '',
-            year: car.carModel?.year || null,
+            fuelType: car.carModel?.fuelType || null,
+            averageFuelConsume: car.carModel?.averageFuelConsume || null,
+            year: car.carModel?.year || 0,
             insurance: {
               status: policy?.status || null,
               failureReason: policy?.failureReason || null,
               hasFileKey: Boolean(policy?.fileKey),
               url: insuranceUrl,
               policy: policy || null
-            }
+            },
+            vehicleCard,
+            hasGreenCard,
+            hasBlueCard,
+            hasPendingCards
           };
         }) || []
       );

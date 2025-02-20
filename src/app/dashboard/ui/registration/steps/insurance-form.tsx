@@ -15,6 +15,7 @@ import { DocumentUpload } from '@/components/document-upload/DocumentUpload'
 import Loading from '@/app/loading'
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE } from '@/config/constants'
 import { useInsuranceStore } from '@/hooks/registration/useInsuranceCompanies'
+import { useUserStore } from '@/store/user-store'
 
 interface InsuranceFormProps {
     onSubmit: (data: InsuranceInput) => Promise<void>
@@ -33,6 +34,7 @@ export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
     const [policyFile, setPolicyFile] = useState<File | null>(null)
     const [policyPreview, setPolicyPreview] = useState<string | null>(null)
     const { companies, isLoading, error, fetch } = useInsuranceStore()
+    const { user } = useUserStore()
 
     const {
         register,
@@ -44,6 +46,7 @@ export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
         resolver: zodResolver(insuranceSchema),
         defaultValues: {
             ...data.insuranceInfo,
+            carId: data.insuranceInfo?.carId ?? user?.cars[0]?.id, // Default to first car if no carId provided
             policyFile: undefined,
         },
         mode: 'onChange'
@@ -59,6 +62,8 @@ export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
     const watchPolicyNumber = watch('policyNumber')
     const watchStartDate = watch('startDate')
     const watchExpireDate = watch('expireDate')
+    const watchCarId = watch('carId')
+    const hasMoreThanOneCar = (user?.cars?.length ?? 0) > 1
 
     // 4. Funciones del componente
     const isFormValid = () => {
@@ -93,6 +98,30 @@ export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
 
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
                 <div className="space-y-4">
+
+                    {hasMoreThanOneCar && (
+                        <div className="space-y-2">
+                            <Label htmlFor="carId">Vehículo</Label>
+                            <Select
+                                onValueChange={(value) => setValue('carId', value, { shouldValidate: true })}
+                                defaultValue={watchCarId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona el vehículo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {user?.cars.map(car => (
+                                        <SelectItem key={car.id} value={car.id}>
+                                            {car.brand} {car.model} - {car.plate}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.carId && (
+                                <p className="text-sm text-destructive">{errors.carId.message}</p>
+                            )}
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <Label htmlFor="insuranceId">Compañía de Seguros</Label>
                         <Select

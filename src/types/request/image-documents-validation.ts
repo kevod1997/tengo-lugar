@@ -1,4 +1,4 @@
-export type DocumentType = 'IDENTITY' | 'LICENCE' | 'INSURANCE';
+export type DocumentType = 'IDENTITY' | 'LICENCE' | 'INSURANCE' | 'CARD';
 
 export interface BaseDocument {
   id: string;

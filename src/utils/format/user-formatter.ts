@@ -1,4 +1,5 @@
 import { FormattedUser, FormattedUserForAdminDashboard, UserCar } from "@/types/user-types";
+import { FuelType } from "@prisma/client";
 
 
 export function getCars(user: any): UserCar[] {
@@ -7,6 +8,8 @@ export function getCars(user: any): UserCar[] {
     plate: driverCar.car.plate,
     brand: driverCar.car.carModel?.brand?.name || '',
     model: driverCar.car.carModel?.model || '',
+    fuelType: driverCar.car.carModel?.fuelType || null,
+    averageFuelConsume: driverCar.car.carModel?.averageFuelConsume || null,
     year: driverCar.car.carModel?.year || null,
     insurance: {
       status: driverCar.car.insuredCar?.currentPolicy?.status || null,
@@ -21,10 +24,10 @@ export function getCars(user: any): UserCar[] {
       hasFileKey: Boolean(driverCar.vehicleCards[0].fileKey),
       expirationDate: driverCar.vehicleCards[0].expirationDate,
     } : null,
-    hasGreenCard: driverCar.vehicleCards?.[0]?.cardType === 'GREEN' && 
-                  driverCar.vehicleCards[0].status === 'VERIFIED' || false,
-    hasBlueCard: driverCar.vehicleCards?.[0]?.cardType === 'BLUE' && 
-                 driverCar.vehicleCards[0].status === 'VERIFIED' || false,
+    hasGreenCard: driverCar.vehicleCards?.[0]?.cardType === 'GREEN' &&
+      driverCar.vehicleCards[0].status === 'VERIFIED' || false,
+    hasBlueCard: driverCar.vehicleCards?.[0]?.cardType === 'BLUE' &&
+      driverCar.vehicleCards[0].status === 'VERIFIED' || false,
     hasPendingCards: driverCar.vehicleCards?.[0]?.status === 'PENDING' || false
   })) || [];
   return cars;
@@ -60,17 +63,16 @@ export function formatUserResponse(user: any): FormattedUser {
     hasRegisteredCar: cars.length > 0,
     allCarsInsured: cars.length > 0 && cars.every((car: UserCar) => car.insurance.status === 'VERIFIED'),
     hasPendingInsurance: cars.some((car: UserCar) => car.insurance.status === 'PENDING'),
-    hasAllRequiredCards: cars.length > 0 && cars.every((car: UserCar) => 
+    hasAllRequiredCards: cars.length > 0 && cars.every((car: UserCar) =>
       car.hasGreenCard && car.hasBlueCard
     ),
-    hasPendingCards: cars.some((car: UserCar) => 
+    hasPendingCards: cars.some((car: UserCar) =>
       car.hasPendingCards
     )
   };
 }
 
 export function formatUserForAdminDashboard(user: any): FormattedUserForAdminDashboard {
-  console.log(user)
   const cars = getCars(user);
   return {
     id: user.id,

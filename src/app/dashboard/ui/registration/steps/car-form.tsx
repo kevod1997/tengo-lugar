@@ -3,22 +3,21 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { ArrowRight, Car, Loader2 } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { ArrowRight } from 'lucide-react'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import { CarRegistrationInput, carRegistrationSchema } from '@/schemas/validation/car-schema'
-import { getBrands, getGroups, getModelDetails, getModels } from '@/actions/car/car-info'
-import { Brand, DetailedModel, Group, Model } from '@/types/car-types'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Car } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { CarRegistrationInput, carRegistrationSchema } from '@/schemas/validation/car-schema'
+import { Brand, DetailedModel, Group, Model } from '@/types/car-types'
+import { getBrands, getGroups, getModelDetails, getModels } from '@/actions/car-api/car-api-actions'
+import { useDebounce } from '@/hooks/registration/useDebounce'
+import { checkPlateExists } from '@/actions/car/check-car-plate'
+import { getYearRange } from '@/utils/helpers/get-year-range'
 
 interface CarFormProps {
     onSubmit: (data: CarRegistrationInput) => Promise<void>
@@ -32,21 +31,16 @@ interface CarFormProps {
 }
 
 export default function CarForm({ onSubmit, data }: CarFormProps) {
-    // Estados para las diferentes opciones de selección
-    const [brands, setBrands] = useState<Brand[]>([])
+    // Estados locales
     const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
-
-    const [groups, setGroups] = useState<Group[]>([])
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
-
-    const [models, setModels] = useState<Model[]>([])
     const [selectedModel, setSelectedModel] = useState<Model | null>(null)
-
-    const [modelDetails, setModelDetails] = useState<DetailedModel | null>(null)
     const [loading, setLoading] = useState(false)
 
+    // React Hook Form
     const { register, handleSubmit, setValue, watch, formState: { errors, isValid } } = useForm<CarRegistrationInput>({
         resolver: zodResolver(carRegistrationSchema),
+        mode: "onChange",
         defaultValues: data.carInfo || {
             brand: { name: '' },
             model: { name: '', year: new Date().getFullYear(), averageFuelConsume: undefined, fuelType: undefined },
@@ -54,93 +48,181 @@ export default function CarForm({ onSubmit, data }: CarFormProps) {
         }
     })
 
-    // Cargar marcas al iniciar
+    // Queries
+    const {
+        data: brandsData,
+        isLoading: isLoadingBrands,
+        error: brandsError
+    } = useQuery({
+        queryKey: ['brands'],
+        queryFn: getBrands,
+        select: (response) => response.success ? response.data : [],
+        staleTime: Infinity
+    })
+
+    const {
+        data: groupsData,
+        isLoading: isLoadingGroups,
+        error: groupsError
+    } = useQuery({
+        queryKey: ['groups', selectedBrand?.id],
+        queryFn: async () => {
+            if (!selectedBrand) return null;
+            const response = await getGroups(selectedBrand.id);
+            return response;
+        },
+        select: (response) => {
+            return response?.success ? response.data : [];
+        },
+        enabled: !!selectedBrand
+    });
+
+    const {
+        data: modelsData,
+        isLoading: isLoadingModels,
+        error: modelsError
+    } = useQuery({
+        queryKey: ['models', selectedBrand?.id, selectedGroup?.id],
+        queryFn: () => selectedBrand && selectedGroup ? getModels(selectedBrand.id, selectedGroup.id) : null,
+        select: (response) => response?.success ? response.data : [],
+        enabled: !!(selectedBrand && selectedGroup)
+    })
+
+    const {
+        data: modelDetailsData,
+        isLoading: isLoadingDetails,
+        error: modelDetailsError
+    } = useQuery({
+        queryKey: ['modelDetails', selectedModel?.id],
+        queryFn: () => selectedModel ? getModelDetails(selectedModel.id) : null,
+        select: (response) => response?.success ? response.data : null,
+        enabled: !!selectedModel
+    })
+
+    // Manejo centralizado de errores
     useEffect(() => {
-        const loadBrands = async () => {
-            const response = await getBrands()
-            if (response.success) {
-                setBrands(response.data!)
-            }
+        if (brandsError) {
+            toast.error('Error al cargar las marcas')
         }
-        loadBrands()
-    }, [])
+        if (groupsError) {
+            toast.error('Error al cargar las líneas')
+        }
+        if (modelsError) {
+            toast.error('Error al cargar los modelos')
+        }
+        if (modelDetailsError) {
+            toast.error('Error al cargar los detalles del modelo')
+        }
+    }, [brandsError, groupsError, modelsError, modelDetailsError])
 
-    // Cargar grupos cuando se selecciona una marca
-    const handleBrandSelect = async (brandName: string) => {
-        const brand = brands.find(b => b.name === brandName)
+    const handleBrandSelect = (brandName: string) => {
+        const brand = brandsData?.find(b => b.name === brandName);
         if (brand) {
-            setSelectedBrand(brand)
-            setValue('brand.name', brand.name)
-
-            // Resetear selecciones posteriores
-            setSelectedGroup(null)
-            setSelectedModel(null)
-            setModelDetails(null)
-            setValue('model.name', '')
-            setValue('model.year', new Date().getFullYear())
-
-            const response = await getGroups(brand.id)
-            if (response.success) {
-                setGroups(response.data!)
-            }
+            setSelectedBrand(brand);
+            setValue('brand.name', brand.name);
+            // Reset other selections
+            setSelectedGroup(null);
+            setSelectedModel(null);
+            setValue('model.name', '');
+            setValue('model.year', new Date().getFullYear());
         }
     }
 
-    // Cargar modelos cuando se selecciona un grupo
-    const handleGroupSelect = async (groupName: string) => {
-        if (!selectedBrand) return
-
-        const group = groups.find(g => g.name === groupName)
+    const handleGroupSelect = (groupName: string) => {
+        const group = groupsData?.find(g => g.name === groupName)
         if (group) {
             setSelectedGroup(group)
-
-            // Resetear selecciones posteriores
             setSelectedModel(null)
-            setModelDetails(null)
             setValue('model.year', new Date().getFullYear())
-
-            const response = await getModels(selectedBrand.id, group.id)
-            if (response.success) {
-                setModels(response.data!)
-            }
         }
     }
 
-    // Cargar detalles cuando se selecciona un modelo específico
-    const handleModelSelect = async (modelId: string) => {
-        const model = models.find(m => m.id === parseInt(modelId))
+    const handleModelSelect = (modelId: string) => {
+        const model = modelsData?.find(m => m.id === parseInt(modelId))
         if (model) {
             setSelectedModel(model)
             setValue('model.name', model.name)
-
-            const response = await getModelDetails(model.id)
-            if (response.success) {
-                setModelDetails(response.data!)
+            if (modelDetailsData) {
+                setValue('model.fuelType', modelDetailsData.fuelType)
+                setValue('model.averageFuelConsume', modelDetailsData.fuelConsume)
             }
         }
     }
 
+    // Estado para el mensaje de error de la patente
+    const [plateError, setPlateError] = useState<string | null>(null)
+    const [isCheckingPlate, setIsCheckingPlate] = useState(false);
+
+    // Obtenemos el valor actual de la patente
+    const plateValue = watch('car.plate')
+
+    // Debounce del valor de la patente para no hacer demasiadas peticiones
+    const debouncedPlate = useDebounce(plateValue, 500)
+
     useEffect(() => {
-        if (modelDetails) {
-            setValue('model.fuelType', modelDetails.fuelType)
-            setValue('model.averageFuelConsume', modelDetails.fuelConsume)
+        const validatePlate = async () => {
+            console.log('Debounced plate value:', debouncedPlate);
+
+            // Only check if the plate matches either format and is long enough
+            if (debouncedPlate && debouncedPlate.length >= 6) {
+                const platePattern = /^[A-Z0-9]{6,7}$/;
+                if (platePattern.test(debouncedPlate.toUpperCase())) {
+                    checkPlateMutation.mutate(debouncedPlate.toUpperCase());
+                }
+            }
+        };
+
+        validatePlate();
+    }, [debouncedPlate]);
+
+    // Modify the mutation to better handle responses
+    const checkPlateMutation = useMutation({
+        mutationFn: checkPlateExists,
+        onMutate: () => {
+            setIsCheckingPlate(true);
+        },
+        onSettled: () => {
+            setIsCheckingPlate(false);
+        },
+        onSuccess: (response) => {
+            if (response.success && response.data?.exists) {
+                setPlateError(response.data.message);
+            } else {
+                setPlateError(null);
+            }
+        },
+        onError: (error) => {
+            toast.error('Error al verificar la patente');
         }
-    }, [modelDetails, setValue])
+    });
 
-    // Manejar la selección del año
-    const handleYearSelect = (year: string) => {
-        setValue('model.year', parseInt(year))
-    }
-
+    // Modificar el handleFormSubmit para incluir la validación
     const handleFormSubmit = async (formData: CarRegistrationInput) => {
-        try {
-            console.log('Submitting form:', formData)
-            await onSubmit(formData)
-
-        } catch (error) {
-            console.error('Error submitting form:', error)
+        // Check if we're currently validating the plate
+        if (isCheckingPlate) {
+            toast.error('Por favor, espere mientras se verifica la patente');
+            return;
         }
-    }
+
+        // Check if there's a plate error
+        if (plateError) {
+            toast.error(plateError);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await onSubmit(formData);
+        } catch (error) {
+            toast.error('Error al registrar el vehículo');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Loading component
+    const SelectSkeleton = () => <Skeleton className="h-10 w-full" />
+
 
     return (
         <div className="flex flex-col min-h-[calc(100vh-10rem)]">
@@ -154,115 +236,189 @@ export default function CarForm({ onSubmit, data }: CarFormProps) {
 
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
                 <div className="space-y-4">
-                    {/* Selección de Marca */}
+                    {/* Marca */}
                     <div>
                         <Label htmlFor="brand">Marca</Label>
-                        <Select
-                            onValueChange={handleBrandSelect}
-                            value={selectedBrand?.name}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecciona una marca" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {brands.map((brand) => (
-                                    <SelectItem key={brand.id} value={brand.name}>
-                                        {brand.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {isLoadingBrands ? (
+                            <SelectSkeleton />
+                        ) : (
+                            <Select
+                                onValueChange={handleBrandSelect}
+                                value={selectedBrand?.name}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona una marca" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {brandsData?.map((brand) => (
+                                        <SelectItem key={brand.id} value={brand.name}>
+                                            {brand.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                         {errors.brand?.name && (
                             <p className="text-sm text-destructive mt-1">{errors.brand.name.message}</p>
                         )}
                     </div>
 
-                    {/* Selección de Grupo/Línea */}
+                    {/* Línea */}
                     {selectedBrand && (
                         <div>
                             <Label htmlFor="group">Línea</Label>
-                            <Select
-                                onValueChange={handleGroupSelect}
-                                value={selectedGroup?.name}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona una línea" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {groups.map((group) => (
-                                        <SelectItem key={group.id} value={group.name}>
-                                            {group.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            {isLoadingGroups ? (
+                                <SelectSkeleton />
+                            ) : (
+                                // <Select
+                                //     onValueChange={handleGroupSelect}
+                                //     value={selectedGroup?.name}
+                                // >
+                                //     <SelectTrigger>
+                                //         <SelectValue placeholder="Selecciona una línea" />
+                                //     </SelectTrigger>
+                                //     <SelectContent>
+                                //         {groupsData?.map((group) => (
+                                //             <SelectItem key={group.id} value={group.name}>
+                                //                 {group.name}
+                                //             </SelectItem>
+                                //         ))}
+                                //     </SelectContent>
+                                // </Select>
+                                <Select onValueChange={handleGroupSelect} value={selectedGroup?.name}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona una línea" />
+                                    </SelectTrigger>
+                                    <SelectContent
+                                        align="start"
+                                        className="max-h-[200px] overflow-y-auto"
+                                        style={{
+                                            scrollBehavior: 'smooth',
+                                            overscrollBehavior: 'contain'
+                                        }}
+                                    >
+                                        {groupsData?.map((group) => (
+                                            <SelectItem key={group.id} value={group.name}>
+                                                {group.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
                         </div>
                     )}
 
-                    {/* Selección de Modelo Específico */}
+                    {/* Modelo */}
                     {selectedGroup && (
                         <div>
                             <Label htmlFor="model">Modelo</Label>
-                            <Select
-                                onValueChange={handleModelSelect}
-                                value={selectedModel?.id.toString()}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona un modelo específico" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {models.map((model) => (
-                                        <SelectItem key={model.id} value={model.id.toString()}>
-                                            {model.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            {isLoadingModels ? (
+                                <SelectSkeleton />
+                            ) : (
+                                // <Select
+                                //     onValueChange={handleModelSelect}
+                                //     value={selectedModel?.id.toString()}
+                                // >
+                                //     <SelectTrigger>
+                                //         <SelectValue placeholder="Selecciona un modelo específico" />
+                                //     </SelectTrigger>
+                                //     <SelectContent>
+                                //         {modelsData?.map((model) => (
+                                //             <SelectItem key={model.id} value={model.id.toString()}>
+                                //                 {model.name}
+                                //             </SelectItem>
+                                //         ))}
+                                //     </SelectContent>
+                                // </Select>
+                                <Select onValueChange={handleModelSelect} value={selectedModel?.id.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona un modelo específico" />
+                                    </SelectTrigger>
+                                    <SelectContent
+                                        align="start"
+                                        className="max-h-[200px] overflow-y-auto"
+                                        style={{
+                                            scrollBehavior: 'smooth',
+                                            overscrollBehavior: 'contain'
+                                        }}>
+                                        {modelsData?.map((model) => (
+                                            <SelectItem key={model.id} value={model.id.toString()}>
+                                                {model.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
                             {errors.model?.name && (
                                 <p className="text-sm text-destructive mt-1">{errors.model.name.message}</p>
                             )}
                         </div>
                     )}
 
-                    {/* Selección de Año */}
-                    {modelDetails && (
-                        <div>
-                            <Label htmlFor="year">Año</Label>
-                            <Select
-                                onValueChange={handleYearSelect}
-                                value={watch('model.year').toString()}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona el año" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {modelDetails.years.map((year) => (
-                                        <SelectItem key={year.id} value={year.year.toString()}>
-                                            {year.year}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.model?.year && (
-                                <p className="text-sm text-destructive mt-1">{errors.model.year.message}</p>
-                            )}
-                        </div>
-                    )}
+                    {/* Año y Patente */}
+                    {selectedModel && (
+                        <>
+                            {isLoadingDetails ? (
+                                <div className="space-y-4 animate-pulse">
+                                    <div>
+                                        <Label className="opacity-50">Año</Label>
+                                        <SelectSkeleton />
+                                    </div>
+                                    <div>
+                                        <Label className="opacity-50">Patente</Label>
+                                        <SelectSkeleton />
+                                    </div>
+                                </div>
+                            ) : modelDetailsData && (
+                                <div className="space-y-4 animate-in fade-in-50">
+                                    <div>
+                                        <Label htmlFor="year">Año</Label>
+                                        <Select
+                                            onValueChange={(year) => setValue('model.year', parseInt(year))}
+                                            value={watch('model.year').toString()}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecciona el año" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {getYearRange().map((year) => (
+                                                    <SelectItem key={year} value={year.toString()}>
+                                                        {year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.model?.year && (
+                                            <p className="text-sm text-destructive mt-1">
+                                                {errors.model.year.message}
+                                            </p>
+                                        )}
+                                    </div>
 
-                    {/* Ingreso de Patente */}
-                    {selectedModel && modelDetails && (
-                        <div>
-                            <Label htmlFor="plate">Patente</Label>
-                            <Input
-                                id="plate"
-                                {...register('car.plate')}
-                                placeholder="Ingresa la patente"
-                                className="uppercase"
-                            />
-                            {errors.car?.plate && (
-                                <p className="text-sm text-destructive mt-1">{errors.car.plate.message}</p>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="plate">Patente</Label>
+                                        <div className="relative">
+                                            <Input
+                                                id="plate"
+                                                {...register('car.plate')}
+                                                placeholder="Ingresa la patente"
+                                                className={`uppercase ${errors.car?.plate || plateError ? 'border-destructive' : ''}`}
+                                            />
+                                            {isCheckingPlate && (
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        {(errors.car?.plate || plateError) && (
+                                            <p className="text-sm font-medium text-destructive">
+                                                {errors.car?.plate?.message || plateError}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             )}
-                        </div>
+                        </>
                     )}
                 </div>
 
@@ -272,10 +428,19 @@ export default function CarForm({ onSubmit, data }: CarFormProps) {
                     <Button
                         type="submit"
                         className="w-full"
-                        disabled={!isValid || loading || !selectedModel || !modelDetails}
+                        disabled={!isValid || loading || !selectedModel || !modelDetailsData || isCheckingPlate || !!plateError}
                     >
-                        {loading ? 'Registrando...' : 'Registrar Vehículo'}
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        {loading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Registrando...
+                            </>
+                        ) : (
+                            <>
+                                Registrar Vehículo
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </>
+                        )}
                     </Button>
                 </footer>
             </form>

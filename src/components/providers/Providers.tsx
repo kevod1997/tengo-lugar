@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { esES } from '@clerk/localizations';
 import { SidebarProvider } from '../ui/sidebar';
 import React from 'react';
+import QueryProvider from './Query-Provider';
 
 
 interface Props {
@@ -15,9 +16,11 @@ export const Providers = ({ children }: Props) => {
 
     return (
         <ClerkProvider localization={esES}>
+            <QueryProvider>
                 <SidebarProvider open={open} onOpenChange={setOpen}>
                     {children}
                 </SidebarProvider>
+            </QueryProvider>
         </ClerkProvider>
     );
 };
