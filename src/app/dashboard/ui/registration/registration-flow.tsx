@@ -28,9 +28,6 @@ export default function RegistrationFlow({ onComplete, initialStep = 'role', ini
     formData,
     isLoading,
     handleNext,
-    userProfile,
-    setUser,
-    user,
   } = useRegistrationFlow(initialStep, onComplete, onClose, initialRole)
 
   const handleCloseAttempt = useCallback(() => {
@@ -46,9 +43,6 @@ export default function RegistrationFlow({ onComplete, initialStep = 'role', ini
 
   const handleConfirmExit = () => {
     setShowExitConfirmation(false)
-    if (user === null) {
-      setUser(userProfile)
-    }
     setIsOpen(false)
     if (onClose) {
       onClose()

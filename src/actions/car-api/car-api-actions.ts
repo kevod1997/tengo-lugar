@@ -173,7 +173,6 @@ export async function getModelDetails(modelId: number): Promise<DetailedModelRes
       cacheKey,
       async () => {
         const response = await fetchFromCarApi(`/models/${modelId}`)
-        console.log(response.data)
         return ApiHandler.handleSuccess(response.data)
       },
       CACHE_TIMES.MODEL_DETAILS

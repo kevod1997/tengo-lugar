@@ -1,5 +1,4 @@
 import { FormattedUser, FormattedUserForAdminDashboard, UserCar } from "@/types/user-types";
-import { FuelType } from "@prisma/client";
 
 
 export function getCars(user: any): UserCar[] {
@@ -33,20 +32,68 @@ export function getCars(user: any): UserCar[] {
   return cars;
 }
 
+export function splitFullName(fullName: string): { firstName: string; lastName: string } {
+  // Eliminar espacios extras y dividir por espacios
+  const nameParts = fullName.trim().split(/\s+/);
 
+  // Si hay solo una palabra, es el nombre y no hay apellido
+  if (nameParts.length === 1) {
+    return {
+      firstName: nameParts[0],
+      lastName: ''
+    };
+  }
+
+  // Si hay 2 palabras: la primera es nombre, la segunda apellido
+  if (nameParts.length === 2) {
+    return {
+      firstName: nameParts[0],
+      lastName: nameParts[1]
+    };
+  }
+
+  // Si hay 3 palabras: las 2 primeras son nombre, la tercera apellido
+  if (nameParts.length === 3) {
+    return {
+      firstName: `${nameParts[0]} ${nameParts[1]}`,
+      lastName: nameParts[2]
+    };
+  }
+
+  // Si hay 4 o más palabras: las 2 primeras son nombre, el resto apellido
+  const firstName = `${nameParts[0]} ${nameParts[1]}`;
+  const lastName = nameParts.slice(2).join(' ');
+
+  return { firstName, lastName };
+}
+
+export function getUserAge(birthDate: string): number {
+  const birth = new Date(birthDate);
+  const now = new Date();
+  const age = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    return age - 1;
+  }
+  return age;
+
+}
 
 export function formatUserResponse(user: any): FormattedUser {
   const cars = getCars(user);
+  const { firstName, lastName } = splitFullName(user.name);
+  const age = getUserAge(user.birthDate);
+
   return {
     id: user.id,
-    clerkId: user.clerkId,
-    firstName: user.firstName,
-    lastName: user.lastName,
+    firstName,
+    lastName,
     birthDate: user.birthDate,
-    age: user.age,
+    age: age,
     email: user.email,
     gender: user.gender,
-    phone: user.phone,
+    phoneNumber: user.phoneNumber,
+    phoneNumberVerified: user.phoneNumberVerified,
     profileImageKey: user.profileImageKey,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -74,10 +121,11 @@ export function formatUserResponse(user: any): FormattedUser {
 
 export function formatUserForAdminDashboard(user: any): FormattedUserForAdminDashboard {
   const cars = getCars(user);
+  const { firstName, lastName } = splitFullName(user.name);
   return {
     id: user.id,
-    profileImageUrl: user.profileImageKey || `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`,
-    fullName: user.firstName + ' ' + user.lastName,
+    profileImageUrl: user.profileImageKey || `${firstName.charAt(0)}${lastName.charAt(0) || ''}`,
+    fullName: user.name,
     email: user.email,
     phone: user.phone,
     createdAt: user.createdAt,

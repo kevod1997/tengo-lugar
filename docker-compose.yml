@@ -12,6 +12,18 @@ services:
       - ./postgres:/var/lib/postgresql/data
     ports:
       - 5433:5432
+    # Nueva base de datos para Better Auth
+  postgres-db-auth:
+    image: postgres:15.3
+    restart: always
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    volumes:
+      - ./postgres-auth:/var/lib/postgresql/data
+    ports:
+      - 5434:5432 # Usamos un puerto diferente
 
   backup:
     image: prodrigestivill/postgres-backup-local
@@ -27,6 +39,25 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      # Nuevo servicio de backup para Better Auth
+  backup-auth:
+    image: prodrigestivill/postgres-backup-local
+    restart: always
+    volumes:
+      - ./backups-auth:/backups
+    links:
+      - postgres-db-auth
+    depends_on:
+      - postgres-db-auth
+    environment:
+      - POSTGRES_HOST=postgres-db-auth
+      - POSTGRES_DB=${AUTH_DB_NAME}
+      - POSTGRES_USER=${AUTH_DB_USER}
+      - POSTGRES_PASSWORD=${AUTH_DB_PASSWORD}
       - SCHEDULE=@daily
       - BACKUP_KEEP_DAYS=7
       - BACKUP_KEEP_WEEKS=4

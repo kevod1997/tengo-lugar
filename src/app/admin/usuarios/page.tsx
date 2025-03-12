@@ -12,8 +12,8 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 interface PageProps {
-  searchParams: Promise<{ 
-    page?: string; 
+  searchParams: Promise<{
+    page?: string;
     pageSize?: string;
     filter?: 'all' | 'pending';
   }>
@@ -29,12 +29,12 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <Header 
+      <Header
         breadcrumbs={[
           { label: 'Home', href: '/' },
           { label: 'Admin', href: '/admin' },
           { label: 'Dashboard' },
-        ]} 
+        ]}
       />
       <DashboardShell>
         <DashboardHeader
@@ -45,7 +45,8 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
         <Suspense fallback={<Loading />}>
           <UserTable users={users} />
         </Suspense>
-        <Pagination {...pagination} />
+        <Pagination {...pagination} urlBased={true}
+          totalLabel="Usuarios" />
       </DashboardShell>
     </>
   )

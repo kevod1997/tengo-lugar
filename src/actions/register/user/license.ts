@@ -3,12 +3,14 @@
 import { FileType } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { DriverLicenseInput, serverDriverLicenseSchema } from "@/schemas";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";;
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { ServiceError } from "@/lib/exceptions/service-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import { uploadDocuments } from "@/lib/file/upload-documents";
-import { getUserByClerkId } from "./get-user";
+import { getUserById } from "./get-user";
+import { splitFullName } from "@/utils/format/user-formatter";
 
 export async function uploadDriverLicense(
   userId: string,
@@ -18,8 +20,11 @@ export async function uploadDriverLicense(
   try {
     const validatedData = serverDriverLicenseSchema.parse(input);
 
-    const { userId: clerkId } = await auth()
-    if (!clerkId) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+    if (!session) {
       throw ServerActionError.AuthenticationFailed('license.ts', 'uploadDriverLicense');
     }
 
@@ -46,14 +51,23 @@ export async function uploadDriverLicense(
       });
     }
 
+    let firstName: string;
+    let lastName: string;
+
+    if(newDriver){
+      ({firstName, lastName} = splitFullName(newDriver.user.name));
+    } else {
+      ({firstName, lastName} = splitFullName(driver!.user.name));
+    }
+
     const userInfo = newDriver ? {
       id: newDriver.user.id,
-      firstName: newDriver.user.firstName,
-      lastName: newDriver.user.lastName
+      firstName,
+      lastName
     } : {
       id: driver!.user.id,
-      firstName: driver!.user.firstName,
-      lastName: driver!.user.lastName
+      firstName,
+      lastName
     };
 
     const existingLicense = driver?.licence;
@@ -96,7 +110,7 @@ export async function uploadDriverLicense(
         throw handlePrismaError(error, 'uploadDriverLicense.updateLicence', 'license.ts');
       });
 
-      const updatedUser = await getUserByClerkId();
+      const updatedUser = await getUserById();
 
       return {
         success: true,
@@ -118,7 +132,7 @@ export async function uploadDriverLicense(
         throw handlePrismaError(error, 'uploadDriverLicense.createLicence', 'license.ts');
       });
 
-      const updatedUser = await getUserByClerkId();
+      const updatedUser = await getUserById();
 
       return {
         success: true,

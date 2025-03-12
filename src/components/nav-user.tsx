@@ -1,6 +1,5 @@
 "use client"
 
-import { useClerk, useUser } from "@clerk/nextjs"
 import {
   ChevronsUpDown,
   LogOut,
@@ -9,12 +8,9 @@ import {
   LogIn,
   Car,
   AlertCircle,
-  Paperclip,
   ClipboardCheck,
   CheckCircle,
-  XCircle,
 } from "lucide-react"
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -34,14 +30,47 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useUserStore } from "@/store/user-store"
+import { authClient } from "@/lib/auth-client"
+import { useRouter } from "next/navigation"
+import { LoggingService } from "@/services/logging/logging-service"
+import { TipoAccionUsuario } from "@/types/actions-logs"
 
 export function NavUser({ open }: { open: boolean }) {
-  const { signOut } = useClerk()
-  const { user, isSignedIn } = useUser()
+  const { data } = authClient.useSession();
+  const router = useRouter();
+  const handleSignOut = async () => {
+    if (data) {
+      try {
+        await authClient.signOut({
+          fetchOptions: {
+            onSuccess: async () => {
+              router.push("/");
+              router.refresh();
+              await LoggingService.logActionWithErrorHandling(
+                {
+                  userId: data.user.id,
+                  action: TipoAccionUsuario.CIERRE_SESION,
+                  status: 'SUCCESS',
+                },
+                {
+                  fileName: 'nav-user.tsx',
+                  functionName: 'handleSignOut'
+                }
+              );
+            },
+          },
+        });
+      } catch (error) {
+        console.error("Error signing out:", error);
+      }
+    }
+  }
+
+
   const { isMobile } = useSidebar()
   const { user: userDb } = useUserStore()
   const isVerified = userDb?.identityStatus === 'VERIFIED' ? true : false
-  if (!isSignedIn) {
+  if (!data) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -109,19 +138,6 @@ export function NavUser({ open }: { open: boolean }) {
               </div>
 
               {/* Información del usuario con mejor manejo de espacio */}
-              {/* {open && (
-                <div className="flex flex-1 items-center gap-1 sm:gap-2 min-w-0">
-                  <div className="flex-1 grid text-xs sm:text-sm leading-tight w-full">
-                    <span className="truncate font-semibold">
-                      {userDb?.firstName} {userDb?.lastName}
-                    </span>
-                    <span className="truncate text-[10px] sm:text-xs text-muted-foreground">
-                      {user?.primaryEmailAddress?.emailAddress}
-                    </span>
-                  </div>
-                  <ChevronsUpDown className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                </div>
-              )} */}
               {open && (
                 <div className="flex flex-1 items-center gap-1 sm:gap-2 min-w-0 overflow-visible">
                   <div className="flex-1 grid text-xs sm:text-sm leading-tight w-full">
@@ -129,7 +145,7 @@ export function NavUser({ open }: { open: boolean }) {
                       {userDb?.firstName} {userDb?.lastName}
                     </span>
                     <span className="truncate text-[10px] sm:text-xs text-muted-foreground">
-                      {user?.primaryEmailAddress?.emailAddress}
+                      {userDb?.email}
                     </span>
                   </div>
                   <ChevronsUpDown className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
@@ -195,7 +211,7 @@ export function NavUser({ open }: { open: boolean }) {
               </DropdownMenuItem>
             </DropdownMenuGroup> : null}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem onClick={() => handleSignOut()}>
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar Sesión
             </DropdownMenuItem>

@@ -3,11 +3,13 @@
 import { IdentityCardInput, serverIdentityCardSchema } from "@/schemas";
 import { FileType } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";;
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import { uploadDocuments } from "@/lib/file/upload-documents";
-import { getUserByClerkId } from "./get-user";
+import { getUserById } from "./get-user";
+import { splitFullName } from "@/utils/format/user-formatter";
 
 export async function uploadIdentityCard(
   userId: string,
@@ -15,11 +17,14 @@ export async function uploadIdentityCard(
 ) {
   try {
     const validatedData = serverIdentityCardSchema.parse(input);
-    const { userId: UserServerId }: { userId: string | null } = await auth()
 
-    if (!UserServerId) {
-      throw ServerActionError.AuthenticationFailed('identity-card.ts', 'uploadIdentityCard');
-    }
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+  
+      if (!session) {
+        throw ServerActionError.AuthenticationFailed('identity-card.ts', 'uploadIdentityCard');
+      }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -30,10 +35,12 @@ export async function uploadIdentityCard(
       throw ServerActionError.UserNotFound('identity-card.ts', 'uploadIdentityCard');
     }
 
+    const {firstName, lastName} = splitFullName(user.name);
+
     const userInfo = {
       id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName
+      firstName,
+      lastName
     };
 
     // Verificar si ya existe una entrada de identityCard
@@ -107,7 +114,7 @@ export async function uploadIdentityCard(
       });
     }
 
-    const updatedUser = await getUserByClerkId();
+    const updatedUser = await getUserById();
 
     return {
       success: true,

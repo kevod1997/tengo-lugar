@@ -1,4 +1,4 @@
-import { createUser, getUserByClerkId, uploadIdentityCard } from "@/actions";
+import { updateUser, getUserById, uploadIdentityCard } from "@/actions";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServiceError } from "@/lib/exceptions/service-error";
 import { processFile } from "@/lib/file/file-processor";
@@ -8,19 +8,19 @@ import { logActionWithErrorHandling } from "../logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { VerificationStatus } from "@prisma/client";
 
-
+//todo acomodar, ahora seria un update, porque ya estaria creado el user
 export class UserRegistrationService {
     async createBaseProfile(personalInfo: any): Promise<ApiResponse<FormattedUser>> {
         try {
-            const userResult = await createUser({
+            const userResult = await updateUser({
                 ...personalInfo,
             })
-
+            //todo userUpdate error
             if (!userResult.success) {
                 throw ServiceError.UserCreationFailed('user-service.ts', 'createBaseProfile');
             }
 
-            const formattedUser = userResult.data ? await getUserByClerkId(userResult.data.user.clerkId) : null
+            const formattedUser = userResult.data ? await getUserById(userResult.data.user.id) : null
 
             if (!formattedUser) {
                 throw ServiceError.ErrorGettingUser('user-service.ts', 'createBaseProfile');

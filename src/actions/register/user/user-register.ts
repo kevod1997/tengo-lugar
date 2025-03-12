@@ -1,33 +1,28 @@
 'use server'
 
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
-import { CreateUserInput, userSchema } from "@/schemas";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";;
+import { UpdateUserInput, userSchema } from "@/schemas";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 
-export async function createUser(input: CreateUserInput) {
+//todo ver cuando se modifica la info del email como se manejaria
+//todo ver como manejariamos lo que son los terminos aceptados, porque en en lotro caso no se deberian pedir de nuevo me parece
+//todo ver como manejar campos que ya existen si eso afecta en algo como el caso del email y del teelefono si se verifico antes
+
+export async function updateUser(input: UpdateUserInput) {
   try {
     const validatedData = userSchema.parse(input);
-    const { userId }: { userId: string | null } = await auth()
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
 
-    if (!userId) {
-      throw ServerActionError.AuthenticationFailed('user-register.ts', 'createUser');
+    if (!session) {
+      throw ServerActionError.AuthenticationFailed('user-register.ts', 'UpdateUser');
     }
 
-    // Verificar si el email ya está registrado
-    const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email },
-    });
-
-    if (existingUser) {
-      throw ServerActionError.EmailInUse('user-register.ts', 'createUser');
-    }
-
-    // Calcular edad
     const birthDate = new Date(validatedData.birthDate);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
 
     // Obtener términos y condiciones activos
     const activeTerms = await prisma.termsAndCondition.findFirst({
@@ -37,53 +32,53 @@ export async function createUser(input: CreateUserInput) {
 
     // Crear usuario y aceptación de términos en una transacción
     const user = await prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
+      const updateUser = await tx.user.update({
+        where: {
+          id: session.user.id,
+        },
         data: {
-          clerkId: userId!,
-          firstName: validatedData.firstName,
-          lastName: validatedData.lastName,
+          name: validatedData.firstName + ' ' + validatedData.lastName,
+          phoneNumber: validatedData.phoneNumber,
           email: validatedData.email,
-          phone: validatedData.phone,
           gender: validatedData.gender,
           birthDate: birthDate,
-          age: age,
         },
       }).catch(error => {
-        throw handlePrismaError(error, 'createUser.newUser', 'user-register.ts');
+        throw handlePrismaError(error, 'UpdateUser.newUser', 'user-register.ts');
       });
+
+
 
       await tx.userTermsAcceptance.create({
         data: {
-          userId: newUser.id,
+          userId: updateUser.id,
           termsId: activeTerms!.id,
         },
       }).catch(error => {
-        throw handlePrismaError(error, 'createUser.userTermsAcceptance', 'user-register.ts');
+        throw handlePrismaError(error, 'UpdateUser.userTermsAcceptance', 'user-register.ts');
       });
 
       await tx.passenger.create({
         data: {
-          userId: newUser.id,
+          userId: updateUser.id,
         },
       }).catch(error => {
-        throw handlePrismaError(error, 'createUser.passenger', 'user-register.ts');
+        throw handlePrismaError(error, 'UpdateUser.passenger', 'user-register.ts');
       });
 
-      return newUser;
+      return updateUser;
     }).catch(error => {
-      throw handlePrismaError(error, 'createUser', 'user-register.ts');
+      throw handlePrismaError(error, 'UpdateUser', 'user-register.ts');
     })
 
     return {
       success: true,
       data: {
         user,
-        message: 'Usuario creado correctamente.',
+        message: 'Su informacion se actualizo correctamente.',
       },
     };
   } catch (error) {
     throw error;
   }
 }
-
-

@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { z } from "zod";
 
 export const Gender = z.enum(["MASCULINO", "FEMENINO", "NO_BINARIO"]);
@@ -20,14 +21,40 @@ export const userSchema = z.object({
             required_error: "El email es requerido",
         })
         .email("El formato del email es inválido"),
-        phone: z
-        .string()
-        .regex(
-            /^(?:\+?54)?(?:9)?([2-9]\d{1,3})(\d{6,8})$/,
-            "El formato del número de teléfono es inválido. Omití 0 y 15."
-        )
-        .nullable()
-        .transform(val => val === '' ? null : val),
+    // El número de teléfono no es opcional
+    phoneNumber: z
+        .string({
+            required_error: "El número de teléfono es requerido",
+        })
+        .refine(
+            (value) => {
+                try {
+                    // Si ya está en formato internacional
+                    if (value.includes('+')) {
+                        return isValidPhoneNumber(value);
+                    }
+
+                    // Si no tiene formato internacional, asumimos Argentina
+                    // Primero probamos con el prefijo 9 para móviles
+                    if (isValidPhoneNumber(`+549${value.replace(/^0/, '')}`, 'AR')) {
+                        return true;
+                    }
+
+                    // Si no funciona, probamos como un número fijo
+                    return isValidPhoneNumber(value, 'AR');
+                } catch (error) {
+                    return false;
+                }
+            },
+            {
+                message: "El número de teléfono es inválido"
+            }
+        ),
+    // La verificación es opcional
+    phoneNumberVerified: z
+        .boolean()
+        .optional()
+        .default(false),
     gender: Gender.optional().refine((val) => val !== undefined, {
         message: "Por favor, selecciona un género",
     }),
@@ -52,4 +79,20 @@ export const userSchema = z.object({
         .refine((val) => val === true, "Debes aceptar los términos y condiciones"),
 });
 
-export type CreateUserInput = z.infer<typeof userSchema>;
+// Podemos añadir una validación condicional para garantizar que si hay número, esté verificado
+export const userSchemaWithConditionalVerification = userSchema.refine(
+    (data) => {
+        // Si hay un número de teléfono, debería estar verificado
+        if (data.phoneNumber && data.phoneNumber.length > 0) {
+            return data.phoneNumberVerified === true;
+        }
+        // Si no hay número, no es necesaria la verificación
+        return true;
+    },
+    {
+        message: "Si proporcionas un número de teléfono, debes verificarlo",
+        path: ["phoneNumberVerified"]
+    }
+);
+
+export type UpdateUserInput = z.infer<typeof userSchema>;

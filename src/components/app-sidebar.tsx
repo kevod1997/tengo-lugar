@@ -22,8 +22,8 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { useUser } from "@clerk/nextjs"
 import { Skeleton } from "@/components/ui/skeleton"
+import { authClient } from "@/lib/auth-client"
 
 const authenticatedNavItems = [
   {
@@ -61,7 +61,7 @@ const authethicatedNavItems = [
   }
 ]
 
-const data = {
+const navData = {
   navMain: [
     {
       title: "Inicio",
@@ -88,15 +88,17 @@ const data = {
 }
 
 function useNavigation() {
-  const { isSignedIn, isLoaded, user } = useUser()
-  const userIsAuthenticated = user?.publicMetadata?.role === "admin"
+
+  const { data, isPending } = authClient.useSession()
+  const isSignedIn = data
+  const userIsAuthenticated = data?.user?.role === "admin"
 
   return React.useMemo(() => ({
-    isLoaded,
+    isPending,
     navItems: isSignedIn && userIsAuthenticated
-      ? [...data.navMain, ...authenticatedNavItems, ...authethicatedNavItems] : isSignedIn ? [...data.navMain, ...authenticatedNavItems]
-        : data.navMain
-  }), [isSignedIn, userIsAuthenticated, isLoaded])
+      ? [...navData.navMain, ...authenticatedNavItems, ...authethicatedNavItems] : isSignedIn ? [...navData.navMain, ...authenticatedNavItems]
+        : navData.navMain
+  }), [isSignedIn, userIsAuthenticated, isPending])
 }
 
 function NavMainSkeleton() {
@@ -122,15 +124,15 @@ export const AppSidebar = React.memo(function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { open } = useSidebar()
-  const { isLoaded, navItems } = useNavigation()
+  const { isPending, navItems } = useNavigation()
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <div className={`relative overflow-hidden rounded-full ${open ? 'h-48 w-48' : 'h-16 w-16'}`}>
+          <div className={`relative overflow-hidden rounded-full ${open ? 'h-24 w-24' : 'h-8 w-8 mt-4 mb-1'}`}>
             <Image
-              src="/imgs/logo.svg"
+              src="/imgs/logo.png"
               alt="Tengo Lugar Logo"
               layout="fill"
               objectFit="cover"
@@ -139,10 +141,10 @@ export const AppSidebar = React.memo(function AppSidebar({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {isLoaded ? <NavMain items={navItems} /> : <NavMainSkeleton />}
+        {!isPending ? <NavMain items={navItems} /> : <NavMainSkeleton />}
       </SidebarContent>
       <SidebarFooter>
-        {isLoaded ? <NavUser open={open} /> : <NavUserSkeleton open={open} />}
+        {!isPending ? <NavUser open={open} /> : <NavUserSkeleton open={open} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

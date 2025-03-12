@@ -4,7 +4,6 @@ import prisma from "@/lib/prisma"
 import { ApiHandler } from "@/lib/api-handler"
 
 export async function checkPlateExists(plate: string) {
-    console.log('Checking plate:', plate);
   try {
     const existingCar = await prisma.car.findFirst({
       where: { 

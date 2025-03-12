@@ -3,18 +3,23 @@
 import { ApiHandler } from "@/lib/api-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import prisma from "@/lib/prisma"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { FileType } from "@prisma/client"
 import { z } from "zod"
 import { uploadDocuments } from "@/lib/file/upload-documents"
 import { vehicleCardSchema } from "@/schemas/validation/car-card-schema"
-import { getUserByClerkId } from "../register/user/get-user"
+import { getUserById } from "../register/user/get-user"
+import { splitFullName } from "@/utils/format/user-formatter";
 
 export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
     try {
         // Verificación de autenticación
-        const { userId: clerkId } = await auth()
-        if (!clerkId) {
+      const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+        if (!session) {
             throw ServerActionError.AuthenticationFailed(
                 'submit-card-car-info.ts',
                 'submitCardCarInfo'
@@ -78,10 +83,13 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
             }
 
             // Preparamos la información del usuario para la carga de archivos
+
+            const {firstName, lastName} = splitFullName(driver.user.name)
+
             const userInfo = {
                 id: driver.user.id,
-                firstName: driver.user.firstName,
-                lastName: driver.user.lastName
+                firstName,
+                lastName
             }
 
             // Procesar el archivo
@@ -138,7 +146,7 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
 
         })
 
-        const updatedUser = await getUserByClerkId();
+        const updatedUser = await getUserById();
 
         return {
             success: true,

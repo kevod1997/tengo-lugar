@@ -36,7 +36,7 @@ export default function DashboardContent() {
   }, [])
 
   useEffect(() => {
-    if (user === null) {
+    if (user?.birthDate === null) {
       setShowIdVerification(false)
       setIsLoading(true)
     }
@@ -49,7 +49,7 @@ export default function DashboardContent() {
 
   const startDriverRegistration = () => {
     if (!user) return;
-  
+
     if (user.identityStatus === 'FAILED') {
       setRegistrationStep('identityCard');
     } else if (!user.licenseStatus) {
@@ -74,6 +74,13 @@ export default function DashboardContent() {
   const onProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!user) {
       toast.error("Usuario no encontrado", {
+        description: "Debes completar tu registro primero"
+      })
+      return
+    }
+
+    if (user.birthDate === null) {
+      toast.error("Registro requerido", {
         description: "Debes completar tu registro primero"
       })
       return
@@ -128,7 +135,7 @@ export default function DashboardContent() {
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                 )}
               </TabsTrigger>
-              <TabsTrigger value="driver" className="flex items-center justify-center gap-2">
+              <TabsTrigger disabled={user?.birthDate === null} value="driver" className="flex items-center justify-center gap-2">
                 Conductor
                 {user?.licenseStatus === 'FAILED' && (
                   <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -169,7 +176,7 @@ export default function DashboardContent() {
           initialRole={initialRole}
         />
       )}
-      {(user === null && !isLoading) && (
+      {(user?.birthDate === null && !isLoading) && (
         <RegistrationFlow
           onComplete={handleRegistrationComplete}
           initialStep={registrationStep}

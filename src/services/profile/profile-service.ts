@@ -46,6 +46,7 @@ export class ProfileService {
       );
 
     } catch (error) {
+      console.log('Error en updateProfileImage', error);
       await logActionWithErrorHandling(
         {
           userId,

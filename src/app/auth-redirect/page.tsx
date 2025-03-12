@@ -2,66 +2,139 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
 import { useUserStore } from '@/store/user-store'
-import { getUserByClerkId } from '@/actions'
+import { getUserById } from '@/actions'
 import Loading from '../loading'
 import { VerificationStatus } from '@prisma/client'
-
+import { authClient } from '@/lib/auth-client'
+import { LoggingService } from '@/services/logging/logging-service'
+import { TipoAccionUsuario } from '@/types/actions-logs'
 
 export default function AuthRedirect() {
   const router = useRouter()
+  const { data, isPending } = authClient.useSession()
   const searchParams = useSearchParams()
-  const { user: clerkUser, isLoaded, isSignedIn } = useUser()
   const { setUser } = useUserStore()
   const [error, setError] = useState<string | null>(null)
+  const [loggedAction, setLoggedAction] = useState(false)
 
-
-//todo ver bien cuando se registra por primera vez un user, no tenemos que ejecutar el getUserByClerkId, sino hay que hacer el redirect direct a /dashboard
-// todo, VER QUE ESTE ERROR NO SE ME ESTA GUARDANDO EN LOS LOGS, ServerActionError: Error en la base de datos: Error inesperado en la base de datos: Usuario no encontrado at ServerActionError.DatabaseError (C:\Users\Kevin\OneDrive\Escritorio\Dev\tengo-lugar\.next\server\chunks\ssr\[root of the server]__0b8565._.js:150:16) at handlePrismaError (C:\Users\Kevin\OneDrive\Escritorio\Dev\tengo-lugar\.next\server\chunks\ssr\[root of the server]__0b8565._.js:200:182) at getUserByClerkId (C:\Users\Kevin\OneDrive\Escritorio\Dev\tengo-lugar\.next\server\chunks\ssr\[root of the server]__0b8565._.js:703:191) digest: "544400510"
+  // Función para validar URLs de redirección
+  const isValidRedirectUrl = (url: string) => {
+    // Verificar si la URL es relativa (comienza con /)
+    if (url.startsWith('/')) return true
+    
+    try {
+      // Si es una URL absoluta, verificar que sea del mismo dominio
+      const urlObj = new URL(url)
+      return urlObj.hostname === window.location.hostname
+    } catch {
+      return false
+    }
+  }
 
   useEffect(() => {
     async function checkUserAndRedirect() {
-      if (isLoaded && isSignedIn && clerkUser) {
+      if (!isPending && data) {
         try {
-          const dbUser = await getUserByClerkId(clerkUser.id)
-          if (dbUser) {
-            setUser(dbUser)
+          // Registrar la acción de autenticación (solo una vez)
+          if (!loggedAction && data.user && data.user.id) {
+            // Obtenemos información sobre el usuario
+            const dbUser = await getUserById(data.user.id)
+            
+            // Detectamos si es un usuario nuevo por su fecha de creación
+            const isNewUser = dbUser && 
+              new Date().getTime() - new Date(dbUser.createdAt).getTime() < 60000; // Usuario creado hace menos de 1 minuto
+            
+            // Registramos la acción correspondiente
+            await LoggingService.logActionWithErrorHandling(
+              {
+                userId: data.user.id,
+                action: isNewUser ? TipoAccionUsuario.REGISTRO_USUARIO : TipoAccionUsuario.INICIO_SESION,
+                status: 'SUCCESS',
+              },
+              {
+                fileName: 'auth-redirect/page.tsx',
+                functionName: 'checkUserAndRedirect'
+              }
+            );
+            
+            setLoggedAction(true);
+            
+            // Configuramos el usuario en el store
+            if (dbUser) {
+              setUser(dbUser)
+              
+              const needsVerification =
+                dbUser.identityStatus === VerificationStatus.FAILED ||
+                dbUser.licenseStatus === VerificationStatus.FAILED ||
+                dbUser.cars.some(car => car.insurance.status === VerificationStatus.FAILED)
 
-            const needsVerification =
-              dbUser.identityStatus === VerificationStatus.FAILED ||
-              dbUser.licenseStatus === VerificationStatus.FAILED ||
-              dbUser.cars.some(car => car.insurance.status === VerificationStatus.FAILED)
+              if (needsVerification) {
+                return router.push('/dashboard')
+              }
 
-            if (needsVerification) {
-              return router.push('/dashboard')
-            }
+              if(dbUser.birthDate === null){
+                return router.push('/dashboard')
+              }
 
-            // Usuario existe en la base de datos
-            const redirectUrl = searchParams.get('redirect_url') || '/'
-            if (dbUser.identityStatus === 'VERIFIED') {
-              return router.push(redirectUrl)
-            }
-            router.push('/dashboard')
+              // Redirigir a la URL solicitada (con validación)
+              const redirectUrl = searchParams.get('redirect_url') || '/'
+              const safeRedirectUrl = redirectUrl && isValidRedirectUrl(redirectUrl) 
+                ? redirectUrl 
+                : '/' // URL por defecto segura
+                
+              router.push(safeRedirectUrl)
+            } 
           } else {
-            // Usuario no existe en la base de datos
-            router.push('/dashboard')
+            // Si ya hemos registrado la acción pero aún necesitamos manejar la redirección
+            const dbUser = !loggedAction ? await getUserById(data.user.id) : null
+            
+            if (dbUser) {
+              setUser(dbUser)
+              
+              const needsVerification =
+                dbUser.identityStatus === VerificationStatus.FAILED ||
+                dbUser.licenseStatus === VerificationStatus.FAILED ||
+                dbUser.cars.some(car => car.insurance.status === VerificationStatus.FAILED)
+
+              if (needsVerification) {
+                return router.push('/dashboard')
+              }
+
+              if(dbUser.birthDate === null){
+                return router.push('/dashboard')
+              }
+
+              // Redirigir a la URL solicitada (con validación)
+              const redirectUrl = searchParams.get('redirect_url') || '/'
+              const safeRedirectUrl = redirectUrl && isValidRedirectUrl(redirectUrl) 
+                ? redirectUrl 
+                : '/' // URL por defecto segura
+                
+              router.push(safeRedirectUrl)
+            }
           }
         } catch (error) {
+          console.error('Error en la redirección de autenticación:', error)
           setError('Ocurrió un error al verificar tu cuenta. Por favor, intenta de nuevo.')
         }
-      } else if (isLoaded && !isSignedIn) {
+      } else if (!isPending && !data) {
         // Usuario no está autenticado
         const redirectUrl = searchParams.get('redirect_url')
+        const safeRedirectUrl = redirectUrl && isValidRedirectUrl(redirectUrl) 
+          ? redirectUrl 
+          : '/login' // URL por defecto segura
+          
         const loginUrl = redirectUrl
-          ? `/login?redirect_url=${encodeURIComponent(redirectUrl)}`
+          ? `/login?redirect_url=${encodeURIComponent(safeRedirectUrl)}`
           : '/login'
+          
         router.push(loginUrl)
       }
     }
 
     checkUserAndRedirect()
-  }, [isLoaded, isSignedIn, clerkUser, router, setUser, searchParams])
+  }, [isPending, data, router, setUser, searchParams, loggedAction])
 
   if (error) {
     return (
@@ -70,9 +143,14 @@ export default function AuthRedirect() {
         <button
           onClick={() => {
             const redirectUrl = searchParams.get('redirect_url')
+            const safeRedirectUrl = redirectUrl && isValidRedirectUrl(redirectUrl) 
+              ? redirectUrl 
+              : '/login' // URL por defecto segura
+              
             const loginUrl = redirectUrl
-              ? `/login?redirect_url=${encodeURIComponent(redirectUrl)}`
+              ? `/login?redirect_url=${encodeURIComponent(safeRedirectUrl)}`
               : '/login'
+              
             router.push(loginUrl)
           }}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

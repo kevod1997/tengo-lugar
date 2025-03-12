@@ -3,15 +3,20 @@
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { FileInput, uploadDocuments } from "@/lib/file/upload-documents";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";;
 import { s3Service } from "@/lib/s3/s3";
+import { splitFullName } from "@/utils/format/user-formatter";
 
 //la imagen es publica por eso usamos frontFileUrl
 
 export async function uploadProfileImage(processedFile: FileInput, userId: string) {
     try {
-        const { userId: clerkId } = await auth()
-        if (!clerkId) {
+        const session = await auth.api.getSession({
+            headers: await headers(),
+        })
+
+        if (!session) {
             throw ServerActionError.AuthenticationFailed('profile-image.ts', 'uploadProfileImage');
         }
 
@@ -19,8 +24,7 @@ export async function uploadProfileImage(processedFile: FileInput, userId: strin
             where: { id: userId },
             select: {
                 id: true,
-                firstName: true,
-                lastName: true,
+                name: true,
                 profileImageKey: true
             }
         });
@@ -31,10 +35,12 @@ export async function uploadProfileImage(processedFile: FileInput, userId: strin
 
         // Usar una transacción
         return await prisma.$transaction(async (tx: any) => {
+
+            const { firstName, lastName } = splitFullName(user.name);
             const userInfo = {
                 id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName
+                firstName,
+                lastName
             };
 
             const uploadResult = await uploadDocuments(

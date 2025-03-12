@@ -75,8 +75,7 @@ export async function getUserLogs({
           createdAt: true,
           user: {
             select: {
-              firstName: true,
-              lastName: true,
+              name:true,
               email: true
             }
           }

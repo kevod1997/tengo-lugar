@@ -55,11 +55,30 @@ export class EmailService {
     }
   }
 
+  async sendEmail(to: string, subject: string, htmlContent: string): Promise<ApiResponse<void>> {
+    try {
+      const sendSmtpEmail = new brevo.SendSmtpEmail();
+      sendSmtpEmail.subject = subject;
+      sendSmtpEmail.htmlContent = htmlContent;
+      sendSmtpEmail.sender = { name: "Tengo Lugar", email: "kevindefalco@gmail.com" };
+      sendSmtpEmail.to = [{ email: to }];
+
+      await this.brevoAPI.sendEmail(sendSmtpEmail).catch((error) => {
+        throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendEmail');
+      });
+
+      return ApiHandler.handleSuccess(undefined);
+    } catch (error) {
+      return ApiHandler.handleError(error);
+    }
+  }
+
   private getDocumentTypeInSpanish(documentType: DocumentType): string {
     const documentTypes = {
       IDENTITY: 'documento de identidad',
       LICENCE: 'licencia de conducir',
-      INSURANCE: 'póliza de seguro'
+      INSURANCE: 'póliza de seguro',
+      CARD: 'tarjeta de circulación',
     };
     return documentTypes[documentType];
   }

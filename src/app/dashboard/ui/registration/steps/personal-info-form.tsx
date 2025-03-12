@@ -1,17 +1,20 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { useUser } from "@clerk/nextjs"
 import { ArrowRight } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useUserStore } from '@/store/user-store'
 import { userSchema } from '@/schemas'
+import { PhoneVerification } from '@/components/phone-verification/PhoneVerification'
+import { toast } from 'sonner'
+import { formatNumberForWhatsApp } from '@/utils/format/format-whatsapp-phone'
+import { CountryCode } from 'libphonenumber-js'
 
 interface PersonalInfoFormProps {
   data?: {
@@ -21,18 +24,17 @@ interface PersonalInfoFormProps {
 }
 
 export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps) {
-  const { user: clerkUser } = useUser()
   const { user: storeUser } = useUserStore()
 
-  const { control, register, handleSubmit, formState: { errors, isValid }, reset } = useForm({
+  const { control, register, handleSubmit, formState: { errors, isValid }, reset, setValue, watch } = useForm({
     resolver: zodResolver(userSchema),
     mode: 'onChange',
     defaultValues: {
-      // Priority: Store Data > Received Data > Clerk Data
-      firstName: storeUser?.firstName || data?.personalInfo?.firstName || clerkUser?.firstName || '',
-      lastName: storeUser?.lastName || data?.personalInfo?.lastName || clerkUser?.lastName || '',
-      email: storeUser?.email || data?.personalInfo?.email || clerkUser?.primaryEmailAddress?.emailAddress || '',
-      phone: storeUser?.phone || data?.personalInfo?.phone || '',
+      firstName: storeUser?.firstName || data?.personalInfo?.firstName || '',
+      lastName: storeUser?.lastName || data?.personalInfo?.lastName || '',
+      email: storeUser?.email || data?.personalInfo?.email || '',
+      phoneNumber: storeUser?.phoneNumber || data?.personalInfo?.phoneNumber || '',
+      phoneNumberVerified: storeUser?.phoneNumberVerified || data?.personalInfo?.phoneNumberVerified || false,
       birthDate: storeUser?.birthDate
         ? new Date(storeUser.birthDate).toISOString().split('T')[0]
         : data?.personalInfo?.birthDate
@@ -43,13 +45,24 @@ export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps
     }
   })
 
+  const phoneNumberValue = watch('phoneNumber')
+  const phoneNumberVerified = watch('phoneNumberVerified')
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>('AR')
+
+  // Esta función permite que el componente PhoneNumberVerification actualice el estado del formulario
+  const handlePhoneNumberVerified = (phoneNumber: string, isVerified: boolean) => {
+    setValue('phoneNumber', phoneNumber, { shouldValidate: true })
+    setValue('phoneNumberVerified', isVerified, { shouldValidate: true })
+  }
+
   useEffect(() => {
     if (storeUser || data?.personalInfo) {
       const initialData = {
-        firstName: storeUser?.firstName || data?.personalInfo?.firstName || clerkUser?.firstName || '',
-        lastName: storeUser?.lastName || data?.personalInfo?.lastName || clerkUser?.lastName || '',
-        email: storeUser?.email || data?.personalInfo?.email || clerkUser?.primaryEmailAddress?.emailAddress || '',
-        phone: storeUser?.phone || data?.personalInfo?.phone || '',
+        firstName: storeUser?.firstName || data?.personalInfo?.firstName || '',
+        lastName: storeUser?.lastName || data?.personalInfo?.lastName || '',
+        email: storeUser?.email || data?.personalInfo?.email || '',
+        phoneNumber: storeUser?.phoneNumber || data?.personalInfo?.phoneNumber || '',
+        phoneNumberVerified: storeUser?.phoneNumberVerified || data?.personalInfo?.phoneNumberVerified || false,
         birthDate: storeUser?.birthDate
           ? new Date(storeUser.birthDate).toISOString().split('T')[0]
           : data?.personalInfo?.birthDate
@@ -60,10 +73,31 @@ export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps
       }
       reset(initialData)
     }
-  }, [storeUser, data?.personalInfo, clerkUser, reset])
+  }, [storeUser, data?.personalInfo, reset])
 
   const onSubmit = async (formData: any) => {
-    onNext(formData)
+    let dataToSubmit = null;
+
+    //todo ver de mostrar info al usuario de porque deberia verificar el numero
+    if (storeUser?.phoneNumber === null && storeUser?.phoneNumberVerified === false) {
+      // Formatear el número de teléfono
+      const formattedPhone = formatNumberForWhatsApp(formData.phoneNumber);
+
+      if (!formattedPhone) {
+        // Mostrar error si el formato es inválido
+        toast.error("El formato del número de teléfono es inválido");
+        return;
+      }
+
+      // Actualizar el número con el formato correcto
+      dataToSubmit = {
+        ...formData,
+        phoneNumber: formattedPhone
+      };
+    }
+
+    // Continuar con el envío
+    onNext(dataToSubmit ? dataToSubmit : formData);
   }
 
   return (
@@ -85,18 +119,28 @@ export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps
         </div>
         <div>
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" {...register('email')} />
+          <Input id="email" type="email" {...register('email')} disabled={true} />
           {errors.email && (
             <p className="text-sm text-destructive mt-1">{errors.email.message as string}</p>
           )}
         </div>
+
+        {/* Reemplazamos el campo de teléfono con nuestro componente de verificación */}
         <div>
-          <Label htmlFor="phone">Teléfono</Label>
-          <Input id="phone" {...register('phone')} />
-          {errors.phone && (
-            <p className="text-sm text-destructive mt-1">{errors.phone.message as string}</p>
+          <PhoneVerification
+            initialPhone={phoneNumberValue}
+            initialVerified={phoneNumberVerified}
+            onVerificationChange={handlePhoneNumberVerified}
+            selectedCountry={selectedCountry}
+            setSelectedCountry={setSelectedCountry}
+            // Podemos pasar un prop para ajustar el comportamiento según el contexto
+            required={true}
+          />
+          {errors.phoneNumber && (
+            <p className="text-sm text-destructive mt-1">{errors.phoneNumber.message as string}</p>
           )}
         </div>
+
         <div>
           <Label htmlFor="birthDate">Fecha de nacimiento</Label>
           <Input id="birthDate" type="date" {...register('birthDate')} />

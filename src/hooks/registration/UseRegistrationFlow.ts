@@ -9,6 +9,7 @@ import { FormattedUser } from "@/types/user-types"
 import { useApiResponse } from "../ui/useApiResponse"
 
 //todo ver porque se corto el flujo del conductor cuando se paso el step de driverLicense
+//todo ver tambien porque pasa con la info personal, salta un toast de exito!!!
 
 export function useRegistrationFlow(initialStep: StepId, onComplete: () => void, onClose: (() => void) | undefined, initialRole?: UserRole) {
     // Estados
@@ -25,7 +26,6 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         insurance: null,
         carCard: null,
     }))
-    const [userProfile, setUserProfile] = useState<FormattedUser | null>(null)
 
     const steps = useMemo(() => {
         if (!formData.role) return [allSteps.role]
@@ -98,14 +98,11 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
     // MANEJO DE FLUJOS DE REGISTRO
 
     const getUserId = () => {
-        if (userProfile?.id) {
-            return userProfile.id
-        }
 
         if (user?.id) {
             return user.id
         }
-        //todo manejar de forma correcta este erro
+        //todo manejar de forma correcta este error
         // Si no hay ningún ID disponible, lanza un error
         throw new Error('No se encontró un ID de usuario válido')
     }
@@ -121,7 +118,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
             switch (stepId) {
                 case 'personalInfo':
                     const createdUser = await userRegistrationService.createBaseProfile(data)
-                    setUserProfile(createdUser.data as FormattedUser)
+                    setUser(createdUser.data as FormattedUser)
                     handleResponse({ success: createdUser.success, message: createdUser.message })
                     moveToNextStep()
                     break;
@@ -158,7 +155,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
                     const createdUser = await userRegistrationService.createBaseProfile(data)
                     handleResponse({ success: createdUser.success, message: createdUser.message })
                     if (createdUser.success) {
-                        setUserProfile(createdUser.data as FormattedUser)
+                        setUser(createdUser.data as FormattedUser)
                         moveToNextStep()
                     }
                     break;
@@ -169,7 +166,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
                         const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null)
                         handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
                         if (identityCardResult.success) {
-                            setUserProfile(identityCardResult.data!);
+                            setUser(identityCardResult.data!);
                             moveToNextStep()
                         }
                     }
@@ -290,10 +287,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         isLoading,
         handleNext,
         setFormData,
-        userProfile,
-        setUser,
         setIsLoading,
-        user,
     }
 }
 

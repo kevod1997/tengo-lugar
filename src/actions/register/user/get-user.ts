@@ -1,100 +1,29 @@
 'use server'
 
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
 import { formatUserResponse } from "@/utils/format/user-formatter";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-export async function getUserByClerkId(clerkId?: string) {
-  const { userId }: { userId: string | null } = await auth()
+export async function getUserById(userId?: string) {
 
-  if (!userId && !clerkId) {
-    throw ServerActionError.AuthenticationFailed('user-register.ts', 'getUserByClerkId');
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if(!userId){
+    userId = session?.user.id
   }
 
-  if (!clerkId) {
-    clerkId = userId!;
+  if (!userId) {
+    throw ServerActionError.AuthenticationFailed('user-register.ts', 'getUserById');
   }
 
   try {
-    // const user = await prisma.user.findFirst({
-    //   where: { clerkId },
-    //   include: {
-    //     identityCard: {
-    //       select: {
-    //         status: true,
-    //         failureReason: true,
-    //         frontFileKey: true,
-    //         backFileKey: true
-    //       }
-    //     },
-    //     driver: {
-    //       include: {
-    //         licence: {
-    //           select: {
-    //             status: true,
-    //             failureReason: true,
-    //             frontFileKey: true,
-    //             backFileKey: true
-    //           }
-    //         },
-    //         Car: {
-    //           include: {
-    //             car: {
-    //               select: {
-    //                 id: true,
-    //                 plate: true,
-    //                 insuredCar: {
-    //                   include: {
-    //                     currentPolicy: {
-    //                       select: {
-    //                         status: true,
-    //                         failureReason: true,
-    //                         fileKey: true
-    //                       }
-    //                     }
-    //                   }
-    //                 },
-    //                 carModel: {
-    //                   select: {
-    //                     model: true,
-    //                     year: true,
-    //                     brand: {
-    //                       select: {
-    //                         name: true
-    //                       }
-    //                     }
-    //                   }
-    //                 },
-    //                 vehicleCards: {
-    //                   select: {
-    //                     id: true,
-    //                     cardType: true,
-    //                     status: true,
-    //                     failureReason: true,
-    //                     fileKey: true,
-    //                     expirationDate: true
-    //                   }
-    //                 }
-    //               }
-    //             }
-    //           }
-    //         }
-    //       }
-    //     },
-    //     termsAcceptance: {
-    //       orderBy: { acceptedAt: 'desc' },
-    //       take: 1,
-    //       select: {
-    //         acceptedAt: true
-    //       }
-    //     }
-    //   }
-    // })
-
     const user = await prisma.user.findFirst({
-      where: { clerkId },
+      where: { id: userId },
       include: {
         identityCard: {
           select: {
@@ -171,14 +100,12 @@ export async function getUserByClerkId(clerkId?: string) {
     })
 
     if (!user) {
-      throw ServerActionError.UserNotFound('user-register.ts', 'getUserByClerkId');
+      throw ServerActionError.UserNotFound('user-register.ts', 'getUserById');
     }
-
-    console.log(user)
 
     return formatUserResponse(user)
 
   } catch (error) {
-    throw handlePrismaError(error, 'getUserByClerkId', 'user-register.ts');
+    throw handlePrismaError(error, 'getUserById', 'user-register.ts');
   }
 }

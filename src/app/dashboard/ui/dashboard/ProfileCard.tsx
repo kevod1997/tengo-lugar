@@ -10,6 +10,7 @@ interface ProfileImageUploadButtonProps {
 }
 
 export function ProfileImageUploadButton({ onUpload, isUploading }: ProfileImageUploadButtonProps) {
+  
   return (
     <label
       htmlFor="profile-image-upload"

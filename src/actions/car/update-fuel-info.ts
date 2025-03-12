@@ -14,7 +14,6 @@ interface UpdateFuelInfoInput {
 }
 
 export async function updateFuelInfo(data: UpdateFuelInfoInput) {
-    console.log('Updating fuel info:', data);
     try {
         // Obtener el modelo con sus relaciones
         const carModel = await prisma.carModel.findFirst({
@@ -66,7 +65,6 @@ export async function updateFuelInfo(data: UpdateFuelInfoInput) {
         );
 
     } catch (error) {
-        console.log('Error updating fuel info:', error);
         return ApiHandler.handleError(error);
     }
 }

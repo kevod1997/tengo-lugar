@@ -5,15 +5,19 @@ import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import prisma from "@/lib/prisma"
 import { carRegistrationSchema } from "@/schemas/validation/car-schema"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { findDriver } from "../driver/find-driver"
-import { getUserByClerkId } from "../register/user/get-user"
+import { getUserById } from "../register/user/get-user"
 
 export async function createCarModel(userId: string, data: any) {
   try {
     // Authentication check
-    const { userId: clerkId } = await auth()
-    if (!clerkId) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+    if (!session) {
       throw ServerActionError.AuthenticationFailed('create-car-model.ts', 'createCarModel')
     }
 
@@ -101,7 +105,7 @@ export async function createCarModel(userId: string, data: any) {
       }
     })
 
-    const updatedUser = await getUserByClerkId();
+    const updatedUser = await getUserById();
 
     return ApiHandler.handleSuccess(
       updatedUser,

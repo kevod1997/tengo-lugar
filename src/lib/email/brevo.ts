@@ -14,7 +14,7 @@ export class BrevoAPI {
     try {
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
     } catch (error) {
-      throw ServiceError.FailedToSendEmail((error as Error).message);
+      throw ServiceError.FailedToSendEmail((error as Error).message, 'brevo.ts', 'sendEmail');
     }
   }
 }
