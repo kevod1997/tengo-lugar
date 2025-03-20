@@ -55,6 +55,7 @@ function SignIn() {
 					setPendingCredentials(true);
 				},
 				onError: (ctx: ErrorContext) => {
+					console.log(ctx)
 					if (ctx.error.status === 401) {
 						toast.error('Error', {
 							description: "Email o contraseña incorrectos.",
