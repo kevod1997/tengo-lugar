@@ -13,14 +13,14 @@ export class S3Service {
   private bucketName: string;
 
   constructor() {
-    if (!process.env.AWS_BUCKET_REGION || !process.env.AWS_ACCESS_KEY || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_BUCKET_NAME) {
+    if (!process.env.AWS_BUCKET_REGION || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_BUCKET_NAME) {
       throw S3ServiceError.S3ConfigFailed('s3.ts', 'constructor');
     }
 
     this.s3Client = new S3Client({
       region: process.env.AWS_BUCKET_REGION,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       },
     });
