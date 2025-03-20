@@ -1,6 +1,5 @@
 'use server'
 
-import { ApiHandler } from "@/lib/api-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import prisma from "@/lib/prisma"
 import { auth } from "@/lib/auth";
@@ -118,9 +117,8 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
                 }
             })
 
-            let vehicleCard;
             if (existingFailedCard) {
-                vehicleCard = await tx.vehicleCard.update({
+                await tx.vehicleCard.update({
                     where: { id: existingFailedCard.id },
                     data: {
                         expirationDate: validatedData.expirationDate,
@@ -132,7 +130,7 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
                     }
                 })
             } else {
-                vehicleCard = await tx.vehicleCard.create({
+                await tx.vehicleCard.create({
                     data: {
                         carId: validatedData.carId,
                         cardType: validatedData.cardType,
@@ -152,7 +150,7 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
             success: true,
             data: {
                 updatedUser,
-                message: `Tarjeta ${validatedData.cardType} subida exitosamente`,
+                message: `Tarjeta ${validatedData.cardType === 'BLUE' ? 'Azul' : 'Verde'} subida exitosamente`,
             }
         }
 
@@ -169,6 +167,7 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
                 JSON.stringify(errorMessages)
             )
         }
-        return ApiHandler.handleError(error)
+
+        throw error
     }
 }

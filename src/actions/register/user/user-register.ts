@@ -7,9 +7,6 @@ import { UpdateUserInput, userSchema } from "@/schemas";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 
-//todo ver cuando se modifica la info del email como se manejaria
-//todo ver como manejariamos lo que son los terminos aceptados, porque en en lotro caso no se deberian pedir de nuevo me parece
-//todo ver como manejar campos que ya existen si eso afecta en algo como el caso del email y del teelefono si se verifico antes
 
 export async function updateUser(input: UpdateUserInput) {
   try {
@@ -76,6 +73,75 @@ export async function updateUser(input: UpdateUserInput) {
       data: {
         user,
         message: 'Su informacion se actualizo correctamente.',
+      },
+    };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateUserProfile(input: UpdateUserInput) {
+  try {
+    const validatedData = userSchema.parse(input);
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      throw ServerActionError.AuthenticationFailed('update-profile.ts', 'updateUserProfile');
+    }
+
+    const birthDate = new Date(validatedData.birthDate);
+
+    // Get the current user data to check if we need to create a passenger record
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { passenger: true }
+    });
+
+    if (!currentUser) {
+      throw ServerActionError.UserNotFound('update-profile.ts', 'updateUserProfile');
+    }
+
+    // Update user in a transaction
+    const user = await prisma.$transaction(async (tx) => {
+      // Update user information
+      const updatedUser = await tx.user.update({
+        where: {
+          id: session.user.id,
+        },
+        data: {
+          name: validatedData.firstName + ' ' + validatedData.lastName,
+          phoneNumber: validatedData.phoneNumber,
+          phoneNumberVerified: validatedData.phoneNumberVerified,
+          gender: validatedData.gender,
+          birthDate: birthDate,
+        },
+      }).catch(error => {
+        throw handlePrismaError(error, 'updateUserProfile.updateUser', 'update-profile.ts');
+      });
+
+      // Create passenger record if it doesn't exist
+      if (!currentUser.passenger) {
+        await tx.passenger.create({
+          data: {
+            userId: updatedUser.id,
+          },
+        }).catch(error => {
+          throw handlePrismaError(error, 'updateUserProfile.createPassenger', 'update-profile.ts');
+        });
+      }
+
+      return updatedUser;
+    }).catch(error => {
+      throw handlePrismaError(error, 'updateUserProfile', 'update-profile.ts');
+    })
+
+    return {
+      success: true,
+      data: {
+        user,
+        message: 'Su información se actualizó correctamente.',
       },
     };
   } catch (error) {

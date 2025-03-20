@@ -39,7 +39,7 @@ export default function RegistrationFlow({ onComplete, initialStep = 'role', ini
         onClose()
       }
     }
-  }, [formData.role, currentStepIndex, onClose])
+  }, [currentStepIndex, onClose])
 
   const handleConfirmExit = () => {
     setShowExitConfirmation(false)

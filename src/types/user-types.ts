@@ -32,17 +32,14 @@ export interface UserCar {
   hasGreenCard: boolean;  
   hasBlueCard: boolean;  
   hasPendingCards: boolean;
+  isFullyEnabled: boolean;
 }
 
 export interface FormattedUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  birthDate: string | Date;
+  hasBirthDate: boolean;
   age: number;
-  email: string;
   gender: Gender;
-  phoneNumber: string;
+  hasPhoneNumber: boolean;
   phoneNumberVerified: boolean;
   profileImageKey: string | null;
   createdAt: string;
@@ -63,6 +60,7 @@ export interface FormattedUser {
   hasPendingInsurance: boolean;
   hasAllRequiredCards: boolean;
   hasPendingCards: boolean; 
+  hasEnabledCar: boolean;
 }
 
   export type FormattedUserForAdminDashboard = {
@@ -70,7 +68,7 @@ export interface FormattedUser {
     profileImageUrl: string;
     fullName: string;
     email: string;
-    phone: string;
+    phoneNumber: string;
     createdAt: string
     identityStatus: VerificationStatus | null
     licenseStatus: VerificationStatus | null

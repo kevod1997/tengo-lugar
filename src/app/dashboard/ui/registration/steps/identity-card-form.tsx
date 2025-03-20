@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useUserStore } from '@/store/user-store'
 import { IdentityCardInput, identityCardSchema } from '@/schemas'
 import { ImageCapture } from '../utils/image-capture'
+import Image from 'next/image'
 
 interface IdentityCardFormProps {
   onSubmit: (data: IdentityCardInput) => any
@@ -45,10 +46,6 @@ export default function IdentityCardForm({ onSubmit, data }: IdentityCardFormPro
   // Check if documents are already uploaded
   const hasFrontDocument = user?.hasIdentityCardFrontkey
   const hasBackDocument = user?.hasIdentityCardBackKey
-
-  const handleImageError = (error: string) => {
-    console.error(error)
-  }
 
   const handleImageCapture = (side: 'front' | 'back') => (file: File, preview: string, source: 'camera' | 'upload') => {
     if (side === 'front' && !hasFrontDocument) {
@@ -102,7 +99,7 @@ export default function IdentityCardForm({ onSubmit, data }: IdentityCardFormPro
         </Alert>
       ) : preview ? (
         <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: '1.6', width: '100%' }}>
-          <img
+          {/* <img
             src={preview}
             alt={`Vista previa ${side}`}
             className="w-full h-full object-contain"
@@ -112,6 +109,20 @@ export default function IdentityCardForm({ onSubmit, data }: IdentityCardFormPro
             variant="destructive"
             size="icon"
             className="absolute top-2 right-2 rounded-full"
+            onClick={() => handleRemoveImage(side)}
+          > */}
+          <Image
+            src={preview}
+            alt={`Vista previa ${side}`}
+            fill
+            className="object-contain"
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="absolute top-2 right-2 rounded-full z-10"
             onClick={() => handleRemoveImage(side)}
           >
             <X className="h-4 w-4" />
@@ -238,5 +249,10 @@ export default function IdentityCardForm({ onSubmit, data }: IdentityCardFormPro
       </form>
     </div>
   )
+}
+
+function handleImageError(error: string): void {
+  console.error('Image capture error:', error);
+  alert('Hubo un error al capturar la imagen. Por favor, intenta nuevamente.');
 }
 

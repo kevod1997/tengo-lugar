@@ -48,7 +48,7 @@ export function usePlateValidation(plateValue: string) {
     }
 
     validatePlate()
-  }, [debouncedPlate])
+  }, [debouncedPlate, checkPlateMutation])
 
   return {
     plateError,

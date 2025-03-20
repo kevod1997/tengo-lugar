@@ -36,7 +36,7 @@
 
 import { Suspense } from 'react'
 import { Skeleton } from "@/components/ui/skeleton"
-import SimularViajePage from './components/SimularViajePage'
+// import SimularViajePage from './components/SimularViajePage'
 
 export const metadata = {
   title: 'Simular Viaje | Tengo Lugar',
@@ -46,7 +46,10 @@ export const metadata = {
 export default function Page() {
   return (
     <Suspense fallback={<SimularViajeSkeletonLoader />}>
-      <SimularViajePage />
+      {/* <SimularViajePage /> */}
+      <div>
+        hola
+      </div>
     </Suspense>
   )
 }

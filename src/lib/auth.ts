@@ -23,7 +23,7 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: true,
-        sendResetPassword: async ({ user, url, token }, request) => {
+        sendResetPassword: async ({ user, url },) => {
             emailService.sendEmail(
                 user.email,
                 'Restablecer contraseña',
@@ -71,7 +71,11 @@ export const auth = betterAuth({
             profileImageKey: {
                 type: "string",
                 required: false,
-            }
+            },
+            phoneNumber: {
+                type: "string",
+                required: false,
+            },
         }
     },
     plugins: [

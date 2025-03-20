@@ -1,7 +1,7 @@
 'use client'
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertTriangleIcon, Loader2 } from "lucide-react"
+import { AlertTriangleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useUserStore } from '@/store/user-store'
@@ -10,8 +10,14 @@ import ProfileForm from "./ProfileForm"
 import AccountManagement from "./AccountManagement"
 import { useHydration } from "@/hooks/ui/useHydration"
 import { HydrationLoading } from "@/components/ui/hydration-loading"
+import PushNotificationManager from "@/components/notifications/PushNotificationManager"
 
-export default function ProfileContent() {
+interface ProfileContentProps { 
+    birthDate: Date | null | undefined;
+    phoneNumber: string | null | undefined
+ }
+
+export default function ProfileContent({ birthDate, phoneNumber }: ProfileContentProps) {
     const { user } = useUserStore()
     const router = useRouter()
 
@@ -42,7 +48,7 @@ export default function ProfileContent() {
         )
     }
 
-    if (user.birthDate === null) {
+    if (birthDate === null) {
         return (
             <div className="container mx-auto p-4 max-w-3xl">
                 <Alert className="my-6 bg-card border">
@@ -67,10 +73,15 @@ export default function ProfileContent() {
 
     return (
         <div className="container mx-auto p-4 max-w-3xl">
-            <ProfileForm isIdentityVerified={user.identityStatus === 'VERIFIED'} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <ProfileForm 
+                isIdentityVerified={user.identityStatus === 'VERIFIED'} 
+                birthDate={birthDate} 
+                phoneNumber={phoneNumber} 
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <AccountManagement />
             </div>
+            <PushNotificationManager />
         </div>
     )
 }

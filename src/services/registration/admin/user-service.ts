@@ -87,34 +87,6 @@ export class AdminDocumentService {
         }
       }
 
-      // Procesar cars y sus seguros
-      // const cars: UserCar[] = await Promise.all(
-      //   user.driver?.Car.map(async (driverCar: any) => {
-      //     const car = driverCar.car;
-      //     const policy = car.insuredCar?.currentPolicy;
-      //     let insuranceUrl = null;
-
-      //     if (policy?.fileKey) {
-      //       insuranceUrl = await this.getInsuranceUrl(policy.fileKey);
-      //     }
-
-      //     return {
-      //       id: car.id,
-      //       plate: car.plate,
-      //       brand: car.carModel?.brand?.name || '',
-      //       model: car.carModel?.model || '',
-      //       year: car.carModel?.year || null,
-      //       insurance: {
-      //         status: policy?.status || null,
-      //         failureReason: policy?.failureReason || null,
-      //         hasFileKey: Boolean(policy?.fileKey),
-      //         url: insuranceUrl,
-      //         policy: policy || null
-      //       }
-      //     };
-      //   }) || []
-      // );
-
       const cars: UserCar[] = await Promise.all(
         user.driver?.Car.map(async (driverCar: any) => {
           const car = driverCar.car;
@@ -184,7 +156,7 @@ export class AdminDocumentService {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          phone: user.phone
+          phone: user.phoneNumber
         },
         identityCard: user.identityCard ? {
           ...user.identityCard,
@@ -197,7 +169,7 @@ export class AdminDocumentService {
         cars
       });
     } catch (error) {
-      return ApiHandler.handleError(error);
+      throw error;
     }
   }
 }

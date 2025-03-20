@@ -14,7 +14,7 @@ export async function getUserDocuments(userId: string): Promise<ApiResponse<any>
       },
       select: {
         id: true,
-        name:true,
+        name: true,
         email: true,
         phoneNumber: true,
         identityCard: true,

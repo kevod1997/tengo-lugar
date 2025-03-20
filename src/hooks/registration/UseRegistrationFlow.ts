@@ -7,14 +7,15 @@ import { DriverRegistrationService } from "@/services/registration/driver-servic
 import { UserRegistrationService } from "@/services/registration/user-service"
 import { FormattedUser } from "@/types/user-types"
 import { useApiResponse } from "../ui/useApiResponse"
-
-//todo ver porque se corto el flujo del conductor cuando se paso el step de driverLicense
-//todo ver tambien porque pasa con la info personal, salta un toast de exito!!!
+import { authClient } from "@/lib/auth-client"
 
 export function useRegistrationFlow(initialStep: StepId, onComplete: () => void, onClose: (() => void) | undefined, initialRole?: UserRole) {
     // Estados
     const router = useRouter()
     const { user, setUser } = useUserStore()
+    const { data } = authClient.useSession()
+    const userId = data?.user.id
+    const { handleResponse } = useApiResponse()
     const [currentStepId, setCurrentStepId] = useState(initialStep)
     const [isLoading, setIsLoading] = useState(false)
     const [formData, setFormData] = useState<FormData>(() => ({
@@ -90,143 +91,281 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
 
     // FUNCIONES DE NAVEGACIÓN
 
-    const moveToNextStep = () => {
+    // const moveToNextStep = () => {
+    //     const nextStepId = steps[currentStepIndex + 1]?.id
+
+    //     if (nextStepId) {
+    //         setCurrentStepId(nextStepId as StepId)
+    //     }
+    // }
+
+    const moveToNextStep = useCallback(() => {
         const nextStepId = steps[currentStepIndex + 1]?.id
-        if (nextStepId) setCurrentStepId(nextStepId as StepId)
-    }
-
-    // MANEJO DE FLUJOS DE REGISTRO
-
-    const getUserId = () => {
-
-        if (user?.id) {
-            return user.id
+    
+        if (nextStepId) {
+            setCurrentStepId(nextStepId as StepId)
         }
-        //todo manejar de forma correcta este error
-        // Si no hay ningún ID disponible, lanza un error
-        throw new Error('No se encontró un ID de usuario válido')
-    }
+    }, [steps, currentStepIndex]);
 
     // MANEJADORES PRINCIPALES
 
-    const handleTravelerFlow = async (stepId: string, data: any) => {
-        const { handleResponse } = useApiResponse()
-        const userRegistrationService = new UserRegistrationService()
-        setIsLoading(true)
+    // const handleTravelerFlow = async (stepId: string, data: any, userId: string) => {
 
+    //     const userRegistrationService = new UserRegistrationService()
+    //     setIsLoading(true)
+
+    //     try {
+    //         switch (stepId) {
+    //             case 'personalInfo':
+    //                 {
+    //                     const createdUser = await userRegistrationService.createBaseProfile(data)
+    //                     handleResponse({ success: createdUser.success, message: createdUser.message })
+    //                     if (createdUser.success) {
+    //                         setUser(createdUser.data as FormattedUser)
+    //                         moveToNextStep()
+    //                     }
+    //                 }
+    //                 break;
+
+    //             case 'identityCard':
+    //                 {
+    //                     const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null)
+    //                     handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
+
+    //                     if (identityCardResult.success) {
+    //                         setUser(identityCardResult.data!)
+    //                         router.refresh()
+    //                         onClose?.()
+    //                         onComplete()
+    //                     }
+    //                 }
+    //                 break;
+    //         }
+    //     } catch (error) {
+    //         handleResponse({ success: false, message: (error as Error).message })
+    //     } finally {
+    //         setIsLoading(false)
+    //     }
+    // }
+
+    // const handleDriverFlow = async (stepId: string, data: any, userId: string) => {
+    //     const userRegistrationService = new UserRegistrationService()
+    //     const driverService = new DriverRegistrationService()
+    //     setIsLoading(true)
+
+    //     try {
+    //         switch (stepId) {
+    //             case 'personalInfo':
+    //                 {
+    //                     const createdUser = await userRegistrationService.createBaseProfile(data)
+    //                     handleResponse({ success: createdUser.success, message: createdUser.message })
+    //                     if (createdUser.success) {
+    //                         setUser(createdUser.data as FormattedUser)
+    //                         moveToNextStep()
+    //                     }
+    //                 }
+    //                 break;
+
+    //             case 'identityCard':
+    //                 if (data) {
+    //                     const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null)
+    //                     handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
+    //                     if (identityCardResult.success) {
+    //                         setUser(identityCardResult.data!);
+    //                         moveToNextStep()
+    //                     }
+    //                 }
+    //                 break;
+
+    //             case 'driverLicense':
+    //                 if (data) {
+    //                     const uploadResult = await driverService.uploadDriverLicense(userId, data, user?.licenseStatus ?? null)
+    //                     handleResponse({ success: uploadResult.success, message: uploadResult.message })
+    //                     if (uploadResult.success) {
+    //                         setUser(uploadResult.data!)
+    //                         moveToNextStep()
+    //                     }
+    //                 }
+    //                 break;
+
+    //             case 'carInfo':
+    //                 if (data) {
+    //                     const carInfoResult = await driverService.submitCarInfo(userId, data)
+    //                     handleResponse({ success: carInfoResult.success, message: carInfoResult.message })
+    //                     if (carInfoResult.success) {
+    //                         setUser(carInfoResult.data!)
+    //                         moveToNextStep()
+    //                     }
+    //                 }
+    //                 break;
+
+    //             case 'insurance':
+    //                 if (data) {
+    //                     const insuranceResult = await driverService.submitInsurance(userId, data, user?.cars[0].insurance.status ?? null)
+    //                     handleResponse({ success: insuranceResult.success, message: insuranceResult.message })
+    //                     if (insuranceResult.success) {
+    //                         setUser(insuranceResult.data!)
+    //                         moveToNextStep()
+    //                     }
+    //                 }
+    //                 break;
+
+    //             case 'carCard':
+    //                 if (data) {
+    //                     const carCard = await driverService.submitCardCar(userId, data, user?.cars[0].vehicleCard?.status ?? null)
+    //                     handleResponse({ success: carCard.success, message: carCard.message })
+    //                     if (carCard.success) {
+    //                         setUser(carCard.data!)
+    //                         router.refresh()
+    //                         onComplete()
+    //                     }
+    //                 }
+    //                 break;
+    //         }
+    //     } catch (error) {
+    //         handleResponse({ success: false, message: (error as Error).message })
+    //     } finally {
+    //         setIsLoading(false)
+    //     }
+    // }
+
+    const handleTravelerFlow = useCallback(async (stepId: string, data: any, userId: string) => {
+        const userRegistrationService = new UserRegistrationService();
+        setIsLoading(true);
+      
         try {
-            switch (stepId) {
-                case 'personalInfo':
-                    const createdUser = await userRegistrationService.createBaseProfile(data)
-                    setUser(createdUser.data as FormattedUser)
-                    handleResponse({ success: createdUser.success, message: createdUser.message })
-                    moveToNextStep()
-                    break;
-
-                case 'identityCard':
-                    const userId = getUserId()
-                    const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null)
-                    handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
-
-                    if (identityCardResult.success) {
-                        setUser(identityCardResult.data!)
-                        router.refresh()
-                        onClose?.()
-                        onComplete()
-                    }
-                    break;
-            }
+          switch (stepId) {
+            case 'personalInfo':
+              {
+                const createdUser = await userRegistrationService.createBaseProfile(data);
+                handleResponse({ success: createdUser.success, message: createdUser.message });
+                if (createdUser.success) {
+                  setUser(createdUser.data as FormattedUser);
+                  moveToNextStep();
+                }
+              }
+              break;
+      
+            case 'identityCard':
+              {
+                const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null);
+                handleResponse({ success: identityCardResult.success, message: identityCardResult.message });
+      
+                if (identityCardResult.success) {
+                  setUser(identityCardResult.data!);
+                  router.refresh();
+                  onClose?.();
+                  onComplete();
+                }
+              }
+              break;
+          }
         } catch (error) {
-            handleResponse({ success: false, message: (error as Error).message })
+          handleResponse({ success: false, message: (error as Error).message });
         } finally {
-            setIsLoading(false)
+          setIsLoading(false);
         }
-    }
-
-    const handleDriverFlow = async (stepId: string, data: any) => {
-        const { handleResponse } = useApiResponse()
-        const userRegistrationService = new UserRegistrationService()
-        const driverService = new DriverRegistrationService()
-        setIsLoading(true)
-
+      }, [
+        setIsLoading, 
+        handleResponse, 
+        user?.identityStatus, 
+        setUser, 
+        moveToNextStep, 
+        router, 
+        onClose, 
+        onComplete
+      ]);
+      
+      const handleDriverFlow = useCallback(async (stepId: string, data: any, userId: string) => {
+        const userRegistrationService = new UserRegistrationService();
+        const driverService = new DriverRegistrationService();
+        setIsLoading(true);
+      
         try {
-            switch (stepId) {
-                case 'personalInfo':
-                    const createdUser = await userRegistrationService.createBaseProfile(data)
-                    handleResponse({ success: createdUser.success, message: createdUser.message })
-                    if (createdUser.success) {
-                        setUser(createdUser.data as FormattedUser)
-                        moveToNextStep()
-                    }
-                    break;
-
-                case 'identityCard':
-                    if (data) {
-                        const userId = getUserId()
-                        const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null)
-                        handleResponse({ success: identityCardResult.success, message: identityCardResult.message })
-                        if (identityCardResult.success) {
-                            setUser(identityCardResult.data!);
-                            moveToNextStep()
-                        }
-                    }
-                    break;
-
-                case 'driverLicense':
-                    if (data) {
-                        const userId = getUserId()
-                        const uploadResult = await driverService.uploadDriverLicense(userId, data, user?.licenseStatus ?? null)
-                        handleResponse({ success: uploadResult.success, message: uploadResult.message })
-                        if (uploadResult.success) {
-                            setUser(uploadResult.data!)
-                            moveToNextStep()
-                        }
-                    }
-                    break;
-
-                case 'carInfo':
-                    if (data) {
-                        const userId = getUserId()
-                        const carInfoResult = await driverService.submitCarInfo(userId, data)
-                        handleResponse({ success: carInfoResult.success, message: carInfoResult.message })
-                        if (carInfoResult.success) {
-                            setUser(carInfoResult.data!)
-                            moveToNextStep()
-                        }
-                    }
-                    break;
-
-                case 'insurance':
-                    if (data) {
-                        const userId = getUserId()
-                        const insuranceResult = await driverService.submitInsurance(userId, data, user?.cars[0].insurance.status ?? null)
-                        handleResponse({ success: insuranceResult.success, message: insuranceResult.message })
-                        if (insuranceResult.success) {
-                            setUser(insuranceResult.data!)
-                            moveToNextStep()
-                        }
-                    }
-                    break;
-
-                case 'carCard':
-                    if (data) {
-                        const userId = getUserId()
-                        const carCard = await driverService.submitCardCar(userId, data, user?.cars[0].vehicleCard?.status ?? null)
-                        handleResponse({ success: carCard.success, message: carCard.message })
-                        if (carCard.success) {
-                            setUser(carCard.data!)
-                            router.refresh()
-                            onComplete()
-                        }
-                    }
-                    break;
-            }
+          switch (stepId) {
+            case 'personalInfo':
+              {
+                const createdUser = await userRegistrationService.createBaseProfile(data);
+                handleResponse({ success: createdUser.success, message: createdUser.message });
+                if (createdUser.success) {
+                  setUser(createdUser.data as FormattedUser);
+                  moveToNextStep();
+                }
+              }
+              break;
+      
+            case 'identityCard':
+              if (data) {
+                const identityCardResult = await userRegistrationService.uploadIdentityCard(userId, data, user?.identityStatus ?? null);
+                handleResponse({ success: identityCardResult.success, message: identityCardResult.message });
+                if (identityCardResult.success) {
+                  setUser(identityCardResult.data!);
+                  moveToNextStep();
+                }
+              }
+              break;
+      
+            case 'driverLicense':
+              if (data) {
+                const uploadResult = await driverService.uploadDriverLicense(userId, data, user?.licenseStatus ?? null);
+                handleResponse({ success: uploadResult.success, message: uploadResult.message });
+                if (uploadResult.success) {
+                  setUser(uploadResult.data!);
+                  moveToNextStep();
+                }
+              }
+              break;
+      
+            case 'carInfo':
+              if (data) {
+                const carInfoResult = await driverService.submitCarInfo(userId, data);
+                handleResponse({ success: carInfoResult.success, message: carInfoResult.message });
+                if (carInfoResult.success) {
+                  setUser(carInfoResult.data!);
+                  moveToNextStep();
+                }
+              }
+              break;
+      
+            case 'insurance':
+              if (data) {
+                const insuranceResult = await driverService.submitInsurance(userId, data, user?.cars[0].insurance.status ?? null);
+                handleResponse({ success: insuranceResult.success, message: insuranceResult.message });
+                if (insuranceResult.success) {
+                  setUser(insuranceResult.data!);
+                  moveToNextStep();
+                }
+              }
+              break;
+      
+            case 'carCard':
+              if (data) {
+                const carCard = await driverService.submitCardCar(userId, data, user?.cars[0].vehicleCard?.status ?? null);
+                handleResponse({ success: carCard.success, message: carCard.message });
+                if (carCard.success) {
+                  setUser(carCard.data!);
+                  router.refresh();
+                  onComplete();
+                }
+              }
+              break;
+          }
         } catch (error) {
-            handleResponse({ success: false, message: (error as Error).message })
+          handleResponse({ success: false, message: (error as Error).message });
         } finally {
-            setIsLoading(false)
+          setIsLoading(false);
         }
-    }
+      }, [
+        setIsLoading, 
+        handleResponse, 
+        user?.identityStatus, 
+        user?.licenseStatus, 
+        user?.cars, 
+        setUser, 
+        moveToNextStep, 
+        router, 
+        onComplete
+      ]);
 
     const handleRoleSelection = useCallback((role: UserRole) => {
         const selectedRole = initialRole || role;
@@ -272,11 +411,11 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
 
         setFormData((prev: any) => ({ ...prev, [currentStep.id]: data }))
         if (formData.role === 'traveler') {
-            await handleTravelerFlow(currentStep.id, data)
+            await handleTravelerFlow(currentStep.id, data, userId!)
         } else {
-            await handleDriverFlow(currentStep.id, data)
+            await handleDriverFlow(currentStep.id, data, userId!)
         }
-    }, [currentStep, formData.role])
+    }, [currentStep, formData.role, handleRoleSelection, handleDriverFlow, handleTravelerFlow, userId])
 
     return {
         currentStep,

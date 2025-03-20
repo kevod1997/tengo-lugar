@@ -2,33 +2,58 @@ import { FormattedUser, FormattedUserForAdminDashboard, UserCar } from "@/types/
 
 
 export function getCars(user: any): UserCar[] {
-  const cars = user.driver?.Car.map((driverCar: any) => ({
-    id: driverCar.car.id,
-    plate: driverCar.car.plate,
-    brand: driverCar.car.carModel?.brand?.name || '',
-    model: driverCar.car.carModel?.model || '',
-    fuelType: driverCar.car.carModel?.fuelType || null,
-    averageFuelConsume: driverCar.car.carModel?.averageFuelConsume || null,
-    year: driverCar.car.carModel?.year || null,
-    insurance: {
-      status: driverCar.car.insuredCar?.currentPolicy?.status || null,
-      failureReason: driverCar.car.insuredCar?.currentPolicy?.failureReason || null,
-      hasFileKey: Boolean(driverCar.car.insuredCar?.currentPolicy?.fileKey),
-    },
-    vehicleCard: driverCar.vehicleCards?.[0] ? {
-      id: driverCar.vehicleCards[0].id,
-      cardType: driverCar.vehicleCards[0].cardType,
-      status: driverCar.vehicleCards[0].status,
-      failureReason: driverCar.vehicleCards[0].failureReason,
-      hasFileKey: Boolean(driverCar.vehicleCards[0].fileKey),
-      expirationDate: driverCar.vehicleCards[0].expirationDate,
-    } : null,
-    hasGreenCard: driverCar.vehicleCards?.[0]?.cardType === 'GREEN' &&
-      driverCar.vehicleCards[0].status === 'VERIFIED' || false,
-    hasBlueCard: driverCar.vehicleCards?.[0]?.cardType === 'BLUE' &&
-      driverCar.vehicleCards[0].status === 'VERIFIED' || false,
-    hasPendingCards: driverCar.vehicleCards?.[0]?.status === 'PENDING' || false
-  })) || [];
+  const cars = user.driver?.Car.map((driverCar: any) => {
+    // Check if car has all requirements to be fully enabled
+    const hasRequiredCard = 
+      (driverCar.vehicleCards?.[0]?.cardType === 'GREEN' && driverCar.vehicleCards[0].status === 'VERIFIED') || 
+      (driverCar.vehicleCards?.[0]?.cardType === 'BLUE' && driverCar.vehicleCards[0].status === 'VERIFIED');
+    
+    const hasRequiredFuelInfo = 
+      driverCar.car.carModel?.fuelType !== null && 
+      driverCar.car.carModel?.averageFuelConsume !== null;
+    
+    const hasVerifiedInsurance = 
+      driverCar.car.insuredCar?.currentPolicy?.status === 'VERIFIED';
+    
+      const noPendingCards = !(driverCar.vehicleCards?.[0]?.status === 'PENDING');
+
+    // Car is fully enabled if it meets all criteria
+    const isFullyEnabled = 
+      hasRequiredCard && 
+      hasRequiredFuelInfo && 
+      hasVerifiedInsurance && 
+      noPendingCards;
+
+    return {
+      id: driverCar.car.id,
+      plate: driverCar.car.plate,
+      brand: driverCar.car.carModel?.brand?.name || '',
+      model: driverCar.car.carModel?.model || '',
+      fuelType: driverCar.car.carModel?.fuelType || null,
+      averageFuelConsume: driverCar.car.carModel?.averageFuelConsume || null,
+      year: driverCar.car.carModel?.year || null,
+      insurance: {
+        status: driverCar.car.insuredCar?.currentPolicy?.status || null,
+        failureReason: driverCar.car.insuredCar?.currentPolicy?.failureReason || null,
+        hasFileKey: Boolean(driverCar.car.insuredCar?.currentPolicy?.fileKey),
+      },
+      vehicleCard: driverCar.vehicleCards?.[0] ? {
+        id: driverCar.vehicleCards[0].id,
+        cardType: driverCar.vehicleCards[0].cardType,
+        status: driverCar.vehicleCards[0].status,
+        failureReason: driverCar.vehicleCards[0].failureReason,
+        hasFileKey: Boolean(driverCar.vehicleCards[0].fileKey),
+        expirationDate: driverCar.vehicleCards[0].expirationDate,
+      } : null,
+      hasGreenCard: driverCar.vehicleCards?.[0]?.cardType === 'GREEN' &&
+        driverCar.vehicleCards[0].status === 'VERIFIED' || false,
+      hasBlueCard: driverCar.vehicleCards?.[0]?.cardType === 'BLUE' &&
+        driverCar.vehicleCards[0].status === 'VERIFIED' || false,
+      hasPendingCards: driverCar.vehicleCards?.[0]?.status === 'PENDING' || false,
+      isFullyEnabled: isFullyEnabled
+    };
+  }) || [];
+  
   return cars;
 }
 
@@ -81,18 +106,14 @@ export function getUserAge(birthDate: string): number {
 
 export function formatUserResponse(user: any): FormattedUser {
   const cars = getCars(user);
-  const { firstName, lastName } = splitFullName(user.name);
   const age = getUserAge(user.birthDate);
+  const hasEnabledCar = cars.some(car => car.isFullyEnabled);
 
   return {
-    id: user.id,
-    firstName,
-    lastName,
-    birthDate: user.birthDate,
+    hasBirthDate: !!user.birthDate,
     age: age,
-    email: user.email,
     gender: user.gender,
-    phoneNumber: user.phoneNumber,
+    hasPhoneNumber: !!user.phoneNumber,
     phoneNumberVerified: user.phoneNumberVerified,
     profileImageKey: user.profileImageKey,
     createdAt: user.createdAt,
@@ -115,7 +136,8 @@ export function formatUserResponse(user: any): FormattedUser {
     ),
     hasPendingCards: cars.some((car: UserCar) =>
       car.hasPendingCards
-    )
+    ),
+    hasEnabledCar: hasEnabledCar
   };
 }
 
@@ -127,7 +149,7 @@ export function formatUserForAdminDashboard(user: any): FormattedUserForAdminDas
     profileImageUrl: user.profileImageKey || `${firstName.charAt(0)}${lastName.charAt(0) || ''}`,
     fullName: user.name,
     email: user.email,
-    phone: user.phone,
+    phoneNumber: user.phoneNumber,
     createdAt: user.createdAt,
     identityStatus: user.identityCard?.status || null,
     licenseStatus: user.driver?.licence?.status || null,

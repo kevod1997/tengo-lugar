@@ -1,6 +1,7 @@
 import { ServiceError } from "../exceptions/service-error";
 
-const brevo = require('@getbrevo/brevo');
+// const brevo = require('@getbrevo/brevo');
+import * as brevo from '@getbrevo/brevo';
 
 export class BrevoAPI {
   private apiInstance: any;

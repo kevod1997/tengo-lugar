@@ -1,6 +1,5 @@
 'use server'
 
-import { ApiHandler } from "@/lib/api-handler"
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import prisma from "@/lib/prisma"
@@ -227,6 +226,7 @@ export async function submitInsuranceInfo(userId: string, insuranceInfo: Insuran
                 JSON.stringify(errorMessages)
             );
         }
-        return ApiHandler.handleError(error)
+        // return ApiHandler.handleError(error)
+        throw error
     }
 }

@@ -9,7 +9,7 @@ interface ErrorLog {
     code: string
     message: string
     createdAt: string
-    details: string
+    details: string | null
 }
 
 interface ErrorLogTableProps {
@@ -132,6 +132,7 @@ export function ErrorLogTable({
                         try {
                             parsedDetails = JSON.parse(log.details || '{}');
                         } catch (e) {
+                            console.log(e)
                             parsedDetails = {};
                         }
 

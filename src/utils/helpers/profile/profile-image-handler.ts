@@ -40,6 +40,7 @@ interface ValidationResult {
 
 interface HandleProfileImageUploadParams {
     event: React.ChangeEvent<HTMLInputElement>
+    userId: string
     user: FormattedUser
     setIsUploadingImage: (isUploading: boolean) => void
     setUser: (user: FormattedUser) => void
@@ -48,6 +49,7 @@ interface HandleProfileImageUploadParams {
 
 export const handleProfileImageUpload = async ({ 
     event, 
+    userId,
     user, 
     setIsUploadingImage, 
     setUser, 
@@ -77,7 +79,7 @@ export const handleProfileImageUpload = async ({
     try {
       setIsUploadingImage(true);
       const profileService = new ProfileService();
-      const result = await profileService.updateProfileImage(file, user.id);
+      const result = await profileService.updateProfileImage(file, userId);
   
       if (result.success) {
         setUser({ ...user, profileImageKey: result.data?.key ?? null });

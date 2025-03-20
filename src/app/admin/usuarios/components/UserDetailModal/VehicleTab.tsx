@@ -17,10 +17,10 @@ interface VehicleTabProps {
 }
 
 export function VehicleTab({ cars: initialCars, onValidate }: VehicleTabProps) {
-  
+
   const [cars, setCars] = useState(initialCars)
   const { handleResponse } = useApiResponse()
-  
+
   if (!cars || cars.length === 0) {
     return <p>No hay información de vehículos disponible.</p>
   }
@@ -63,7 +63,7 @@ export function VehicleTab({ cars: initialCars, onValidate }: VehicleTabProps) {
         <div key={car.id} className="border p-4 rounded-lg">
           <h3 className="font-semibold text-lg mb-4">Vehículo {index + 1}</h3>
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-2 mb-10 sm:mb-4 sm:grid-cols-3">
               <TabsTrigger value="details">Detalles del Vehículo
                 <StatusIndicator status={
                   car.averageFuelConsume === null || car.fuelType === null ? 'PENDING' : 'VERIFIED'

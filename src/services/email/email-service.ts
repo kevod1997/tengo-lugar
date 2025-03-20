@@ -6,9 +6,10 @@ import { ServiceError } from '@/lib/exceptions/service-error';
 import { BrevoAPI } from '@/lib/email/brevo';
 import { DocumentType } from '@/types/request/image-documents-validation';
 
-const brevo = require('@getbrevo/brevo');
+// const brevo = require('@getbrevo/brevo');
+import * as brevo from '@getbrevo/brevo';
 
-interface SendDocumentVerificationEmailParams {
+export interface SendDocumentVerificationEmailParams {
   to: string;
   documentType: DocumentType;
   status: VerificationStatus;

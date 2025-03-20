@@ -15,6 +15,8 @@ import { PhoneVerification } from '@/components/phone-verification/PhoneVerifica
 import { toast } from 'sonner'
 import { formatNumberForWhatsApp } from '@/utils/format/format-whatsapp-phone'
 import { CountryCode } from 'libphonenumber-js'
+import { authClient } from '@/lib/auth-client'
+import { splitFullName } from '@/utils/format/user-formatter'
 
 interface PersonalInfoFormProps {
   data?: {
@@ -25,21 +27,21 @@ interface PersonalInfoFormProps {
 
 export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps) {
   const { user: storeUser } = useUserStore()
+  const { data: sessionData } = authClient.useSession()
+  const { firstName, lastName } = splitFullName(sessionData?.user.name || '')
 
   const { control, register, handleSubmit, formState: { errors, isValid }, reset, setValue, watch } = useForm({
     resolver: zodResolver(userSchema),
     mode: 'onChange',
     defaultValues: {
-      firstName: storeUser?.firstName || data?.personalInfo?.firstName || '',
-      lastName: storeUser?.lastName || data?.personalInfo?.lastName || '',
-      email: storeUser?.email || data?.personalInfo?.email || '',
-      phoneNumber: storeUser?.phoneNumber || data?.personalInfo?.phoneNumber || '',
+      firstName: firstName || data?.personalInfo?.firstName || '',
+      lastName: lastName || data?.personalInfo?.lastName || '',
+      email: sessionData?.user.email || data?.personalInfo?.email || '',
+      phoneNumber: data?.personalInfo?.phoneNumber || '',
       phoneNumberVerified: storeUser?.phoneNumberVerified || data?.personalInfo?.phoneNumberVerified || false,
-      birthDate: storeUser?.birthDate
-        ? new Date(storeUser.birthDate).toISOString().split('T')[0]
-        : data?.personalInfo?.birthDate
-          ? new Date(data.personalInfo.birthDate).toISOString().split('T')[0]
-          : '',
+      birthDate: data?.personalInfo?.birthDate
+        ? new Date(data.personalInfo.birthDate).toISOString().split('T')[0]
+        : '',
       gender: storeUser?.gender || data?.personalInfo?.gender || '',
       termsAccepted: Boolean(storeUser?.termsAccepted) || Boolean(data?.personalInfo?.termsAccepted) || false,
     }
@@ -58,28 +60,25 @@ export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps
   useEffect(() => {
     if (storeUser || data?.personalInfo) {
       const initialData = {
-        firstName: storeUser?.firstName || data?.personalInfo?.firstName || '',
-        lastName: storeUser?.lastName || data?.personalInfo?.lastName || '',
-        email: storeUser?.email || data?.personalInfo?.email || '',
-        phoneNumber: storeUser?.phoneNumber || data?.personalInfo?.phoneNumber || '',
+        firstName: firstName || data?.personalInfo?.firstName || '',
+        lastName: lastName || data?.personalInfo?.lastName || '',
+        email: sessionData?.user.email || data?.personalInfo?.email || '',
+        phoneNumber: data?.personalInfo?.phoneNumber || '',
         phoneNumberVerified: storeUser?.phoneNumberVerified || data?.personalInfo?.phoneNumberVerified || false,
-        birthDate: storeUser?.birthDate
-          ? new Date(storeUser.birthDate).toISOString().split('T')[0]
-          : data?.personalInfo?.birthDate
-            ? new Date(data.personalInfo.birthDate).toISOString().split('T')[0]
-            : '',
+        birthDate: data?.personalInfo?.birthDate
+          ? new Date(data.personalInfo.birthDate).toISOString().split('T')[0]
+          : '',
         gender: storeUser?.gender || data?.personalInfo?.gender || '',
         termsAccepted: Boolean(storeUser?.termsAccepted) || Boolean(data?.personalInfo?.termsAccepted) || false,
       }
       reset(initialData)
     }
-  }, [storeUser, data?.personalInfo, reset])
+  }, [storeUser, data?.personalInfo, reset, firstName, lastName, sessionData?.user.email])
 
   const onSubmit = async (formData: any) => {
     let dataToSubmit = null;
 
-    //todo ver de mostrar info al usuario de porque deberia verificar el numero
-    if (storeUser?.phoneNumber === null && storeUser?.phoneNumberVerified === false) {
+    if (storeUser?.phoneNumberVerified === false) {
       // Formatear el número de teléfono
       const formattedPhone = formatNumberForWhatsApp(formData.phoneNumber);
 
@@ -96,8 +95,16 @@ export default function PersonalInfoForm({ data, onNext }: PersonalInfoFormProps
       };
     }
 
+    try {
+      await onNext(dataToSubmit ? dataToSubmit : formData);
+    } catch (error) {
+      console.log(error)
+      toast.error("Error", {
+        description: "Ocurrió un error al guardar los datos. Por favor, intenta nuevamente"
+      });
+    }
+
     // Continuar con el envío
-    onNext(dataToSubmit ? dataToSubmit : formData);
   }
 
   return (

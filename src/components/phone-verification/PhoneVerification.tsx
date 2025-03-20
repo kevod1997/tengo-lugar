@@ -213,8 +213,13 @@ export function PhoneVerification({
           <div className="flex space-x-2">
             <Select
               value={selectedCountry}
+              // onValueChange={(value) => {
+              //   setSelectedCountry && setSelectedCountry(value as CountryCode);
+              //   // Limpiar el número actual al cambiar de país
+              //   updatePhone('');
+              // }}
               onValueChange={(value) => {
-                setSelectedCountry && setSelectedCountry(value as CountryCode);
+                setSelectedCountry?.(value as CountryCode);
                 // Limpiar el número actual al cambiar de país
                 updatePhone('');
               }}
@@ -327,7 +332,7 @@ export function PhoneVerification({
 
           <div className="flex justify-between items-center">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => {
                 setOtpId(null);

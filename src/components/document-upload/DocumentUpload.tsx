@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Upload, X, FileIcon } from 'lucide-react'
 import { toast } from 'sonner'
+import Image from 'next/image'
 
 interface DocumentUploadProps {
   onCapture: (file: File, preview: string) => void
@@ -97,7 +98,9 @@ export function DocumentUpload({
             {file.type === 'application/pdf' ? (
               <FileIcon className="h-8 w-8" />
             ) : (
-              preview && <img src={preview} alt="Preview" className="h-20 w-20 object-cover rounded" />
+              preview &&
+              //  <img src={preview} alt="Preview" className="h-20 w-20 object-cover rounded" />
+              <Image src={preview} alt="Preview" width={20} height={20} className="rounded" />
             )}
             <div className="flex-1">
               <p className="text-sm font-medium truncate">{file.name}</p>

@@ -34,7 +34,7 @@ export function IdentityTab({ identityCard, onValidate }: IdentityTabProps) {
         <div>
           <h3 className="font-semibold">Frente del documento</h3>
           {
-            identityCard.urls && (
+            identityCard.urls?.front && (
               <ExpandableImage src={identityCard.urls.front} alt="Frente del documento" />
             )
           }
@@ -42,7 +42,7 @@ export function IdentityTab({ identityCard, onValidate }: IdentityTabProps) {
         <div>
           <h3 className="font-semibold">Reverso del documento</h3>
           {
-            identityCard.urls && (
+            identityCard.urls?.back && (
               <ExpandableImage src={identityCard.urls.back} alt="Reverso del documento" />
             )
           }

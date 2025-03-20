@@ -3,34 +3,63 @@
 import { useState, useRef, useEffect } from 'react'
 import { useUserStore } from '@/store/user-store'
 import { toast } from 'sonner'
-import { useForm } from 'react-hook-form'
+import { useForm, SubmitHandler } from 'react-hook-form'
 import { useApiResponse } from '@/hooks/ui/useApiResponse'
 import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
 import { CountryCode } from 'libphonenumber-js'
 import { PhoneVerification } from '@/components/phone-verification/PhoneVerification'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertTriangleIcon, CalendarIcon, CameraIcon, Loader2Icon } from "lucide-react"
+import { AlertTriangleIcon, CalendarIcon, Loader2Icon } from "lucide-react"
+import { ExpandableAvatar } from '@/components/avatar-modal/AvatarModal'
+import { ProfileImageUploadButton } from '@/app/dashboard/ui/dashboard/ProfileCard'
+import { authClient } from '@/lib/auth-client'
+import { splitFullName } from '@/utils/format/user-formatter'
+import { UserRegistrationService } from '@/services/registration/user-service'
 
 interface ProfileFormProps {
   isIdentityVerified: boolean
+  birthDate: Date | null | undefined
+  phoneNumber: string | null | undefined
 }
 
-//todo ajustar el click en la imagen del perfil para solo cambiarlo cuando se hace click en la  camara
+interface FormValues {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  phoneNumberVerified: boolean;
+  gender: string;
+  birthDate: string;
+}
 
-export default function ProfileForm({ isIdentityVerified }: ProfileFormProps) {
+export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber }: ProfileFormProps) {
   const { user, setUser } = useUserStore()
   const [isLoading, setIsLoading] = useState(false)
+  // const [isReloading, setIsReloading] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [formModified, setFormModified] = useState(false)
+  const initialFormValues = useRef<FormValues>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    phoneNumberVerified: false,
+    gender: '',
+    birthDate: '',
+  })
+  // Add a flag to track initial form setup
+  const formInitialized = useRef(false)
+  const { data } = authClient.useSession()
+  const userId = data?.user.id
   const { handleResponse } = useApiResponse()
+  const { firstName, lastName } = splitFullName(data?.user.name || '')
 
-  const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = useForm({
+  const { register, handleSubmit, formState: { errors }, setValue, watch, reset, getValues } = useForm<FormValues>({
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -44,18 +73,52 @@ export default function ProfileForm({ isIdentityVerified }: ProfileFormProps) {
 
   // Update form when user data changes
   useEffect(() => {
-    if (user) {
-      reset({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        phoneNumber: user.phoneNumber || '',
+    if (user && data) {
+      const { firstName, lastName } = splitFullName(data.user.name || '')
+
+      const defaultValues: FormValues = {
+        firstName: firstName || '',
+        lastName: lastName || '',
+        email: data.user.email || '',
+        phoneNumber: phoneNumber || '',
         phoneNumberVerified: user.phoneNumberVerified || false,
         gender: user.gender || '',
-        birthDate: user.birthDate ? new Date(user.birthDate).toISOString().split('T')[0] : '',
-      });
+        birthDate: birthDate ? new Date(birthDate).toISOString().split('T')[0] : '',
+      }
+
+      reset(defaultValues)
+      // Store initial values for comparison
+      initialFormValues.current = defaultValues
+
+      // Set form as initialized after the first data load
+      // Use a short timeout to ensure values are properly set
+      setTimeout(() => {
+        formInitialized.current = true
+      }, 100)
     }
-  }, [user, reset]);
+  }, [user, reset, data, birthDate, phoneNumber]);
+
+  // Check for form modifications
+  useEffect(() => {
+    const subscription = watch(() => {
+      // Only check for changes if the form has been initialized
+      if (!formInitialized.current) return;
+
+      // Compare current form values with initial values
+      const currentValues = getValues()
+      const initialValues = initialFormValues.current
+
+      // Check if any field has changed by comparing individual fields
+      const hasChanges = Object.keys(currentValues).some(key => {
+        const formKey = key as keyof FormValues;
+        return currentValues[formKey] !== initialValues[formKey];
+      });
+
+      setFormModified(hasChanges)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [watch, getValues])
 
   const phoneNumberValue = watch('phoneNumber')
   const phoneNumberVerified = watch('phoneNumberVerified')
@@ -66,46 +129,79 @@ export default function ProfileForm({ isIdentityVerified }: ProfileFormProps) {
     setValue('phoneNumberVerified', isVerified, { shouldValidate: true })
   }
 
-  const onSubmit = async (data: any) => {
-    if (!user) return
-    
-    setIsLoading(true)
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    if (!user || !userId) return;
+  
+    const userService = new UserRegistrationService();
+    setIsLoading(true);
+  
     try {
-      // Implement actual submission logic
-      console.log("Form data to submit:", data);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      // Update user in Zustand store
-      setUser({
-        ...user,
+      // 1. Call your service to update the profile
+      const result = await userService.updateUserProfile(userId, {
         firstName: data.firstName,
         lastName: data.lastName,
+        email: data.email,
         phoneNumber: data.phoneNumber,
+        phoneNumberVerified: data.phoneNumberVerified,
         gender: data.gender,
-        birthDate: data.birthDate
-      })
-      
-      toast.success("Perfil actualizado", {
-        description: "Tus datos han sido actualizados correctamente"
-      })
+        birthDate: data.birthDate,
+        termsAccepted: true,
+      });
+  
+      if (result.success) {
+        // 2. Update local app state
+        setUser(result.data!);
+        
+        // 3. Get fresh session data
+        const { data: freshSessionData } = await authClient.getSession({
+          query: { disableCookieCache: true }
+        });
+        
+        // 4. Use the fresh session data to update form values
+        if (freshSessionData) {
+          const { firstName, lastName } = splitFullName(freshSessionData.user.name);
+          
+          // Create new initial form values with updated data
+          const updatedValues = {
+            ...getValues(),
+            firstName,
+            lastName,
+            email: freshSessionData.user.email,
+          };
+          
+          // Update the form with new values
+          reset(updatedValues);
+          
+          // Update initial values reference
+          initialFormValues.current = updatedValues;
+          
+          // Reset form modification state
+          setFormModified(false);
+        }
+  
+        toast.success("Perfil actualizado", {
+          description: result.message || "Tus datos han sido actualizados correctamente"
+        });
+        
+        // No need for page reload!
+      } else {
+        throw new Error(result.error?.message || "Error desconocido");
+      }
     } catch (error) {
       toast.error("Error", {
-        description: "No se pudieron actualizar tus datos. Intenta nuevamente."
-      })
+        description: error instanceof Error ? error.message : "No se pudieron actualizar tus datos."
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-  const handleImageClick = () => {
-    fileInputRef.current?.click()
-  }
+  };
 
   const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!user) return
 
     await handleProfileImageUpload({
       event,
+      userId: data!.user.id,
       user,
       setIsUploadingImage,
       setUser,
@@ -115,37 +211,23 @@ export default function ProfileForm({ isIdentityVerified }: ProfileFormProps) {
 
   if (!user) return null
 
+  // if (isReloading) {
+  //   return (
+  //     <div className="flex justify-center items-center p-8">
+  //       <Loader2Icon className="animate-spin h-8 w-8 text-primary" />
+  //       <span className="ml-2">Actualizando información...</span>
+  //     </div>
+  //   );
+  // }
+
   return (
-    <Card className="mb-8">
+    <Card>
+      {/* Card content remains the same */}
       <CardHeader className="flex items-center pb-2">
-        <div className="relative" onClick={handleImageClick}>
-          <Avatar className="h-24 w-24 cursor-pointer relative">
-            <AvatarImage
-              src={user.profileImageKey || ''}
-              alt={`${user.firstName} ${user.lastName}`}
-              className={isUploadingImage ? 'opacity-50' : ''}
-            />
-            <AvatarFallback className="text-2xl">
-              {user.firstName?.[0]}{user.lastName?.[0]}
-            </AvatarFallback>
-            {isUploadingImage && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2Icon className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            )}
-          </Avatar>
-          <div className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-1">
-            <CameraIcon className="h-4 w-4" />
-          </div>
+        <div className="relative">
+          <ExpandableAvatar imageUrl={user.profileImageKey ?? undefined} firstName={firstName} lastName={lastName} />
+          <ProfileImageUploadButton onUpload={handleImageChange} isUploading={isUploadingImage} />
         </div>
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden cursor-pointer"
-          accept="image/jpeg,image/png"
-          onChange={handleImageChange}
-          disabled={isUploadingImage}
-        />
       </CardHeader>
       <CardContent>
         {isIdentityVerified && (
@@ -157,8 +239,9 @@ export default function ProfileForm({ isIdentityVerified }: ProfileFormProps) {
             </AlertDescription>
           </Alert>
         )}
-        
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Form fields remain the same */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">Nombre</Label>
@@ -260,14 +343,18 @@ export default function ProfileForm({ isIdentityVerified }: ProfileFormProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => toast.info('Operación cancelada')}
-              disabled={isLoading}
+              onClick={() => {
+                reset(initialFormValues.current)
+                setFormModified(false)
+                toast.info('Cambios cancelados')
+              }}
+              disabled={isLoading || !formModified}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !formModified}
             >
               {isLoading ? (
                 <>

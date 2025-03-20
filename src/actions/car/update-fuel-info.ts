@@ -55,6 +55,7 @@ export async function updateFuelInfo(data: UpdateFuelInfoInput) {
                 );
             }
         } catch (apiError) {
+            //todo acomodar aca errores de la api
             // Log el error pero no interrumpir el flujo principal
             console.error('Error al actualizar API externa:', apiError);
         }

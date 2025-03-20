@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";;
 import { s3Service } from "@/lib/s3/s3";
 import { splitFullName } from "@/utils/format/user-formatter";
+import prisma from "@/lib/prisma";
 
 //la imagen es publica por eso usamos frontFileUrl
 
@@ -68,6 +69,7 @@ export async function uploadProfileImage(processedFile: FileInput, userId: strin
                     message: 'Imagen de perfil subida correctamente',
                     key: uploadResult.frontFileUrl
                 };
+
             } catch (error) {
                 // Si falla la actualización, eliminamos la imagen recién subida
                 if (uploadResult.frontFileKey) {

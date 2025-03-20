@@ -34,6 +34,9 @@ export function ProfileImageUploadButton({ onUpload, isUploading }: ProfileImage
 }
 
 interface ProfileCardProps {
+  firstName: string
+  lastName: string
+  email: string
   user: FormattedUser
   completion: number
   isUploadingImage?: boolean
@@ -42,6 +45,9 @@ interface ProfileCardProps {
 
 export function ProfileCard({
   user,
+  firstName,
+  lastName,
+  email,
   completion,
   isUploadingImage,
   onImageUpload
@@ -68,8 +74,8 @@ export function ProfileCard({
           <div className="relative">
           <ExpandableAvatar
               imageUrl={user.profileImageKey ?? undefined}
-              firstName={user.firstName}
-              lastName={user.lastName}
+              firstName={firstName}
+              lastName={lastName}
             />
             <ProfileImageUploadButton
               onUpload={onImageUpload}
@@ -78,9 +84,9 @@ export function ProfileCard({
           </div>
           <div>
             <CardTitle className="text-2xl md:text-3xl">
-              Bienvenido, {user.firstName}!
+              Bienvenido, {firstName}!
             </CardTitle>
-            <CardDescription>{user.email}</CardDescription>
+            <CardDescription>{email}</CardDescription>
             <div className="mt-2">
               <span className="text-sm font-medium mr-2">Estado:</span>
               <span className={`text-sm font-medium ${status.color}`}>

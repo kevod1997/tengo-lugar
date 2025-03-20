@@ -50,6 +50,15 @@ export class ServiceError extends BaseError {
         );
     }
 
+    static UserUpdateFailed(fileName: string, functionName: string) {
+        return new ServiceError(
+            'Error al actualizar el usuario',
+            'USER_UPDATE_FAILED',
+            fileName,
+            functionName
+        );
+    }
+
     static FormattingFailed(fileName: string, functionName: string) {
         return new ServiceError(
             'Error al formatear los datos del usuario',

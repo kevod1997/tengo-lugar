@@ -1,13 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useUserStore } from '@/store/user-store'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, AlertCircle, CheckCircle2, Clock } from "lucide-react"
 import Header from "@/components/header/header"
-import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -67,7 +66,6 @@ export default function VehiculosPage() {
                     { label: 'Vehículos' },
                 ]}
             />
-            <Separator />
 
             {!user?.hasRegisteredCar && (
                 <Alert>

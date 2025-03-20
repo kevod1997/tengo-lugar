@@ -6,7 +6,6 @@ import {
   Car,
   Home,
   Search,
-  Map,
   LayoutDashboard,
   CarFrontIcon,
   UserIcon,
@@ -79,11 +78,6 @@ const navData = {
       url: "/buscar-viaje",
       icon: Search,
     },
-    {
-      title: "Simular Viaje",
-      url: "/simular-viaje",
-      icon: Map,
-    },
   ],
 }
 
@@ -130,7 +124,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <div className={`relative overflow-hidden rounded-full ${open ? 'h-24 w-24' : 'h-8 w-8 mt-4 mb-1'}`}>
+          <div className={`relative overflow-hidden rounded-full ${open ? 'h-24 w-24' : 'h-8 w-8 mt-6 mb-1'}`}>
             <Image
               src="/imgs/logo.png"
               alt="Tengo Lugar Logo"

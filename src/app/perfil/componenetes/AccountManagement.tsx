@@ -1,4 +1,3 @@
-// src/app/profile/components/AccountManagement.tsx
 'use client'
 
 import { useState } from 'react'
@@ -6,72 +5,98 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useUserStore } from '@/store/user-store'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Loader2Icon, TrashIcon } from "lucide-react"
+import PasswordManagement from './PasswordManagement'
+import { authClient } from '@/lib/auth-client'
+import { LoggingService } from '@/services/logging/logging-service'
+import { TipoAccionUsuario } from '@/types/actions-logs'
 
 export default function AccountManagement() {
   const { user, clearUser } = useUserStore()
+  const {data} = authClient.useSession()
   const router = useRouter()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
-
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  
   const handleDeleteAccount = async () => {
     if (!user) return
     
+    // Verificar confirmación
+    if (deleteConfirmation !== 'ELIMINAR') {
+      toast.error("Confirmación incorrecta", {
+        description: "Por favor, escribe ELIMINAR para confirmar"
+      });
+      return;
+    }
+    
     setIsDeletingAccount(true)
     try {
-      // Here you would implement the actual account deletion logic
-      // For example:
-      // const response = await fetch('/api/account/delete', {
-      //   method: 'DELETE',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ userId: user.id })
-      // })
+      // Usar la función de Better Auth para eliminar la cuenta
+      await authClient.deleteUser({
+        callbackURL: "/"
+      });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Registrar la acción (esto puede que no se ejecute si la eliminación redirige directamente)
+      try {
+        await LoggingService.logActionWithErrorHandling(
+          {
+            userId: data!.user.id,
+            action: TipoAccionUsuario.CIERRE_SESION, // O crear un tipo específico para eliminación
+            status: 'SUCCESS',
+            details: { message: "Cuenta eliminada correctamente" }
+          },
+          {
+            fileName: 'AccountManagement.tsx',
+            functionName: 'handleDeleteAccount'
+          }
+        );
+      } catch (logError) {
+        console.error("Error al registrar eliminación de cuenta:", logError);
+      }
       
-      // Clear user from store
-      clearUser()
+      // Limpiar el estado local
+      clearUser();
       
+      // Mostrar mensaje de éxito (puede que no sea visible si ya redirigió)
       toast.success("Cuenta eliminada", {
         description: "Tu cuenta ha sido eliminada correctamente"
-      })
+      });
       
-      // Redirect to home or login page
-      router.push('/')
+      // Redirigir a home o login si no lo hace automáticamente
+      router.push('/');
     } catch (error) {
+      // Determinar el mensaje de error apropiado
+      let errorMessage = "No se pudo eliminar la cuenta. Intente nuevamente.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("password") || error.message.includes("contraseña")) {
+          errorMessage = "La contraseña es incorrecta.";
+        } else if (error.message.includes("session") || error.message.includes("sesión")) {
+          errorMessage = "Sesión inválida o expirada. Inicia sesión nuevamente.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast.error("Error", {
-        description: "No se pudo eliminar la cuenta. Intente nuevamente."
-      })
+        description: errorMessage
+      });
     } finally {
-      setIsDeletingAccount(false)
-      setIsDeleteDialogOpen(false)
+      setIsDeletingAccount(false);
+      setIsDeleteDialogOpen(false);
+      setDeleteConfirmation('');
     }
   }
-
+  
   return (
     <>
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Cambiar contraseña</CardTitle>
-          <CardDescription>
-            Si deseas cambiar tu contraseña, puedes hacerlo desde aquí.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button
-            variant="outline"
-            onClick={() => {
-              toast.info('Funcionalidad en desarrollo')
-            }}
-          >
-            Cambiar contraseña
-          </Button>
-        </CardFooter>
-      </Card>
-
+      {/* Password Management Component */}
+      <PasswordManagement />
+      
+      {/* Delete Account Card */}
       <Card className="mt-6 border-destructive/20">
         <CardHeader>
           <CardTitle className="text-destructive">Eliminar cuenta</CardTitle>
@@ -94,10 +119,27 @@ export default function AccountManagement() {
                   Esta acción no puede deshacerse. Se eliminarán permanentemente todos tus datos, incluyendo información personal, viajes, valoraciones y otros datos asociados a tu cuenta.
                 </DialogDescription>
               </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <p className="text-sm text-muted-foreground">
+                  Para confirmar, escribe <strong className="font-semibold">ELIMINAR</strong> en el campo a continuación:
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  className="w-full border rounded p-2 text-sm"
+                  placeholder="Escribe ELIMINAR para confirmar"
+                />
+              </div>
+              
               <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
                 <Button 
                   variant="outline" 
-                  onClick={() => setIsDeleteDialogOpen(false)}
+                  onClick={() => {
+                    setIsDeleteDialogOpen(false);
+                    setDeleteConfirmation('');
+                  }}
                   className="sm:mr-auto"
                 >
                   Cancelar
@@ -105,7 +147,7 @@ export default function AccountManagement() {
                 <Button 
                   variant="destructive" 
                   onClick={handleDeleteAccount}
-                  disabled={isDeletingAccount}
+                  disabled={isDeletingAccount || deleteConfirmation !== 'ELIMINAR'}
                 >
                   {isDeletingAccount ? (
                     <>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { UserDetailsModal } from './UserDetailsModal'
 import { useApiResponse } from '@/hooks/ui/useApiResponse'
-import { FormattedUserForAdminDashboard, UserCar } from '@/types/user-types'
+import { FormattedUserForAdminDashboard } from '@/types/user-types'
 import { getUserDocuments } from '@/actions'
 import { DocumentResponse } from '@/services/registration/admin/user-service'
 import { Eye, FileText } from 'lucide-react'
@@ -31,10 +31,12 @@ export function UserTable({ users }: UserTableProps) {
     setSelectedUser(user)
     try {
       const response = await getUserDocuments(user.id)
+      console.log('response', response)
       if (response.success) {
         setSelectedUser({ ...user, documents: response.data })
       }
     } catch (error) {
+      console.log('error', error)
       handleResponse({ success: false, message: 'Error al obtener los documentos del usuario' })
     } finally {
       setIsLoading(false)
@@ -78,7 +80,7 @@ export function UserTable({ users }: UserTableProps) {
               </TableCell>
               <TableCell>{user.fullName}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.phone}</TableCell>
+              <TableCell>{user.phoneNumber}</TableCell>
               <TableCell>{formatDate(user.createdAt)}</TableCell>
               <TableCell>
                 <Badge variant={getBadgeVariant(user.identityStatus)}>{user.identityStatus}</Badge>

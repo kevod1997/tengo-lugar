@@ -18,6 +18,7 @@ export const useInsuranceStore = create<InsuranceState>((set) => ({
       const data = await getInsuranceCompanies()
       set({ companies: data, isLoading: false })
     } catch (error) {
+      console.log(error)
       set({ error: 'Error fetching insurance companies', isLoading: false })
     }
   }

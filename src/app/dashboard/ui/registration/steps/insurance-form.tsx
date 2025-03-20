@@ -1,4 +1,3 @@
-// components/insurance-form.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -32,7 +31,7 @@ interface InsuranceFormProps {
 export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
     // 1. Primero declaramos TODOS los hooks
     const [policyFile, setPolicyFile] = useState<File | null>(null)
-    const [policyPreview, setPolicyPreview] = useState<string | null>(null)
+    // const [policyPreview, setPolicyPreview] = useState<string | null>(null)
     const { companies, isLoading, error, fetch } = useInsuranceStore()
     const { user } = useUserStore()
 
@@ -188,7 +187,7 @@ export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
                             id="policy-file"
                             onCapture={(file, preview) => {
                                 setPolicyFile(file)
-                                setPolicyPreview(preview)
+                                // setPolicyPreview(preview)
                                 setValue('policyFile', { file, source: 'upload', preview }, { shouldValidate: true })
                             }}
                             title={`Subir póliza de seguro (PDF o imagen en formato jpeg, jpg o png)`}

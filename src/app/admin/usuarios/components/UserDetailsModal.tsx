@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { FormattedUserForAdminDashboard } from "@/types/user-types"
 import type { DocumentResponse } from "@/services/registration/admin/user-service"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useState } from "react"
 import { useApiResponse } from "@/hooks/ui/useApiResponse"
 import { validateDocument } from "@/actions/register/admin/validate-document"
 import { BasicInfo } from "./UserDetailModal/BasicInfo"
@@ -23,11 +22,11 @@ interface UserDetailsModalProps {
 
 export function UserDetailsModal({ user, onClose, isLoading }: UserDetailsModalProps) {
   const { handleResponse } = useApiResponse()
-  const [validating, setValidating] = useState(false)
+  // const [validating, setValidating] = useState(false)
 
   const handleValidation = async (validationRequest: any) => {
     try {
-      setValidating(true)
+      // setValidating(true)
 
       const result = await validateDocument(validationRequest, user.email)
       handleResponse({ success: result.success, message: result.message })
@@ -36,9 +35,10 @@ export function UserDetailsModal({ user, onClose, isLoading }: UserDetailsModalP
       }
     } catch (error) {
       handleResponse({ success: false, message: (error as Error).message })
-    } finally {
-      setValidating(false)
-    }
+    } 
+    // finally {
+    //   setValidating(false)
+    // }
   }
 
   return (

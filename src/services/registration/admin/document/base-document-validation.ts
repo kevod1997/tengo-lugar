@@ -59,31 +59,6 @@ export abstract class BaseDocumentValidationService {
     }
   }
 
-  // private async handleFailedImages(
-  //   document: BaseDocument,
-  //   failedImages?: { front?: boolean; back?: boolean }
-  // ) {
-  //   const deletePromises: Promise<void>[] = [];
-  //   const updateData: any = {};
-
-  //   if (failedImages?.front) {
-  //     deletePromises.push(this.deleteFile(document.frontFileKey));
-  //     updateData.frontFileKey = '';
-  //   }
-
-  //   if (failedImages?.back) {
-  //     deletePromises.push(this.deleteFile(document.backFileKey));
-  //     updateData.backFileKey = '';
-  //   }
-
-  //   if (deletePromises.length > 0) {
-  //     await Promise.all([
-  //       ...deletePromises,
-  //       this.updateDocument(document.id, updateData)
-  //     ]);
-  //   }
-  // }
-
   private async handleDualSidedFailedImages(
     document: BaseDocument,
     failedImages?: { front?: boolean; back?: boolean }

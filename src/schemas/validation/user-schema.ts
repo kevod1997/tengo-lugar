@@ -43,6 +43,7 @@ export const userSchema = z.object({
                     // Si no funciona, probamos como un número fijo
                     return isValidPhoneNumber(value, 'AR');
                 } catch (error) {
+                    console.log(error)
                     return false;
                 }
             },

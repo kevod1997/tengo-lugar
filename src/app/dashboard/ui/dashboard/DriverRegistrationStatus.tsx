@@ -31,7 +31,7 @@ export function DriverRegistrationStatus({ steps }: DriverRegistrationStatusProp
 
   return (
     <div className="space-y-4">
-      {steps.map((step, index) => (
+      {steps.map((step) => (
         <div key={step.title} className="flex items-start space-x-4">
           <div className="flex-shrink-0">{getStepIcon(step.status)}</div>
           <div className="flex-grow">

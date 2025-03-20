@@ -20,9 +20,9 @@ export async function uploadDriverLicense(
   try {
     const validatedData = serverDriverLicenseSchema.parse(input);
 
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
 
     if (!session) {
       throw ServerActionError.AuthenticationFailed('license.ts', 'uploadDriverLicense');
@@ -54,10 +54,10 @@ export async function uploadDriverLicense(
     let firstName: string;
     let lastName: string;
 
-    if(newDriver){
-      ({firstName, lastName} = splitFullName(newDriver.user.name));
+    if (newDriver) {
+      ({ firstName, lastName } = splitFullName(newDriver.user.name));
     } else {
-      ({firstName, lastName} = splitFullName(driver!.user.name));
+      ({ firstName, lastName } = splitFullName(driver!.user.name));
     }
 
     const userInfo = newDriver ? {
@@ -120,7 +120,7 @@ export async function uploadDriverLicense(
         },
       };
     } else {
-      const licence = await prisma.licence.create({
+      await prisma.licence.create({
         data: {
           driverId: (driver?.id || newDriver?.id)!,
           expiration: new Date(validatedData.expirationDate).toISOString(),

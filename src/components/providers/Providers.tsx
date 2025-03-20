@@ -2,7 +2,7 @@
 
 import { SidebarProvider } from '../ui/sidebar';
 import React from 'react';
-import QueryProvider from './Query-Provider';
+import QueryProvider from './QueryProvider';
 
 interface Props {
     children: React.ReactNode;

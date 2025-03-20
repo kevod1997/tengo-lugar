@@ -34,6 +34,7 @@ export default function Header({ breadcrumbs, className = '', showBackButton = f
   }
 
   return (
+    <>
     <header className={`mt-3 mb-6 ${className}`}>
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
@@ -70,5 +71,7 @@ export default function Header({ breadcrumbs, className = '', showBackButton = f
         </Breadcrumb>
       </div>
     </header>
+    <Separator className="mb-6" />
+    </>
   )
 }

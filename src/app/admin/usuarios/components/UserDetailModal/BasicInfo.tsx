@@ -23,7 +23,7 @@ export function BasicInfo({ user }: BasicInfoProps) {
       </div>
       <div>
         <h3 className="font-semibold">Teléfono</h3>
-        <p>{user.phone}</p>
+        <p>{user.phoneNumber}</p>
       </div>
       <div>
         <h3 className="font-semibold">Fecha de creación</h3>

@@ -34,10 +34,25 @@ import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { LoggingService } from "@/services/logging/logging-service"
 import { TipoAccionUsuario } from "@/types/actions-logs"
+import { splitFullName } from "@/utils/format/user-formatter"
+import { useIsMobile } from "@/hooks/ui/useMobile"
+
 
 export function NavUser({ open }: { open: boolean }) {
   const { data } = authClient.useSession();
   const router = useRouter();
+  const { isMobile } = useSidebar();
+  const isMobileView = useIsMobile(); // Usa el hook para detectar pantallas móviles
+  const { user: userDb } = useUserStore();
+  
+  // Determinar si mostrar la información del usuario (en mobile o cuando está abierto)
+  const showUserInfo = open || isMobileView;
+  
+  // Extraer nombre y apellido solo si hay datos de usuario
+  const { firstName, lastName } = data?.user ? splitFullName(data.user.name || '') : { firstName: '', lastName: '' };
+  const email = data?.user?.email;
+  const isVerified = userDb?.identityStatus === 'VERIFIED' ? true : false;
+  
   const handleSignOut = async () => {
     if (data) {
       try {
@@ -66,10 +81,6 @@ export function NavUser({ open }: { open: boolean }) {
     }
   }
 
-
-  const { isMobile } = useSidebar()
-  const { user: userDb } = useUserStore()
-  const isVerified = userDb?.identityStatus === 'VERIFIED' ? true : false
   if (!data) {
     return (
       <SidebarMenu>
@@ -107,11 +118,11 @@ export function NavUser({ open }: { open: boolean }) {
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
                     src={userDb?.profileImageKey ?? undefined}
-                    alt={userDb?.firstName || ""}
+                    alt={firstName || ""}
                   />
                   <AvatarFallback className="rounded-lg bg-slate-500 text-white">
-                    {userDb?.firstName?.charAt(0)}
-                    {userDb?.lastName?.charAt(0)}
+                    {firstName?.charAt(0)}
+                    {lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
 
@@ -137,22 +148,21 @@ export function NavUser({ open }: { open: boolean }) {
                 </TooltipProvider>
               </div>
 
-              {/* Información del usuario con mejor manejo de espacio */}
-              {open && (
+              {/* Información del usuario - ahora visible en móvil y cuando está abierto */}
+              {showUserInfo && (
                 <div className="flex flex-1 items-center gap-1 sm:gap-2 min-w-0 overflow-visible">
                   <div className="flex-1 grid text-xs sm:text-sm leading-tight w-full">
                     <span className="truncate font-semibold">
-                      {userDb?.firstName} {userDb?.lastName}
+                      {firstName} {lastName}
                     </span>
                     <span className="truncate text-[10px] sm:text-xs text-muted-foreground">
-                      {userDb?.email}
+                      {email}
                     </span>
                   </div>
                   <ChevronsUpDown className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                 </div>
               )}
             </SidebarMenuButton>
-
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
@@ -163,15 +173,15 @@ export function NavUser({ open }: { open: boolean }) {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={userDb?.profileImageKey ?? undefined} alt={userDb?.firstName || ""} />
+                  <AvatarImage src={userDb?.profileImageKey ?? undefined} alt={firstName || ""} />
                   <AvatarFallback className="rounded-lg bg-slate-500 text-white">
-                    {userDb?.firstName?.charAt(0)}
-                    {userDb?.lastName?.charAt(0)}
+                    {firstName?.charAt(0)}
+                    {lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{userDb?.firstName}</span>
-                  <span className="truncate text-xs">{userDb?.email}</span>
+                  <span className="truncate font-semibold">{firstName}</span>
+                  <span className="truncate text-xs">{email}</span>
                   <span className="text-xs text-muted-foreground">
                     {isVerified ? "Usuario Verificado" : "Usuario No Verificado"}
                   </span>
@@ -203,7 +213,7 @@ export function NavUser({ open }: { open: boolean }) {
                   Vehiculos
                 </a>
               </DropdownMenuItem> : null}
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild disabled={true}>
                 <a href="/reviews">
                   <ClipboardCheck className="mr-2 h-4 w-4" />
                   Reviews

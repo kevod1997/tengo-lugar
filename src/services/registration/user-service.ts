@@ -1,4 +1,4 @@
-import { updateUser, getUserById, uploadIdentityCard } from "@/actions";
+import { updateUser, getUserById, uploadIdentityCard, updateUserProfile } from "@/actions";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServiceError } from "@/lib/exceptions/service-error";
 import { processFile } from "@/lib/file/file-processor";
@@ -8,17 +8,16 @@ import { logActionWithErrorHandling } from "../logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { VerificationStatus } from "@prisma/client";
 
-//todo acomodar, ahora seria un update, porque ya estaria creado el user
 export class UserRegistrationService {
     async createBaseProfile(personalInfo: any): Promise<ApiResponse<FormattedUser>> {
         try {
             const userResult = await updateUser({
                 ...personalInfo,
             })
-            //todo userUpdate error
-            if (!userResult.success) {
-                throw ServiceError.UserCreationFailed('user-service.ts', 'createBaseProfile');
-            }
+
+            // if (!userResult.success) {
+            //     throw ServiceError.UserUpdateFailed('user-service.ts', 'createBaseProfile');
+            // }
 
             const formattedUser = userResult.data ? await getUserById(userResult.data.user.id) : null
 
@@ -28,7 +27,7 @@ export class UserRegistrationService {
 
             await logActionWithErrorHandling(
                 {
-                    userId: formattedUser.id,
+                    userId: userResult.data.user.id,
                     action: TipoAccionUsuario.REGISTRO_USUARIO,
                     status: 'SUCCESS',
                     details: { message: userResult.data.message }
@@ -61,6 +60,61 @@ export class UserRegistrationService {
         }
     }
 
+    async updateUserProfile(userId: string, profileData: any): Promise<ApiResponse<FormattedUser>> {
+        try {
+            // Call the server action to update user
+            const userResult = await updateUserProfile({
+                ...profileData,
+            });
+
+            // if (!userResult.success) {
+            //     throw ServiceError.UserUpdateFailed('profile-update-service.ts', 'updateUserProfile');
+            // }
+
+            // Get updated user data
+            const formattedUser = userResult.data ? await getUserById(userId) : null;
+
+            if (!formattedUser) {
+                throw ServiceError.ErrorGettingUser('profile-update-service.ts', 'updateUserProfile');
+            }
+
+            // Log the successful update
+            await logActionWithErrorHandling(
+                {
+                    userId,
+                    action: TipoAccionUsuario.ACTUALIZACION_PERFIL,
+                    status: 'SUCCESS',
+                    details: { message: userResult.data.message }
+                },
+                {
+                    fileName: 'profile-update-service.ts',
+                    functionName: 'updateUserProfile'
+                }
+            );
+
+            return ApiHandler.handleSuccess(
+                formattedUser,
+                'Perfil actualizado correctamente'
+            );
+        } catch (error) {
+            // Log the failed update
+            await logActionWithErrorHandling(
+                {
+                    userId,
+                    action: TipoAccionUsuario.ACTUALIZACION_PERFIL,
+                    status: 'FAILED',
+                    details: { error: (error as Error).message }
+                },
+                {
+                    fileName: 'profile-update-service.ts',
+                    functionName: 'updateUserProfile'
+                }
+            );
+
+            throw error;
+        }
+    }
+
     async uploadIdentityCard(userId: string, identityCard: any, identityStatus: VerificationStatus | null): Promise<ApiResponse<FormattedUser>> {
         try {
             // Procesar imágenes si existen
@@ -84,13 +138,13 @@ export class UserRegistrationService {
 
             const identityCardResult = await uploadIdentityCard(userId, identityCard);
 
-            if (!identityCardResult.success) {
-                throw ServiceError.DocumentUploadFailed('Documento de identidad', 'user-service.ts', 'uploadIdentityCard');
-            }
+            // if (!identityCardResult.success) {
+            //     throw ServiceError.DocumentUploadFailed('Documento de identidad', 'user-service.ts', 'uploadIdentityCard');
+            // }
 
             await logActionWithErrorHandling(
                 {
-                    userId: identityCardResult.data.updatedUser.id,
+                    userId,
                     action: identityStatus === 'FAILED' ? TipoAccionUsuario.RESUBIDA_DOCUMENTO_IDENTIDAD : TipoAccionUsuario.SUBIDA_DOCUMENTO_IDENTIDAD,
                     status: 'SUCCESS',
                     details: { message: identityCardResult.data.message }

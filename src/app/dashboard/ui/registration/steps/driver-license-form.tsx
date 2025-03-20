@@ -15,6 +15,7 @@ import {
 import { DriverLicenseInput, driverLicenseSchema } from '@/schemas'
 import { ImageCapture } from '../utils/image-capture'
 import { useUserStore } from '@/store/user-store'
+import Image from 'next/image'
 
 interface DriverLicenseFormProps {
   onSubmit: (data: DriverLicenseInput) => any
@@ -105,16 +106,30 @@ export default function DriverLicenseForm({ onSubmit, data }: DriverLicenseFormP
         </Alert>
       ) : preview ? (
         <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: '1.6', width: '100%' }}>
-          <img
+          {/* <img
             src={preview}
             alt={`Vista previa ${side}`}
             className="w-full h-full object-contain"
+          /> */}
+          {/* <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="absolute top-2 right-2 rounded-full"
+            onClick={() => handleRemoveImage(side)}
+          > */}
+          <Image
+            src={preview}
+            alt={`Vista previa ${side}`}
+            fill
+            className="object-contain"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
           <Button
             type="button"
             variant="destructive"
             size="icon"
-            className="absolute top-2 right-2 rounded-full"
+            className="absolute top-2 right-2 rounded-full z-10"
             onClick={() => handleRemoveImage(side)}
           >
             <X className="h-4 w-4" />

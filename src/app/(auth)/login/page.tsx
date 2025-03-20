@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ErrorContext } from "@better-fetch/fetch";
 import { signInSchema } from "@/schemas/validation/auth-schemas";
@@ -24,11 +24,12 @@ import { toast } from "sonner";
 import LoadingButton from "@/components/loader/loading-button";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { Separator } from "@/components/ui/separator";
+import { Loader2 } from "lucide-react";
 
-export default function SignIn() {
+function SignIn() {
 	const [pendingCredentials, setPendingCredentials] = useState(false);
 	const [pendingGoogle, setPendingGoogle] = useState(false);
-	const [pendingFacebook, setPendingFacebook] = useState(false);
+	// const [pendingFacebook, setPendingFacebook] = useState(false);
 	const searchParams = useSearchParams();
 	const redirectUrl = searchParams.get('redirect_url');
 
@@ -89,25 +90,25 @@ export default function SignIn() {
 		setPendingGoogle(false);
 	};
 
-	const handleSignInWithFacebook = async () => {
-		await authClient.signIn.social(
-			{
-				provider: "facebook",
-				callbackURL: `${redirectUrl ? `/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}` : "/auth-redirect"}`,
-			},
-			{
-				onRequest: () => {
-					setPendingFacebook(true);
-				},
-				onError: (ctx: ErrorContext) => {
-					toast.error('Error', {
-						description: ctx.error.message ?? "Algo salió mal.",
-					});
-				},
-			}
-		);
-		setPendingFacebook(false);
-	};
+	// const handleSignInWithFacebook = async () => {
+	// 	await authClient.signIn.social(
+	// 		{
+	// 			provider: "facebook",
+	// 			callbackURL: `${redirectUrl ? `/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}` : "/auth-redirect"}`,
+	// 		},
+	// 		{
+	// 			onRequest: () => {
+	// 				setPendingFacebook(true);
+	// 			},
+	// 			onError: (ctx: ErrorContext) => {
+	// 				toast.error('Error', {
+	// 					description: ctx.error.message ?? "Algo salió mal.",
+	// 				});
+	// 			},
+	// 		}
+	// 	);
+	// 	setPendingFacebook(false);
+	// };
 
 	return (
 		<div className="grow flex items-center justify-center p-4">
@@ -186,7 +187,8 @@ export default function SignIn() {
 					</div>
 					<div className="mt-4">
 						<LoadingButton
-							pending={pendingFacebook}
+						pending={false}
+							// pending={pendingFacebook}
 							onClick={() => toast.info("Esta funcionalidad no está disponible aún")}
 						>
 							<FaFacebook className="w-4 h-4 mr-2" />
@@ -215,4 +217,12 @@ export default function SignIn() {
 			</Card>
 		</div>
 	);
+}
+
+export default function  SignInPage() {
+	return (
+		<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+		<SignIn />
+	</Suspense>
+	)
 }

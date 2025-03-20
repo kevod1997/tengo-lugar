@@ -31,31 +31,31 @@ export function UserLogsView({ userId }: UserLogsViewProps) {
     endDate: "",
   })
 
-  const fetchLogs = async () => {
-    setIsLoading(true)
-    try {
-      const response = await getUserLogs({
-        userId,
-        page: pagination.currentPage,
-        pageSize: pagination.pageSize,
-        action: filters.action || undefined,
-        status: filters.status === "ALL" ? undefined : filters.status,
-        startDate: filters.startDate || undefined,
-        endDate: filters.endDate || undefined,
-      })
-
-      if (response.success && response.data) {
-        setLogs(response.data.logs)
-        setPagination(response.data.pagination)
-      }
-    } catch (error) {
-      console.error("Error fetching logs:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   useEffect(() => {
+    const fetchLogs = async () => {
+      setIsLoading(true)
+      try {
+        const response = await getUserLogs({
+          userId,
+          page: pagination.currentPage,
+          pageSize: pagination.pageSize,
+          action: filters.action || undefined,
+          status: filters.status === "ALL" ? undefined : filters.status,
+          startDate: filters.startDate || undefined,
+          endDate: filters.endDate || undefined,
+        })
+  
+        if (response.success && response.data) {
+          setLogs(response.data.logs)
+          setPagination(response.data.pagination)
+        }
+      } catch (error) {
+        console.error("Error fetching logs:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  
     fetchLogs()
   }, [userId, pagination.currentPage, pagination.pageSize, filters])
 

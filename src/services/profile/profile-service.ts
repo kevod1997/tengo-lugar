@@ -1,6 +1,5 @@
 import { uploadProfileImage } from "@/actions/profile/profile-image";
 import { ApiHandler } from "@/lib/api-handler";
-import { ServiceError } from "@/lib/exceptions/service-error";
 import { processFile } from "@/lib/file/file-processor";
 import { logActionWithErrorHandling } from "../logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
@@ -17,13 +16,13 @@ export class ProfileService {
 
       const uploadProfileImageResult = await uploadProfileImage(fileToUpload, userId);
 
-      if (!uploadProfileImageResult.success) {
-        throw ServiceError.DataSubmissionFailed(
-          'Subida de imagen de perfil',
-          'profile-service.ts',
-          'submitInsuranceInfo'
-        );
-      }
+      // if (!uploadProfileImageResult.success) {
+      //   throw ServiceError.DataSubmissionFailed(
+      //     'Subida de imagen de perfil',
+      //     'profile-service.ts',
+      //     'submitInsuranceInfo'
+      //   );
+      // }
 
       await logActionWithErrorHandling(
         {
@@ -46,7 +45,7 @@ export class ProfileService {
       );
 
     } catch (error) {
-      console.log('Error en updateProfileImage', error);
+
       await logActionWithErrorHandling(
         {
           userId,

@@ -16,19 +16,26 @@ import { VerificationAlert } from './VerificationAlert'
 import { useApiResponse } from '@/hooks/ui/useApiResponse'
 import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
 import { toast } from 'sonner'
+import { authClient } from '@/lib/auth-client'
+import { splitFullName } from '@/utils/format/user-formatter'
 
+// Definimos un tipo para los modos de registro
+type RegistrationMode = null | 'initial' | 'identity' | 'driver';
 
 export default function DashboardContent() {
-
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const { data } = authClient.useSession()
+  const { firstName, lastName } = splitFullName(data?.user.name || '')
+  const email = data?.user.email;
   const { user, setUser } = useUserStore()
   const { handleResponse } = useApiResponse()
 
-  const [showRegistration, setShowRegistration] = useState(false)
-  const [showIdVerification, setShowIdVerification] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [registrationStep, setRegistrationStep] = useState<StepId>('role')
   const [initialRole, setInitialRole] = useState<'traveler' | 'driver' | undefined>(undefined)
+  
+  // Un único estado para controlar el modo de registro
+  const [registrationMode, setRegistrationMode] = useState<RegistrationMode>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000)
@@ -36,14 +43,14 @@ export default function DashboardContent() {
   }, [])
 
   useEffect(() => {
-    if (user?.birthDate === null) {
-      setShowIdVerification(false)
-      setIsLoading(true)
+    // Si el usuario no tiene fecha de nacimiento, iniciamos el flujo de registro inicial
+    if (user?.hasBirthDate === false) {
+      setRegistrationMode('initial')
     }
   }, [user])
 
   const handleRegistrationComplete = () => {
-    setShowRegistration(false)
+    setRegistrationMode(null)
     setIsLoading(false)
   }
 
@@ -68,18 +75,25 @@ export default function DashboardContent() {
       setRegistrationStep('identityCard');
     }
     setInitialRole('driver');
-    setShowRegistration(true);
+    setRegistrationMode('driver');
+  };
+
+  // Función para obtener el paso inicial basado en el modo
+  const getInitialStepForMode = (): StepId => {
+    if (registrationMode === 'identity') return 'identityCard';
+    if (registrationMode === 'driver') return registrationStep;
+    return 'role'; // Para el modo 'initial' u otros
   };
 
   const onProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!user) {
-      toast.error("Usuario no encontrado", {
+      toast.error("Error", {
         description: "Debes completar tu registro primero"
       })
       return
     }
 
-    if (user.birthDate === null) {
+    if (user.hasBirthDate === false) {
       toast.error("Registro requerido", {
         description: "Debes completar tu registro primero"
       })
@@ -88,6 +102,7 @@ export default function DashboardContent() {
 
     await handleProfileImageUpload({
       event,
+      userId: data!.user.id,
       user,
       setIsUploadingImage,
       setUser,
@@ -100,7 +115,6 @@ export default function DashboardContent() {
   }
 
   const calculateProfileCompletion = () => {
-    console.log(user?.profileImageKey)
     if (user?.termsAccepted && user?.identityStatus === null) return 33
     if (user?.identityStatus === 'PENDING') return 66
     if (user?.identityStatus === 'VERIFIED') {
@@ -115,12 +129,15 @@ export default function DashboardContent() {
         <VerificationAlert
           user={user}
           startDriverRegistration={startDriverRegistration}
-          setShowIdVerification={setShowIdVerification}
+          setShowIdVerification={() => setRegistrationMode('identity')}
         />
       )}
       {user ? (
         <>
           <ProfileCard
+            firstName={firstName}
+            lastName={lastName}
+            email={email!}
             user={user}
             completion={calculateProfileCompletion()}
             isUploadingImage={isUploadingImage}
@@ -135,7 +152,7 @@ export default function DashboardContent() {
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                 )}
               </TabsTrigger>
-              <TabsTrigger disabled={user?.birthDate === null} value="driver" className="flex items-center justify-center gap-2">
+              <TabsTrigger disabled={user?.hasBirthDate === false} value="driver" className="flex items-center justify-center gap-2">
                 Conductor
                 {user?.licenseStatus === 'FAILED' && (
                   <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -143,7 +160,10 @@ export default function DashboardContent() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="verification">
-              <VerificationTab user={user} setShowIdVerification={setShowIdVerification} />
+              <VerificationTab 
+                user={user} 
+                setShowIdVerification={() => setRegistrationMode('identity')} 
+              />
             </TabsContent>
             <TabsContent value="driver">
               <DriverTab user={user} startDriverRegistration={startDriverRegistration} />
@@ -156,10 +176,9 @@ export default function DashboardContent() {
             <CardTitle>Completa tu registro</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* ver este texto a mejorar */}
             <p className="mb-4">Para acceder a todas las funciones de Tengo Lugar, por favor completa tu registro.</p>
             <Button className="w-full" onClick={() => {
-              setShowRegistration(true)
+              setRegistrationMode('initial')
               setRegistrationStep('role')
             }}>
               Completar Registro
@@ -167,30 +186,16 @@ export default function DashboardContent() {
           </CardContent>
         </Card>
       )}
-      {/* Flujos de registro */}
-      {showRegistration && (
+
+      {/* Un único renderizado del componente RegistrationFlow */}
+      {registrationMode && (
         <RegistrationFlow
           onComplete={handleRegistrationComplete}
-          initialStep={registrationStep}
-          onClose={() => setShowRegistration(false)}
-          initialRole={initialRole}
-        />
-      )}
-      {(user?.birthDate === null && !isLoading) && (
-        <RegistrationFlow
-          onComplete={handleRegistrationComplete}
-          initialStep={registrationStep}
-          onClose={() => setShowRegistration(false)}
-        />
-      )}
-      {showIdVerification && user?.identityStatus !== 'VERIFIED' && (
-        <RegistrationFlow
-          onComplete={handleRegistrationComplete}
-          initialStep="identityCard"
-          onClose={() => setShowIdVerification(false)}
+          initialStep={getInitialStepForMode()}
+          onClose={() => setRegistrationMode(null)}
+          initialRole={registrationMode === 'driver' ? 'driver' : initialRole}
         />
       )}
     </div>
   )
 }
-

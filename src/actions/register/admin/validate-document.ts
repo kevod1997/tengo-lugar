@@ -7,6 +7,11 @@ import { InsuranceValidationService } from "@/services/registration/admin/docume
 import { LicenceValidationService } from "@/services/registration/admin/document/licence-validation-service";
 import { DocumentValidationRequest } from "@/types/request/image-documents-validation";
 import { revalidatePath } from "next/cache";
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import { inngest } from "@/lib/inngest";
+import { logActionWithErrorHandling } from "@/services/logging/logging-service";
+import { TipoAccionUsuario } from "@/types/actions-logs";
+import { requireAuthorization } from "@/utils/helpers/auth-helper";
 
 const identityService = new IdentityValidationService();
 const licenceService = new LicenceValidationService();
@@ -17,6 +22,9 @@ const emailService = new EmailService(
 );
 
 export async function validateDocument(request: DocumentValidationRequest, userEmail: string) {
+
+  const session = await requireAuthorization('admin', 'validate-document.ts', 'validateDocument');
+
   const service =
     request.documentType === 'IDENTITY' ? identityService :
       request.documentType === 'LICENCE' ? licenceService :
@@ -24,25 +32,77 @@ export async function validateDocument(request: DocumentValidationRequest, userE
           request.documentType === 'CARD' ? cardService :
             null;
 
-  //todo ajustar error 
+  // Improved error handling with a specific error type
   if (!service) {
-    throw new Error('Invalid document type');
+    throw ServerActionError.ValidationFailed(
+      'validate-document.ts',
+      'validateDocument',
+      `Invalid document type: ${request.documentType}`
+    );
   }
 
-  const ValidateDocumentresult = await service.validateDocument(request);
-  let sendEmailResult;
-
-  if (ValidateDocumentresult.success && ValidateDocumentresult.data) {
-    sendEmailResult = await emailService.sendDocumentVerificationEmail({
-      to: userEmail,
-      documentType: request.documentType,
-      status: ValidateDocumentresult.data?.status!,
-      failureReason: ValidateDocumentresult.data?.failureReason || undefined
-    });
-
+  const validateDocumentResult = await service.validateDocument(request);
+  
+  if (validateDocumentResult.success && validateDocumentResult.data) {
+    try {
+      // Try to send the email directly first
+      await emailService.sendDocumentVerificationEmail({
+        to: userEmail,
+        documentType: request.documentType,
+        status: validateDocumentResult.data?.status,
+        failureReason: validateDocumentResult.data?.failureReason || undefined
+      });
+      
+      // Log successful email
+      await logActionWithErrorHandling(
+        {
+          userId: session.user.id,
+          action: TipoAccionUsuario.VERIFICACION_DOCUMENTO,
+          status: 'SUCCESS',
+          details: { 
+            documentType: request.documentType,
+            status: validateDocumentResult.data?.status,
+            emailSent: true 
+          }
+        },
+        {
+          fileName: 'validate-document.ts',
+          functionName: 'validateDocument'
+        }
+      );
+    } catch (error) {
+      console.log(error);
+      // If direct sending fails, queue it with Inngest
+      await inngest.send({
+        name: "document-verification-email",
+        data: {
+          to: userEmail,
+          documentType: request.documentType,
+          status: validateDocumentResult.data?.status,
+          failureReason: validateDocumentResult.data?.failureReason || undefined
+        }
+      });
+      
+      // Log that we queued the email
+      await logActionWithErrorHandling(
+        {
+          userId: "admin",  // Use the admin ID here or a parameter if available
+          action: TipoAccionUsuario.VERIFICACION_DOCUMENTO,
+          status: 'SUCCESS',
+          details: { 
+            documentType: request.documentType,
+            status: validateDocumentResult.data?.status, 
+            emailQueued: true 
+          }
+        },
+        {
+          fileName: 'validate-document.ts',
+          functionName: 'validateDocument'
+        }
+      );
+    }
   }
 
   revalidatePath('/admin/dashboard');
-  //todo implementar sistema de cola por si falla el envio del email
-  return ValidateDocumentresult
+  return validateDocumentResult;
 }

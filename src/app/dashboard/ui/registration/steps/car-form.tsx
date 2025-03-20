@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CarRegistrationInput, carRegistrationSchema } from '@/schemas/validation/car-schema'
-import { Brand, DetailedModel, Group, Model } from '@/types/car-types'
+import { Brand, Group, Model } from '@/types/car-types'
 import { getBrands, getGroups, getModelDetails, getModels } from '@/actions/car-api/car-api-actions'
 import { useDebounce } from '@/hooks/registration/useDebounce'
 import { checkPlateExists } from '@/actions/car/check-car-plate'
@@ -159,22 +159,6 @@ export default function CarForm({ onSubmit, data }: CarFormProps) {
     // Debounce del valor de la patente para no hacer demasiadas peticiones
     const debouncedPlate = useDebounce(plateValue, 500)
 
-    useEffect(() => {
-        const validatePlate = async () => {
-            console.log('Debounced plate value:', debouncedPlate);
-
-            // Only check if the plate matches either format and is long enough
-            if (debouncedPlate && debouncedPlate.length >= 6) {
-                const platePattern = /^[A-Z0-9]{6,7}$/;
-                if (platePattern.test(debouncedPlate.toUpperCase())) {
-                    checkPlateMutation.mutate(debouncedPlate.toUpperCase());
-                }
-            }
-        };
-
-        validatePlate();
-    }, [debouncedPlate]);
-
     // Modify the mutation to better handle responses
     const checkPlateMutation = useMutation({
         mutationFn: checkPlateExists,
@@ -191,10 +175,26 @@ export default function CarForm({ onSubmit, data }: CarFormProps) {
                 setPlateError(null);
             }
         },
-        onError: (error) => {
+        onError: () => {
             toast.error('Error al verificar la patente');
         }
     });
+
+    useEffect(() => {
+        const validatePlate = async () => {
+            console.log('Debounced plate value:', debouncedPlate);
+
+            // Only check if the plate matches either format and is long enough
+            if (debouncedPlate && debouncedPlate.length >= 6) {
+                const platePattern = /^[A-Z0-9]{6,7}$/;
+                if (platePattern.test(debouncedPlate.toUpperCase())) {
+                    checkPlateMutation.mutate(debouncedPlate.toUpperCase());
+                }
+            }
+        };
+
+        validatePlate();
+    }, [debouncedPlate, checkPlateMutation]);
 
     // Modificar el handleFormSubmit para incluir la validación
     const handleFormSubmit = async (formData: CarRegistrationInput) => {
@@ -214,6 +214,7 @@ export default function CarForm({ onSubmit, data }: CarFormProps) {
             setLoading(true);
             await onSubmit(formData);
         } catch (error) {
+            console.log(error)
             toast.error('Error al registrar el vehículo');
         } finally {
             setLoading(false);
