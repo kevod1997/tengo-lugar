@@ -82,6 +82,7 @@ function SignIn() {
 					setPendingGoogle(true);
 				},
 				onError: (ctx: ErrorContext) => {
+					console.log(ctx)
 					toast.error('Error', {
 						description: ctx.error.message ?? "Algo salió mal.",
 					});
