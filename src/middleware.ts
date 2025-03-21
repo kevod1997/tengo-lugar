@@ -5,9 +5,14 @@ import type { Session } from "./lib/auth";
 const authRoutes = ["/login", "/registro"];
 const passwordRoutes = ["/resetear-clave", "/olvide-mi-clave", "/reset-password"];
 const adminRoutes = ["/admin"];
-const publicRoutes = ["/", "/about", "/contact"]; 
+const publicRoutes = ["/", "/about", "/contact"];
 
 export default async function authMiddleware(request: NextRequest) {
+
+  // Add this at the beginning of the authMiddleware function
+  console.log('[Middleware] NEXT_PUBLIC_BETTER_AUTH_URL exists:', !!process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
+  console.log('[Middleware] Falling back to localhost:', !process.env.NEXT_PUBLIC_BETTER_AUTH_URL);
+  
   const pathName = request.nextUrl.pathname;
   const isAuthRoute = authRoutes.includes(pathName);
   const isPasswordRoute = passwordRoutes.includes(pathName);
@@ -32,13 +37,13 @@ export default async function authMiddleware(request: NextRequest) {
       console.log("Allowing access to", pathName);
       return NextResponse.next();
     }
-    
+
     // For protected routes, redirect to login with the intended URL as redirect_url parameter
     const url = request.nextUrl.clone();
     const intendedUrl = url.pathname + url.search;
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect_url", intendedUrl);
-    
+
     return NextResponse.redirect(loginUrl);
   }
 
