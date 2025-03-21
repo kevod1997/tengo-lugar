@@ -237,7 +237,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
           switch (stepId) {
             case 'personalInfo':
               {
-                const createdUser = await userRegistrationService.createBaseProfile(data);
+                const createdUser = await userRegistrationService.createBaseProfile(userId, data);
                 handleResponse({ success: createdUser.success, message: createdUser.message });
                 if (createdUser.success) {
                   setUser(createdUser.data as FormattedUser);
@@ -285,7 +285,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
           switch (stepId) {
             case 'personalInfo':
               {
-                const createdUser = await userRegistrationService.createBaseProfile(data);
+                const createdUser = await userRegistrationService.createBaseProfile(userId, data);
                 handleResponse({ success: createdUser.success, message: createdUser.message });
                 if (createdUser.success) {
                   setUser(createdUser.data as FormattedUser);

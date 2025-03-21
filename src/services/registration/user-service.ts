@@ -9,7 +9,7 @@ import { TipoAccionUsuario } from "@/types/actions-logs";
 import { VerificationStatus } from "@prisma/client";
 
 export class UserRegistrationService {
-    async createBaseProfile(personalInfo: any): Promise<ApiResponse<FormattedUser>> {
+    async createBaseProfile(userId: string, personalInfo: any): Promise<ApiResponse<FormattedUser>> {
         try {
             const userResult = await updateUser({
                 ...personalInfo,
@@ -19,7 +19,7 @@ export class UserRegistrationService {
             //     throw ServiceError.UserUpdateFailed('user-service.ts', 'createBaseProfile');
             // }
 
-            const formattedUser = userResult.data ? await getUserById(userResult.data.user.id) : null
+            const formattedUser = userResult.data ? await getUserById(userId) : null
 
             if (!formattedUser) {
                 throw ServiceError.ErrorGettingUser('user-service.ts', 'createBaseProfile');
@@ -27,7 +27,7 @@ export class UserRegistrationService {
 
             await logActionWithErrorHandling(
                 {
-                    userId: userResult.data.user.id,
+                    userId,
                     action: TipoAccionUsuario.REGISTRO_USUARIO,
                     status: 'SUCCESS',
                     details: { message: userResult.data.message }
@@ -46,7 +46,7 @@ export class UserRegistrationService {
 
             await logActionWithErrorHandling(
                 {
-                    userId: 'N/A',
+                    userId,
                     action: TipoAccionUsuario.REGISTRO_USUARIO,
                     status: 'FAILED',
                     details: { error: (error as Error).message }

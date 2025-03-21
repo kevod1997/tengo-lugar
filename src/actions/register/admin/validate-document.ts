@@ -85,6 +85,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
       
       // Log that we queued the email
       await logActionWithErrorHandling(
+        //todo fix
         {
           userId: "admin",  // Use the admin ID here or a parameter if available
           action: TipoAccionUsuario.VERIFICACION_DOCUMENTO,
