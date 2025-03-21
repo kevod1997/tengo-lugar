@@ -4,13 +4,6 @@ import { admin } from "better-auth/plugins"
 import prisma from "./prisma";
 import { EmailService } from "@/services/email/email-service";
 
-const envCheck = {
-    EMAIL_VERIFICATION_CALLBACK_URL: !!process.env.EMAIL_VERIFICATION_CALLBACK_URL,
-    NEXT_PUBLIC_BETTER_AUTH_URL: !!process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
-  };
-  
-  console.log('[Auth Config] Environment variables check:', envCheck);
-
 const emailService = new EmailService(process.env.BREVO_API_KEY!);
 
 export const auth = betterAuth({
