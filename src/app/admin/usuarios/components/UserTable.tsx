@@ -31,12 +31,11 @@ export function UserTable({ users }: UserTableProps) {
     setSelectedUser(user)
     try {
       const response = await getUserDocuments(user.id)
-      console.log('response', response)
       if (response.success) {
         setSelectedUser({ ...user, documents: response.data })
       }
     } catch (error) {
-      console.log('error', error)
+      console.warn(error)
       handleResponse({ success: false, message: 'Error al obtener los documentos del usuario' })
     } finally {
       setIsLoading(false)

@@ -15,7 +15,6 @@ const otpStorage: Map<string, { code: string, phoneNumber: string, expiresAt: Da
 
 // Función para iniciar la verificación de teléfono
 export async function initiatePhoneVerification(phoneNumber: string) {
-    console.log('phoneNumber:', phoneNumber);
   try {
        const session = await auth.api.getSession({
         headers: await headers(),

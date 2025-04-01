@@ -88,7 +88,7 @@ export class AdminDocumentService {
       }
 
       const cars: UserCar[] = await Promise.all(
-        user.driver?.Car.map(async (driverCar: any) => {
+        user.driver?.cars.map(async (driverCar: any) => {
           const car = driverCar.car;
           const policy = car.insuredCar?.currentPolicy;
           let insuranceUrl = null;

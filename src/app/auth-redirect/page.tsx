@@ -10,6 +10,8 @@ import { authClient } from '@/lib/auth-client'
 import { LoggingService } from '@/services/logging/logging-service'
 import { TipoAccionUsuario } from '@/types/actions-logs'
 
+//todo tengo que ver como hacemos para actualizar la info del usuario si voy a manejarla desde el localstorage usando el store de zustand, porque tal vez la verificamos en el mismo momento que hay navegacion y genera problemas de navegacion en el usuario, recorda la siotuacion de cuando sos admin y usuario al mismo tiempo y te verificas info, esta no se actualiza en el store en vivo.ñ
+
 // Internal component
 function AuthRedirectContent() {
   const router = useRouter()

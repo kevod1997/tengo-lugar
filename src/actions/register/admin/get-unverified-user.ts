@@ -39,9 +39,9 @@ export async function getUsers({
               backFileKey: true
             }
           },
-          Car: {
+          cars: { // This matches your schema's "cars" relation in Driver model
             include: {
-              car: {
+              car: { // This gets the Car object from the DriverCar relation
                 select: {
                   id: true,
                   plate: true,
@@ -69,6 +69,16 @@ export async function getUsers({
                       }
                     }
                   }
+                }
+              },
+              vehicleCards: { // This gets the VehicleCards from DriverCar
+                select: {
+                  id: true,
+                  cardType: true,
+                  status: true,
+                  failureReason: true,
+                  fileKey: true,
+                  expirationDate: true
                 }
               }
             }

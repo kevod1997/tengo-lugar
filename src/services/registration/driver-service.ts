@@ -203,14 +203,6 @@ export class DriverRegistrationService {
 
       const cardCarInfoResult = await submitCardCarInfo(userId, cardCarInfo);
 
-      // if (!cardCarInfoResult.success) {
-      //   throw ServiceError.DataSubmissionFailed(
-      //     'Información del seguro',
-      //     'driver-service.ts',
-      //     'submitCardCarInfo'
-      //   );
-      // }
-
       await logActionWithErrorHandling(
         {
           userId,

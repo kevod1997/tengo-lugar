@@ -24,7 +24,6 @@ export default function PublicarViajePage() {
         <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mb-6 w-full max-w-md">
           <h2 className="font-semibold text-amber-800 mb-2">¿Qué necesitas para habilitar tu vehículo?</h2>
           <ul className="list-disc list-inside text-amber-700 space-y-1">
-            <li>Tener la información de combustible completa</li>
             <li>Tener una tarjeta verde o azul verificada</li>
             <li>Tener un seguro verificado</li>
             <li>No tener documentos pendientes de verificación</li>

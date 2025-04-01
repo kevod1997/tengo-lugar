@@ -2,7 +2,6 @@ type VehicleStatus = "PENDING" | "FAILED" | "VERIFIED" | null;
 
 export function getVehicleStatus(cars: Array<any> = []): VehicleStatus {
   if (!cars?.length) return null;
-
   // Tercer chequeo: Estado de la información de combustible
   const carFuelStatus: VehicleStatus = cars.some(car => 
     car.fuelType === null || car.averageFuelConsume === null

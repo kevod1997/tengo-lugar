@@ -35,7 +35,7 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
                 where: { userId },
                 include: {
                     user: true,
-                    Car: {
+                    cars: {
                         where: {
                             carId: validatedData.carId
                         },
@@ -54,7 +54,7 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
                 )
             }
 
-            const driverCar = driver.Car[0]
+            const driverCar = driver.cars[0]
             if (!driverCar) {
                 throw ServerActionError.NotFound(
                     'submit-card-car-info.ts',

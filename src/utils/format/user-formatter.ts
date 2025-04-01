@@ -2,7 +2,12 @@ import { FormattedUser, FormattedUserForAdminDashboard, UserCar } from "@/types/
 
 
 export function getCars(user: any): UserCar[] {
-  const cars = user.driver?.Car.map((driverCar: any) => {
+  // Guard clause to handle case when driver or cars is missing
+  if (!user?.driver?.cars) {
+    return [];
+  }
+
+  const cars = user.driver.cars.map((driverCar: any) => {
     // Check if car has all requirements to be fully enabled
     const hasRequiredCard = 
       (driverCar.vehicleCards?.[0]?.cardType === 'GREEN' && driverCar.vehicleCards[0].status === 'VERIFIED') || 
@@ -15,7 +20,7 @@ export function getCars(user: any): UserCar[] {
     const hasVerifiedInsurance = 
       driverCar.car.insuredCar?.currentPolicy?.status === 'VERIFIED';
     
-      const noPendingCards = !(driverCar.vehicleCards?.[0]?.status === 'PENDING');
+    const noPendingCards = !(driverCar.vehicleCards?.[0]?.status === 'PENDING');
 
     // Car is fully enabled if it meets all criteria
     const isFullyEnabled = 
@@ -52,11 +57,10 @@ export function getCars(user: any): UserCar[] {
       hasPendingCards: driverCar.vehicleCards?.[0]?.status === 'PENDING' || false,
       isFullyEnabled: isFullyEnabled
     };
-  }) || [];
+  });
   
   return cars;
 }
-
 export function splitFullName(fullName: string): { firstName: string; lastName: string } {
   // Eliminar espacios extras y dividir por espacios
   const nameParts = fullName.trim().split(/\s+/);

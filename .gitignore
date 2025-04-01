@@ -11,6 +11,10 @@
 !.yarn/versions
 backups/
 
+# db
+/backups
+/backups-auth
+
 # testing
 /coverage
 

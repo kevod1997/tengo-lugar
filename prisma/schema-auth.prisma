@@ -8,38 +8,40 @@ datasource db {
 }
 
 model User {
-  id                         String   @id @default(cuid()) @map("_id")
+  id                         String    @id @default(cuid()) @map("_id")
   name                       String
-  email                      String   @unique
-  emailVerified              Boolean  @default(false)
+  email                      String    @unique
+  emailVerified              Boolean   @default(false)
   image                      String?
-  role                       String   @default("user")
-  banned                     Boolean  @default(false)
+  role                       String    @default("user")
+  banned                     Boolean   @default(false)
   banReason                  String?
-  banExpires                 Int? /// Unix timestamp for ban expiration
+  banExpires                 Int? // Unix timestamp for ban expiration
   phoneNumber                String?
-  phoneNumberVerified        Boolean  @default(false)
-  pendingPhoneNumber         String? // Para almacenar el número pendiente de verificación
-  pendingPhoneVerificationId String? // Para almacenar el ID de verificación
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  phoneNumberVerified        Boolean   @default(false)
+  pendingPhoneNumber         String? // For pending verification
+  pendingPhoneVerificationId String? // For verification ID
+  birthDate                  DateTime?
+  gender                     Gender?
+  profileImageKey            String?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
 
-  // Campos personalizados que mantendrías
-  birthDate       DateTime?
-  gender          Gender?
-  profileImageKey String?
+  // Auth related relations
+  accounts Account[]
+  sessions Session[]
 
-  // Relaciones requeridas por Better Auth
-  accounts Account[] // Nueva relación
-  sessions Session[] // Nueva relación
-
-  // Tus relaciones personalizadas
-  identityCard    IdentityCard?
-  passenger       Passenger?
-  termsAcceptance UserTermsAcceptance[]
-  driver          Driver?
-  actionLogs      UserActionLog[]
-  pushSubscriptions PushSubscription[]
+  // App specific relations
+  identityCard        IdentityCard?
+  passenger           Passenger?
+  driver              Driver?
+  termsAcceptance     UserTermsAcceptance[]
+  actionLogs          UserActionLog[]
+  reviewsGiven        Review[]              @relation("ReviewGiven")
+  reviewsReceived     Review[]              @relation("ReviewReceived")
+  pushSubscriptions   PushSubscription[]
+  chatRoomMemberships ChatRoomMember[]
+  chatMessages        ChatMessage[]
 }
 
 model Session {
@@ -92,11 +94,10 @@ model IdentityCard {
   fileType      FileType
   status        VerificationStatus @default(PENDING)
   verifiedAt    DateTime?
+  failureReason String?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
-  failureReason String?
 
-  // Relación
   user User @relation(fields: [userId], references: [id])
 }
 
@@ -109,7 +110,6 @@ model TermsAndCondition {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  // Relación
   acceptances UserTermsAcceptance[]
 }
 
@@ -119,43 +119,20 @@ model UserTermsAcceptance {
   termsId    String
   acceptedAt DateTime @default(now())
 
-  // Relaciones
   user  User              @relation(fields: [userId], references: [id])
   terms TermsAndCondition @relation(fields: [termsId], references: [id])
 
   @@unique([userId, termsId])
 }
 
-model Rating {
-  id          String   @id @default(uuid())
-  passengerId String   @unique
-  driverId    String   @unique
-  rating      Float
-  createdAt   DateTime @default(now())
-
-  // Relación
-  passenger Passenger @relation(fields: [passengerId], references: [id])
-  driver    Driver    @relation(fields: [driverId], references: [id])
-}
-
-model Passenger {
-  id     String @id @default(uuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-
-  // Relaciones
-  ratings Rating?
-}
-
 model Driver {
-  id     String @id @default(uuid())
-  userId String @unique
-
-  // Relaciones
-  user    User        @relation(fields: [userId], references: [id])
-  licence Licence?
-  ratings Rating?
-  Car     DriverCar[]
+  id            String      @id @default(uuid())
+  userId        String      @unique
+  averageRating Float       @default(0)
+  totalReviews  Int         @default(0)
+  licence       Licence?
+  cars          DriverCar[]
+  user          User        @relation(fields: [userId], references: [id])
 }
 
 model Licence {
@@ -171,8 +148,16 @@ model Licence {
   updatedAt     DateTime           @updatedAt
   failureReason String?
 
-  // Relación
   driver Driver @relation(fields: [driverId], references: [id])
+}
+
+model Passenger {
+  id            String          @id @default(uuid())
+  userId        String          @unique
+  averageRating Float           @default(0)
+  totalReviews  Int             @default(0)
+  trips         TripPassenger[]
+  user          User            @relation(fields: [userId], references: [id])
 }
 
 model Brand {
@@ -183,31 +168,45 @@ model Brand {
 
 model CarModel {
   id                 String    @id @default(uuid())
-  brand              Brand     @relation(fields: [brandId], references: [id])
   brandId            String
   model              String
   year               Int
   fuelType           FuelType?
   averageFuelConsume Float?
-
-  // Relaciones
-  cars Car[]
+  cars               Car[]
+  brand              Brand     @relation(fields: [brandId], references: [id])
 
   @@unique([brandId, model, year], name: "brandId_model_year")
   @@index([brandId])
 }
 
-model Car {
-  id        String   @id @default(uuid())
-  plate     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model FuelPrice {
+  id             String    @id @default(uuid())
+  name           String
+  fuelType       FuelType
+  price          Float // Precio por litro/kWh
+  regionCode     String? // Código de región o provincia (opcional, si los precios varían por región)
+  effectiveDate  DateTime // Fecha desde la que aplica este precio
+  expirationDate DateTime? // Fecha opcional hasta la que aplica
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  // Relaciones
-  carModel     CarModel      @relation(fields: [carModelId], references: [id])
+  @@index([fuelType, isActive])
+  @@index([fuelType, regionCode, effectiveDate])
+  @@index([effectiveDate])
+}
+
+model Car {
+  id           String   @id @default(uuid())
+  plate        String   @unique
   carModelId   String
-  insuredCar   InsuredCar?   @relation(fields: [insuredCarId], references: [id])
   insuredCarId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  carModel     CarModel      @relation(fields: [carModelId], references: [id])
+  insuredCar   InsuredCar?   @relation(fields: [insuredCarId], references: [id])
   driverCars   DriverCar[]
   vehicleCards VehicleCard[]
 
@@ -215,81 +214,20 @@ model Car {
   @@index([insuredCarId])
 }
 
-enum FuelType {
-  NAFTA
-  DIESEL
-  GNC
-  ELECTRICO
-  HIBRIDO
-}
-
-model InsuredCar {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
-  cars          Car[]
-  policyHistory InsurancePolicy[]
-
-  // Relación con la póliza actual
-  currentPolicy   InsurancePolicy? @relation("CurrentPolicy", fields: [currentPolicyId], references: [id])
-  currentPolicyId String?          @unique
-
-  @@index([currentPolicyId])
-}
-
-model InsurancePolicy {
-  id            String             @id @default(uuid())
-  policyNumber  Int
-  startDate     DateTime
-  expireDate    DateTime
-  fileKey       String
-  fileType      FileType
-  status        VerificationStatus @default(PENDING)
-  verifiedAt    DateTime?
-  failureReason String?
-  createdAt     DateTime           @default(now())
-
-  // Relaciones
-  insuredCar   InsuredCar @relation(fields: [insuredCarId], references: [id])
-  insuredCarId String
-  insurance    Insurance  @relation(fields: [insuranceId], references: [id])
-  insuranceId  String
-
-  // Relación inversa para la póliza actual
-  currentForCar InsuredCar? @relation("CurrentPolicy")
-
-  @@index([insuredCarId])
-  @@index([insuranceId])
-  @@index([insuredCarId, status])
-}
-
-model Insurance {
-  id   String @id @default(uuid())
-  name String
-
-  // Relaciones
-  insuredCars InsurancePolicy[]
-}
-
 model DriverCar {
-  id             String        @id @default(uuid())
-  assignmentDate DateTime      @default(now())
-  driver         Driver        @relation(fields: [driverId], references: [id])
+  id             String   @id @default(uuid())
   driverId       String
-  car            Car           @relation(fields: [carId], references: [id])
   carId          String
-  vehicleCards   VehicleCard[] @relation("DriverCarVehicleCards") // Cambiado a relación uno a muchos
+  assignmentDate DateTime @default(now())
+
+  driver       Driver        @relation(fields: [driverId], references: [id])
+  car          Car           @relation(fields: [carId], references: [id])
+  vehicleCards VehicleCard[] @relation("DriverCarVehicleCards")
+  trips        Trip[]
 
   @@unique([driverId, carId])
   @@index([driverId])
   @@index([carId])
-}
-
-enum CardType {
-  GREEN
-  BLUE
 }
 
 model VehicleCard {
@@ -302,15 +240,274 @@ model VehicleCard {
   expirationDate DateTime
   status         VerificationStatus @default(PENDING)
   verifiedAt     DateTime?
+  failureReason  String?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
-  failureReason  String?
 
-  car    Car        @relation(fields: [carId], references: [id])
-  driver DriverCar? @relation("DriverCarVehicleCards", fields: [driverCarId], references: [id])
+  car       Car        @relation(fields: [carId], references: [id])
+  driverCar DriverCar? @relation("DriverCarVehicleCards", fields: [driverCarId], references: [id])
 
-  @@unique([carId, cardType]) // Solo para tarjetas verdes
+  @@unique([carId, cardType])
   @@index([carId, driverCarId])
+}
+
+model InsuredCar {
+  id              String            @id @default(uuid())
+  cars            Car[]
+  currentPolicyId String?           @unique
+  policyHistory   InsurancePolicy[]
+  currentPolicy   InsurancePolicy?  @relation("CurrentPolicy", fields: [currentPolicyId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([currentPolicyId])
+}
+
+model InsurancePolicy {
+  id            String             @id @default(uuid())
+  insuredCarId  String
+  insuranceId   String
+  policyNumber  Int
+  startDate     DateTime
+  expireDate    DateTime
+  fileKey       String
+  fileType      FileType
+  status        VerificationStatus @default(PENDING)
+  verifiedAt    DateTime?
+  failureReason String?
+  createdAt     DateTime           @default(now())
+
+  insuredCar    InsuredCar  @relation(fields: [insuredCarId], references: [id])
+  insurance     Insurance   @relation(fields: [insuranceId], references: [id])
+  currentForCar InsuredCar? @relation("CurrentPolicy")
+
+  @@index([insuredCarId])
+  @@index([insuranceId])
+  @@index([insuredCarId, status])
+}
+
+model Insurance {
+  id          String            @id @default(uuid())
+  name        String
+  insuredCars InsurancePolicy[]
+}
+
+model Trip {
+  id          String @id @default(uuid())
+  driverCarId String
+
+  // Enhanced origin details
+  originAddress   String? // Full formatted address
+  originCity      String // City name
+  originProvince  String // Province/state name
+  originLatitude  Float? // Latitude coordinate
+  originLongitude Float? // Longitude coordinate
+
+  // Enhanced destination details
+  destinationAddress   String? // Full formatted address
+  destinationCity      String // City name
+  destinationProvince  String // Province/state name
+  destinationLatitude  Float? // Latitude coordinate
+  destinationLongitude Float? // Longitude coordinate
+
+  // Route information
+  googleMapsUrl   String? // URL to Google Maps route
+  date            DateTime
+  departureTime   DateTime
+  price           Int
+  distance        Float?
+  duration        String? // Duration string from Google (e.g. "2h 15m")
+  durationSeconds Int? // Duration in seconds for easier calculations
+
+  // Toll information
+  hasTolls           Boolean @default(false)
+  tollEstimatedPrice Float? // Estimated toll price
+
+  // Trip details
+  availableSeats          Int
+  status                  TripStatus       @default(PENDING)
+  isFull                  Boolean          @default(false)
+  priceGuide              Float?
+  maximumPrice            Float?
+  serviceFee              Float?
+  autoApproveReservations Boolean          @default(false)
+  luggageAllowance        LuggageAllowance @default(MEDIUM)
+  allowPets               Boolean          @default(false)
+  allowChildren           Boolean          @default(true)
+  smokingAllowed          Boolean          @default(false)
+  additionalNotes         String?
+  categoryId              String?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+
+  driverCar  DriverCar       @relation(fields: [driverCarId], references: [id])
+  passengers TripPassenger[]
+  reviews    Review[]
+  category   TripCategory?   @relation(fields: [categoryId], references: [id])
+  chatRoom   ChatRoom?
+
+  @@index([driverCarId])
+  @@index([date, status])
+  @@index([categoryId])
+}
+
+model TripPassenger {
+  id                 String            @id @default(uuid())
+  tripId             String
+  passengerId        String
+  reservationStatus  ReservationStatus @default(PENDING_APPROVAL)
+  seatsReserved      Int               @default(1)
+  totalPrice         Float
+  reservationMessage String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  trip      Trip      @relation(fields: [tripId], references: [id])
+  passenger Passenger @relation(fields: [passengerId], references: [id])
+  payment   Payment?
+
+  @@unique([tripId, passengerId])
+  @@index([tripId])
+  @@index([passengerId])
+  @@index([reservationStatus])
+}
+
+// Modelos para el sistema de chat
+model ChatRoom {
+  id             String         @id @default(uuid())
+  tripId         String         @unique
+  externalChatId String?
+  status         ChatRoomStatus @default(ACTIVE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  lastMessageAt  DateTime?
+
+  // Relaciones
+  trip     Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  members  ChatRoomMember[]
+  messages ChatMessage[]
+
+  @@index([status])
+}
+
+model ChatRoomMember {
+  id               String       @id @default(uuid())
+  chatRoomId       String
+  userId           String
+  role             ChatRoomRole
+  isActive         Boolean      @default(true)
+  lastReadAt       DateTime?
+  joinedAt         DateTime     @default(now())
+  leftAt           DateTime?
+  externalMemberId String?
+
+  // Relaciones
+  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatRoomId, userId])
+  @@index([chatRoomId])
+  @@index([userId])
+  @@index([isActive])
+}
+
+model ChatMessage {
+  id                String             @id @default(uuid())
+  chatRoomId        String
+  senderId          String
+  content           String
+  contentType       MessageContentType @default(TEXT)
+  status            MessageStatus      @default(SENT)
+  externalMessageId String?
+  sentAt            DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+
+  // Relaciones
+  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender   User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([chatRoomId, sentAt])
+  @@index([senderId])
+  @@index([status])
+}
+
+model Review {
+  id           String       @id @default(uuid())
+  tripId       String
+  reviewerId   String
+  reviewedId   String
+  revieweeType RevieweeType
+  rating       Float
+  comments     String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  trip     Trip @relation(fields: [tripId], references: [id])
+  reviewer User @relation("ReviewGiven", fields: [reviewerId], references: [id])
+  reviewed User @relation("ReviewReceived", fields: [reviewedId], references: [id])
+
+  @@index([tripId])
+  @@index([reviewerId])
+  @@index([reviewedId])
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  tripPassengerId String        @unique
+  amount          Float
+  currency        String        @default("ARS")
+  status          PaymentStatus @default(PENDING)
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  completedAt     DateTime?
+
+  tripPassenger TripPassenger @relation(fields: [tripPassengerId], references: [id])
+  bankTransfer  BankTransfer?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model BankTransfer {
+  id            String    @id @default(uuid())
+  paymentId     String    @unique
+  accountOwner  String?
+  transferDate  DateTime?
+  proofFileKey  String?
+  verifiedAt    DateTime?
+  verifiedBy    String?
+  failureReason String?
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+}
+
+model TripCategory {
+  id          String    @id @default(uuid())
+  feePolicyId String
+  name        String
+  description String?
+  trips       Trip[]
+  feePolicy   FeePolicy @relation(fields: [feePolicyId], references: [id])
+
+  @@index([feePolicyId])
+}
+
+model FeePolicy {
+  id             String        @id @default(uuid())
+  name           String
+  description    String?
+  serviceFeeRate Float
+  serviceFeeType FeePolicyType @default(PERCENTAGE)
+  minimumFee     Float?
+  maximumFee     Float?
+  isDefault      Boolean       @default(false)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  tripCategories TripCategory[]
 }
 
 model ErrorLog {
@@ -328,9 +525,9 @@ model UserActionLog {
   id        String   @id @default(cuid())
   userId    String
   action    String
-  details   Json? // Detalles específicos de la acción
-  status    String // SUCCESS, FAILED
-  metadata  Json // Metadata del request
+  details   Json?
+  status    String
+  metadata  Json
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
@@ -339,19 +536,31 @@ model UserActionLog {
 }
 
 model PushSubscription {
-  id          String    @id @default(cuid()) @map("_id")
-  userId      String
-  endpoint    String    @unique
-  p256dh      String    // Public key for encryption
-  auth        String    // Auth secret
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String   @id @default(cuid()) @map("_id")
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relation to User
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, endpoint])
   @@index([userId])
+}
+
+enum CardType {
+  GREEN
+  BLUE
+}
+
+enum FuelType {
+  NAFTA
+  DIESEL
+  GNC
+  ELECTRICO
+  HIBRIDO
 }
 
 enum FileType {
@@ -370,3 +579,444 @@ enum VerificationStatus {
   VERIFIED
   FAILED
 }
+
+enum TripStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ReservationStatus {
+  PENDING_APPROVAL // Waiting for driver approval
+  APPROVED // Driver approved, pending payment
+  REJECTED // Driver rejected the request
+  CONFIRMED // Confirmed (approved and paid)
+  CANCELLED_BY_DRIVER // Cancelled by driver
+  CANCELLED_BY_PASSENGER // Cancelled by passenger
+  COMPLETED // Trip completed
+}
+
+enum PaymentStatus {
+  PENDING // Payment pending
+  PROCESSING // Payment processing
+  COMPLETED // Payment completed
+  FAILED // Payment failed
+  REFUNDED // Payment refunded
+}
+
+enum RevieweeType {
+  DRIVER
+  PASSENGER
+}
+
+enum FeePolicyType {
+  PERCENTAGE // Apply a percentage on the price
+  FIXED_AMOUNT // Fixed amount per reservation
+  PER_SEAT // Fixed amount per seat
+}
+
+enum LuggageAllowance {
+  SMALL // Only small hand luggage (backpack, handbag)
+  MEDIUM // Medium luggage (cabin luggage)
+  LARGE // Large suitcases
+  EXTRA // Extra or bulky luggage (sports, instruments, etc.)
+}
+
+enum ChatRoomStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ChatRoomRole {
+  DRIVER
+  PASSENGER
+  ADMIN
+}
+
+enum MessageContentType {
+  TEXT
+  IMAGE
+  LOCATION
+  SYSTEM
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("AUTH_DATABASE_URL")
+// }
+
+// model User {
+//   id                         String   @id @default(cuid()) @map("_id")
+//   name                       String
+//   email                      String   @unique
+//   emailVerified              Boolean  @default(false)
+//   image                      String?
+//   role                       String   @default("user")
+//   banned                     Boolean  @default(false)
+//   banReason                  String?
+//   banExpires                 Int? /// Unix timestamp for ban expiration
+//   phoneNumber                String?
+//   phoneNumberVerified        Boolean  @default(false)
+//   pendingPhoneNumber         String? // Para almacenar el número pendiente de verificación
+//   pendingPhoneVerificationId String? // Para almacenar el ID de verificación
+//   createdAt                  DateTime @default(now())
+//   updatedAt                  DateTime @updatedAt
+
+//   // Campos personalizados que mantendrías
+//   birthDate       DateTime?
+//   gender          Gender?
+//   profileImageKey String?
+
+//   // Relaciones requeridas por Better Auth
+//   accounts Account[] // Nueva relación
+//   sessions Session[] // Nueva relación
+
+//   // Tus relaciones personalizadas
+//   identityCard    IdentityCard?
+//   passenger       Passenger?
+//   termsAcceptance UserTermsAcceptance[]
+//   driver          Driver?
+//   actionLogs      UserActionLog[]
+//   pushSubscriptions PushSubscription[]
+// }
+
+// model Session {
+//   id             String   @id @default(cuid()) @map("_id")
+//   userId         String
+//   token          String
+//   expiresAt      DateTime
+//   ipAddress      String?
+//   userAgent      String?
+//   impersonatedBy String?
+//   createdAt      DateTime @default(now())
+//   updatedAt      DateTime @updatedAt
+
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+// model Account {
+//   id                    String    @id @default(cuid()) @map("_id")
+//   userId                String
+//   accountId             String
+//   providerId            String
+//   accessToken           String?
+//   refreshToken          String?
+//   accessTokenExpiresAt  DateTime?
+//   refreshTokenExpiresAt DateTime?
+//   scope                 String?
+//   idToken               String?
+//   password              String?
+//   createdAt             DateTime  @default(now())
+//   updatedAt             DateTime  @updatedAt
+
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+// model Verification {
+//   id         String   @id @default(cuid()) @map("_id")
+//   identifier String
+//   value      String
+//   expiresAt  DateTime
+//   createdAt  DateTime @default(now())
+//   updatedAt  DateTime @updatedAt
+// }
+
+// model IdentityCard {
+//   id            String             @id @default(uuid())
+//   userId        String             @unique
+//   idNumber      Int
+//   frontFileKey  String
+//   backFileKey   String
+//   fileType      FileType
+//   status        VerificationStatus @default(PENDING)
+//   verifiedAt    DateTime?
+//   createdAt     DateTime           @default(now())
+//   updatedAt     DateTime           @updatedAt
+//   failureReason String?
+
+//   // Relación
+//   user User @relation(fields: [userId], references: [id])
+// }
+
+// model TermsAndCondition {
+//   id            String   @id @default(uuid())
+//   version       String
+//   content       String
+//   effectiveDate DateTime
+//   isActive      Boolean  @default(true)
+//   createdAt     DateTime @default(now())
+//   updatedAt     DateTime @updatedAt
+
+//   // Relación
+//   acceptances UserTermsAcceptance[]
+// }
+
+// model UserTermsAcceptance {
+//   id         String   @id @default(uuid())
+//   userId     String
+//   termsId    String
+//   acceptedAt DateTime @default(now())
+
+//   // Relaciones
+//   user  User              @relation(fields: [userId], references: [id])
+//   terms TermsAndCondition @relation(fields: [termsId], references: [id])
+
+//   @@unique([userId, termsId])
+// }
+
+// model Rating {
+//   id          String   @id @default(uuid())
+//   passengerId String   @unique
+//   driverId    String   @unique
+//   rating      Float
+//   createdAt   DateTime @default(now())
+
+//   // Relación
+//   passenger Passenger @relation(fields: [passengerId], references: [id])
+//   driver    Driver    @relation(fields: [driverId], references: [id])
+// }
+
+// model Passenger {
+//   id     String @id @default(uuid())
+//   userId String @unique
+//   user   User   @relation(fields: [userId], references: [id])
+
+//   // Relaciones
+//   ratings Rating?
+// }
+
+// model Driver {
+//   id     String @id @default(uuid())
+//   userId String @unique
+
+//   // Relaciones
+//   user    User        @relation(fields: [userId], references: [id])
+//   licence Licence?
+//   ratings Rating?
+//   Car     DriverCar[]
+// }
+
+// model Licence {
+//   id            String             @id @default(uuid())
+//   driverId      String             @unique
+//   expiration    DateTime
+//   frontFileKey  String
+//   backFileKey   String
+//   fileType      FileType
+//   status        VerificationStatus @default(PENDING)
+//   verifiedAt    DateTime?
+//   createdAt     DateTime           @default(now())
+//   updatedAt     DateTime           @updatedAt
+//   failureReason String?
+
+//   // Relación
+//   driver Driver @relation(fields: [driverId], references: [id])
+// }
+
+// model Brand {
+//   id        String     @id @default(uuid())
+//   name      String     @unique
+//   carModels CarModel[]
+// }
+
+// model CarModel {
+//   id                 String    @id @default(uuid())
+//   brand              Brand     @relation(fields: [brandId], references: [id])
+//   brandId            String
+//   model              String
+//   year               Int
+//   fuelType           FuelType?
+//   averageFuelConsume Float?
+
+//   // Relaciones
+//   cars Car[]
+
+//   @@unique([brandId, model, year], name: "brandId_model_year")
+//   @@index([brandId])
+// }
+
+// model Car {
+//   id        String   @id @default(uuid())
+//   plate     String   @unique
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   // Relaciones
+//   carModel     CarModel      @relation(fields: [carModelId], references: [id])
+//   carModelId   String
+//   insuredCar   InsuredCar?   @relation(fields: [insuredCarId], references: [id])
+//   insuredCarId String?
+//   driverCars   DriverCar[]
+//   vehicleCards VehicleCard[]
+
+//   @@index([carModelId])
+//   @@index([insuredCarId])
+// }
+
+// enum FuelType {
+//   NAFTA
+//   DIESEL
+//   GNC
+//   ELECTRICO
+//   HIBRIDO
+// }
+
+// model InsuredCar {
+//   id        String   @id @default(uuid())
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   // Relaciones
+//   cars          Car[]
+//   policyHistory InsurancePolicy[]
+
+//   // Relación con la póliza actual
+//   currentPolicy   InsurancePolicy? @relation("CurrentPolicy", fields: [currentPolicyId], references: [id])
+//   currentPolicyId String?          @unique
+
+//   @@index([currentPolicyId])
+// }
+
+// model InsurancePolicy {
+//   id            String             @id @default(uuid())
+//   policyNumber  Int
+//   startDate     DateTime
+//   expireDate    DateTime
+//   fileKey       String
+//   fileType      FileType
+//   status        VerificationStatus @default(PENDING)
+//   verifiedAt    DateTime?
+//   failureReason String?
+//   createdAt     DateTime           @default(now())
+
+//   // Relaciones
+//   insuredCar   InsuredCar @relation(fields: [insuredCarId], references: [id])
+//   insuredCarId String
+//   insurance    Insurance  @relation(fields: [insuranceId], references: [id])
+//   insuranceId  String
+
+//   // Relación inversa para la póliza actual
+//   currentForCar InsuredCar? @relation("CurrentPolicy")
+
+//   @@index([insuredCarId])
+//   @@index([insuranceId])
+//   @@index([insuredCarId, status])
+// }
+
+// model Insurance {
+//   id   String @id @default(uuid())
+//   name String
+
+//   // Relaciones
+//   insuredCars InsurancePolicy[]
+// }
+
+// model DriverCar {
+//   id             String        @id @default(uuid())
+//   assignmentDate DateTime      @default(now())
+//   driver         Driver        @relation(fields: [driverId], references: [id])
+//   driverId       String
+//   car            Car           @relation(fields: [carId], references: [id])
+//   carId          String
+//   vehicleCards   VehicleCard[] @relation("DriverCarVehicleCards") // Cambiado a relación uno a muchos
+
+//   @@unique([driverId, carId])
+//   @@index([driverId])
+//   @@index([carId])
+// }
+
+// enum CardType {
+//   GREEN
+//   BLUE
+// }
+
+// model VehicleCard {
+//   id             String             @id @default(uuid())
+//   carId          String
+//   driverCarId    String?
+//   cardType       CardType
+//   fileKey        String
+//   fileType       FileType
+//   expirationDate DateTime
+//   status         VerificationStatus @default(PENDING)
+//   verifiedAt     DateTime?
+//   createdAt      DateTime           @default(now())
+//   updatedAt      DateTime           @updatedAt
+//   failureReason  String?
+
+//   car    Car        @relation(fields: [carId], references: [id])
+//   driver DriverCar? @relation("DriverCarVehicleCards", fields: [driverCarId], references: [id])
+
+//   @@unique([carId, cardType]) // Solo para tarjetas verdes
+//   @@index([carId, driverCarId])
+// }
+
+// model ErrorLog {
+//   id        String   @id @default(cuid())
+//   origin    String
+//   code      String
+//   message   String
+//   details   String?
+//   createdAt DateTime @default(now())
+
+//   @@index([origin, code, createdAt])
+// }
+
+// model UserActionLog {
+//   id        String   @id @default(cuid())
+//   userId    String
+//   action    String
+//   details   Json? // Detalles específicos de la acción
+//   status    String // SUCCESS, FAILED
+//   metadata  Json // Metadata del request
+//   createdAt DateTime @default(now())
+
+//   user User @relation(fields: [userId], references: [id])
+
+//   @@index([userId, action, createdAt])
+// }
+
+// model PushSubscription {
+//   id          String    @id @default(cuid()) @map("_id")
+//   userId      String
+//   endpoint    String    @unique
+//   p256dh      String    // Public key for encryption
+//   auth        String    // Auth secret
+//   createdAt   DateTime  @default(now())
+//   updatedAt   DateTime  @updatedAt
+
+//   // Relation to User
+//   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@unique([userId, endpoint])
+//   @@index([userId])
+// }
+
+// enum FileType {
+//   PDF
+//   IMAGE
+// }
+
+// enum Gender {
+//   MASCULINO
+//   FEMENINO
+//   NO_BINARIO
+// }
+
+// enum VerificationStatus {
+//   PENDING
+//   VERIFIED
+//   FAILED
+// }

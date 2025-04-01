@@ -10,7 +10,7 @@ import { updateFuelInfo } from "@/actions/car/update-fuel-info"
 import { useApiResponse } from "@/hooks/ui/useApiResponse"
 import { useState } from "react"
 import { FuelType } from "@prisma/client"
-
+//todo aca cuando actualizamos el detalle del vehiculo, hace el comportamiento deseado, el cual es que no se cierre el modal abierto, y te muestra de todas formas el toast de exito. es el comportamiento a buscar
 interface VehicleTabProps {
   cars: DocumentResponse["cars"]
   onValidate: (validationRequest: any) => Promise<void>

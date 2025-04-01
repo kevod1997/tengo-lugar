@@ -13,7 +13,7 @@ export async function getUserById(userId?: string) {
     headers: await headers(),
   })
 
-  if(!userId){
+  if (!userId) {
     userId = session?.user.id
   }
 
@@ -43,7 +43,7 @@ export async function getUserById(userId?: string) {
                 backFileKey: true
               }
             },
-            Car: {
+            cars: {
               include: {
                 car: {
                   select: {

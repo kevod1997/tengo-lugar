@@ -21,7 +21,7 @@ export async function getUserDocuments(userId: string): Promise<ApiResponse<any>
         driver: {
           select: {
             licence: true,
-            Car: {
+            cars: {
               select: {
                 id: true, // DriverCar id
                 car: {
@@ -79,6 +79,7 @@ export async function getUserDocuments(userId: string): Promise<ApiResponse<any>
     return await AdminDocumentService.getUserDocuments(user);
 
   } catch (error) {
+    //todo ver que aca manejamos mal el error
     return ApiHandler.handleError(error);
   }
 }

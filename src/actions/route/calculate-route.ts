@@ -2,30 +2,18 @@
 
 import { ApiHandler } from "@/lib/api-handler";
 import { RoutesService } from "@/services/routes/routes-service";
+import { RouteCalculationRequest } from "@/types/route-types";
 
-interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
-interface RouteCalculationRequest {
-  origin: Coordinates;
-  destination: Coordinates;
-  vehicleType?: 'GASOLINE' | 'ELECTRIC' | 'HYBRID' | 'DIESEL';
-  tollPasses?: string[];
-}
 
 export async function calculateRoute(routeData: RouteCalculationRequest) {
   const routesService = new RoutesService();
-  
+
   try {
     const result = await routesService.calculateRoute({
       origin: routeData.origin,
       destination: routeData.destination,
-      vehicleInfo: {
-        emissionType: routeData.vehicleType || 'GASOLINE'
-      },
-      tollPasses: routeData.tollPasses
+      departureTime: routeData.departureTime,
+      vehicleType: routeData.vehicleType,
     });
 
     return ApiHandler.handleSuccess(result);
