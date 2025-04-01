@@ -17,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select'
-import { addHours, format, isBefore, isToday, parse } from 'date-fns'
+import { addDays, addHours, addMonths, format, isBefore, isToday, parse } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
@@ -122,11 +122,18 @@ const RouteCalculator = ({
         return baseOptions
     }
 
-    const isDateDisabled = (date: Date) => {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        return isBefore(date, today)
-    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to beginning of day
+    
+    // Create a date 15 days from now
+    const maxDate = addDays(today, 15);
+    maxDate.setHours(23, 59, 59, 999); // Set to end of day
+    
+    // This will disable dates after 15 days from now
+    const disabledDays = { 
+      after: maxDate, // Disable all dates after 15 days from now
+      before: today   // Also disable all dates before today
+    };
 
     // Effect to check if departure time is valid when date changes
     useEffect(() => {
@@ -407,7 +414,7 @@ const RouteCalculator = ({
                 date: tripDate,
                 departureTime: departureDateTime,
                 price: calculatedPrice.price,
-                priceGuide: calculatedPrice.priceGuide, 
+                priceGuide: calculatedPrice.priceGuide,
                 distance: routeInfo.routes[0].distanceMeters / 1000,
                 duration: formatDuration(routeInfo.routes[0].duration),
                 durationSeconds: parseInt(routeInfo.routes[0].duration.replace('s', '')),
@@ -496,11 +503,14 @@ const RouteCalculator = ({
                             <PopoverContent className="w-auto p-0" align="start">
                                 <Calendar
                                     mode="single"
-                                    disabled={isDateDisabled}
+                                    disabled={disabledDays}
                                     selected={tripDate}
                                     onSelect={setTripDate}
-                                    initialFocus
+                                    autoFocus
                                     locale={es}
+                                    defaultMonth={today} 
+                                    startMonth={today} 
+                                    endMonth={maxDate} 
                                 />
                             </PopoverContent>
                         </Popover>
