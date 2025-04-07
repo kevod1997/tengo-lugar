@@ -251,7 +251,7 @@ function checkCompatibility() {
       reason: 'Se requiere una conexión segura (HTTPS) para las notificaciones push.'
     };
   }
-  
+
   // Verificar si el navegador soporta Service Workers
   if (!('serviceWorker' in navigator)) {
     return {
@@ -259,7 +259,7 @@ function checkCompatibility() {
       reason: 'Tu navegador no soporta Service Workers, necesarios para notificaciones push.'
     };
   }
-  
+
   // Verificar si el navegador soporta API Push
   if (!('PushManager' in window)) {
     return {
@@ -267,7 +267,7 @@ function checkCompatibility() {
       reason: 'Tu navegador no soporta la API Push, necesaria para notificaciones push.'
     };
   }
-  
+
   // Verificar si el navegador soporta API Notification
   if (!('Notification' in window)) {
     return {
@@ -275,7 +275,7 @@ function checkCompatibility() {
       reason: 'Tu navegador no soporta la API de Notificaciones.'
     };
   }
-  
+
   // Detectar iOS y su versión
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   if (isIOS) {
@@ -294,8 +294,38 @@ function checkCompatibility() {
       }
     }
   }
-  
+
   return { compatible: true };
+}
+
+// Función para verificar si las notificaciones están habilitadas a nivel de sistema
+async function checkSystemNotificationsEnabled(): Promise<boolean> {
+  try {
+    // Verificar si tenemos permiso de notificaciones a nivel web
+    if (Notification.permission !== 'granted') {
+      return false;
+    }
+
+    // Intentar mostrar una notificación de prueba silenciosa
+    const registration = await navigator.serviceWorker.ready;
+    await registration.showNotification('test', {
+      silent: true,
+      tag: 'test-system',
+      requireInteraction: false
+    });
+
+    // Eliminar la notificación de prueba inmediatamente
+    setTimeout(() => {
+      registration.getNotifications({ tag: 'test-system' }).then(notifications => {
+        notifications.forEach(notification => notification.close());
+      });
+    }, 100);
+
+    return true;
+  } catch (error) {
+    console.log('Error al probar notificaciones del sistema:', error);
+    return false;
+  }
 }
 
 export function PushNotificationManager() {
@@ -308,16 +338,19 @@ export function PushNotificationManager() {
   const [isMobile, setIsMobile] = useState(false)
   const [showPermissionPrompt, setShowPermissionPrompt] = useState(false)
   const [showExplanationDialog, setShowExplanationDialog] = useState(false)
+  const [showSystemPermissionsGuide, setShowSystemPermissionsGuide] = useState(false)
+  const [showInstallAppPrompt, setShowInstallAppPrompt] = useState(false)
+  const [systemNotificationsDisabled, setSystemNotificationsDisabled] = useState(false)
   const { handleResponse } = useApiResponse()
-  
+
   // Función para asegurar que el Service Worker esté listo
   const ensureServiceWorkerReady = useCallback(async () => {
     try {
       console.log('Asegurando que el Service Worker esté listo...');
-      
+
       // Registrar el Service Worker si aún no está registrado
       let registration = await navigator.serviceWorker.getRegistration();
-      
+
       if (!registration) {
         console.log('Registrando nuevo Service Worker...');
         registration = await navigator.serviceWorker.register('/sw.js', {
@@ -325,12 +358,12 @@ export function PushNotificationManager() {
           updateViaCache: 'none',
         });
       }
-      
+
       // Si el Service Worker está instalando o esperando, esperar a que se active
       if (registration.installing || registration.waiting) {
         return new Promise<ServiceWorkerRegistration>((resolve) => {
           const serviceWorker = registration.installing || registration.waiting;
-          
+
           serviceWorker?.addEventListener('statechange', (event) => {
             if ((event.target as ServiceWorker).state === 'activated') {
               console.log('Service Worker activado');
@@ -339,7 +372,7 @@ export function PushNotificationManager() {
           });
         });
       }
-      
+
       // El Service Worker ya está activo
       console.log('Service Worker ya estaba activo');
       return registration;
@@ -354,10 +387,10 @@ export function PushNotificationManager() {
     return new Promise<NotificationPermission>(async (resolve) => {
       try {
         console.log('Solicitando permiso en móvil...');
-        
+
         // En dispositivos móviles, primero verificamos si el Service Worker está listo
         await ensureServiceWorkerReady();
-        
+
         // En algunos navegadores móviles, necesitamos un retraso pequeño después
         // de la interacción del usuario para que el prompt funcione correctamente
         setTimeout(async () => {
@@ -389,7 +422,7 @@ export function PushNotificationManager() {
 
     // Verificar compatibilidad
     const { compatible, reason } = checkCompatibility();
-    
+
     if (!compatible) {
       console.log('Navegador no compatible:', reason);
       setIsSupported(false);
@@ -402,7 +435,7 @@ export function PushNotificationManager() {
       const currentPermission = Notification.permission;
       setPermissionState(currentPermission);
       console.log('Estado actual de permisos:', currentPermission);
-      
+
       // Configurar listener para cambios de permiso si es posible
       if ('permissions' in navigator) {
         navigator.permissions.query({ name: 'notifications' as PermissionName })
@@ -420,7 +453,7 @@ export function PushNotificationManager() {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       setIsSupported(true);
       console.log('Service Worker y PushManager soportados, inicializando...');
-      
+
       // Registrar Service Worker
       ensureServiceWorkerReady()
         .then(async (registration) => {
@@ -465,13 +498,13 @@ export function PushNotificationManager() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       console.log('Iniciando proceso de suscripción para móvil...');
-      
+
       // 1. Asegurarnos de que el Service Worker esté listo
       const registration = await ensureServiceWorkerReady();
       console.log('Service Worker listo para suscripción móvil');
-      
+
       // 2. Verificar si ya tenemos una suscripción
       const existingSub = await registration.pushManager.getSubscription();
       if (existingSub) {
@@ -480,19 +513,29 @@ export function PushNotificationManager() {
         const serializedSub = JSON.parse(JSON.stringify(existingSub));
         const result = await subscribeUser(serializedSub);
         handleResponse(result);
+
+        // Verificar si las notificaciones a nivel de sistema funcionan
+        const systemEnabled = await checkSystemNotificationsEnabled();
+        if (!systemEnabled) {
+          console.log('Notificaciones web habilitadas, pero las del sistema están desactivadas');
+          setSystemNotificationsDisabled(true);
+          setShowSystemPermissionsGuide(true);
+          return;
+        }
+
         toast.success('¡Notificaciones ya activadas!');
         return;
       }
-      
+
       // 3. Solicitar permiso específicamente para móviles
       console.log('Solicitando permiso para móviles...');
       const permissionResult = await requestPermissionOnMobile();
       setPermissionState(permissionResult);
-      
+
       if (permissionResult !== 'granted') {
         throw new Error('Permiso de notificaciones denegado');
       }
-      
+
       // 4. Suscribirse una vez que tenemos permiso
       console.log('Permiso concedido, creando suscripción en móvil...');
       const newSubscription = await registration.pushManager.subscribe({
@@ -501,19 +544,28 @@ export function PushNotificationManager() {
           process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
         ),
       });
-      
+
       console.log('Suscripción creada en móvil:', newSubscription);
       setSubscription(newSubscription);
-      
+
       // 5. Enviar la suscripción al servidor
       const serializedSub = JSON.parse(JSON.stringify(newSubscription));
       const result = await subscribeUser(serializedSub);
       handleResponse(result);
-      
+
+      // 6. Verificar si las notificaciones a nivel de sistema funcionan
+      const systemEnabled = await checkSystemNotificationsEnabled();
+      if (!systemEnabled) {
+        console.log('Notificaciones web habilitadas, pero las del sistema están desactivadas');
+        setSystemNotificationsDisabled(true);
+        setShowSystemPermissionsGuide(true);
+        return;
+      }
+
       toast.success('¡Notificaciones activadas correctamente!');
     } catch (error) {
       console.error('Error completo al suscribirse en móvil:', error);
-      
+
       if (error instanceof Error) {
         if (error.name === 'NotAllowedError') {
           setError('Permiso denegado para recibir notificaciones. En dispositivos móviles, puede que necesites activar las notificaciones en la configuración del navegador.');
@@ -523,7 +575,7 @@ export function PushNotificationManager() {
       } else {
         setError('Error desconocido al suscribirse a notificaciones');
       }
-      
+
       toast.error('No se pudo activar las notificaciones');
     } finally {
       setIsLoading(false);
@@ -535,12 +587,12 @@ export function PushNotificationManager() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       console.log('Iniciando proceso de suscripción para escritorio...');
-      
+
       // Asegurar que el Service Worker esté listo
       const registration = await ensureServiceWorkerReady();
-      
+
       // Verificar si ya existe una suscripción
       const existingSub = await registration.pushManager.getSubscription();
       if (existingSub) {
@@ -551,16 +603,16 @@ export function PushNotificationManager() {
         toast.success('¡Notificaciones ya activadas!');
         return;
       }
-      
+
       // Solicitar permiso explícitamente
       console.log('Solicitando permiso en escritorio...');
       const permissionResult = await Notification.requestPermission();
       setPermissionState(permissionResult);
-      
+
       if (permissionResult !== 'granted') {
         throw new Error('Permiso de notificaciones denegado');
       }
-      
+
       // Suscribirse a las notificaciones
       console.log('Permiso concedido, creando suscripción en escritorio...');
       const newSubscription = await registration.pushManager.subscribe({
@@ -569,18 +621,18 @@ export function PushNotificationManager() {
           process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
         ),
       });
-      
+
       setSubscription(newSubscription);
-      
+
       // Enviar al servidor
       const serializedSub = JSON.parse(JSON.stringify(newSubscription));
       const result = await subscribeUser(serializedSub);
       handleResponse(result);
-      
+
       toast.success('¡Notificaciones activadas correctamente!');
     } catch (error) {
       console.error('Error subscribing to push:', error);
-      
+
       if (error instanceof Error) {
         if (error.name === 'NotAllowedError') {
           setError('Permiso denegado para recibir notificaciones. Por favor, actívalas en la configuración de tu navegador.');
@@ -602,16 +654,16 @@ export function PushNotificationManager() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       if (subscription) {
         const endpoint = subscription.endpoint;
         await subscription.unsubscribe();
         setSubscription(null);
-        
+
         // Notificar al servidor
         const result = await unsubscribeUser(endpoint);
         handleResponse(result);
-        
+
         toast.success('Notificaciones desactivadas correctamente');
       }
     } catch (error) {
@@ -628,16 +680,16 @@ export function PushNotificationManager() {
       toast.error('Por favor ingresa un mensaje');
       return;
     }
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const result = await sendTestNotification(message);
-      
+
       if (result.success && result.data) {
         const responseData = result.data as NotificationResponse;
-        
+
         if (responseData.sent) {
           toast.success(
             responseData.message ||
@@ -649,7 +701,7 @@ export function PushNotificationManager() {
             'No se pudo enviar la notificación'
           );
         }
-        
+
         setMessage('');
       } else {
         toast.error(result.message || 'Error al enviar la notificación');
@@ -701,72 +753,107 @@ export function PushNotificationManager() {
         </CardHeader>
 
         <CardContent>
-          {error && (
-            <div className="flex items-start gap-2 text-amber-500 mb-4">
-              <AlertCircle className="h-5 w-5 mt-0.5" />
-              <p className="text-sm">{error}</p>
-            </div>
-          )}
+  {error && (
+    <div className="flex items-start gap-2 text-amber-500 mb-4">
+      <AlertCircle className="h-5 w-5 mt-0.5" />
+      <p className="text-sm">{error}</p>
+    </div>
+  )}
 
-          {/* Show instructions for denied permissions */}
-          {permissionState === 'denied' && (
-            <div className="space-y-2 mb-4">
-              <p className="text-sm">
-                Has bloqueado las notificaciones para este sitio. Para recibirlas, deberás cambiar la configuración en tu navegador.
-              </p>
-              {isMobile && (
-                <ul className="text-sm list-disc pl-5 space-y-1">
-                  <li>Ve a la configuración de tu navegador</li>
-                  <li>Busca la sección de Permisos o Configuración de sitios</li>
-                  <li>Encuentra este sitio y cambia el permiso de notificaciones</li>
-                </ul>
-              )}
-            </div>
-          )}
-        
-          {subscription && (
-            <div className="space-y-4">
-              <Input
-                type="text"
-                placeholder="Escribe un mensaje para probar"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-            </div>
-          )}
-        </CardContent>
+  {/* Mostrar mensaje cuando hay problemas a nivel de sistema */}
+  {systemNotificationsDisabled && subscription && (
+    <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950 p-3 rounded-md mb-4">
+      <Info className="h-5 w-5 mt-0.5 text-amber-500" />
+      <div>
+        <p className="text-sm font-medium">Notificaciones del sistema desactivadas</p>
+        <p className="text-xs mt-1">
+          Has permitido las notificaciones web, pero tu dispositivo está bloqueando que se muestren. 
+          <Button 
+            variant="link" 
+            className="p-0 h-auto text-xs"
+            onClick={() => setShowSystemPermissionsGuide(true)}
+          >
+            Más información
+          </Button>
+        </p>
+      </div>
+    </div>
+  )}
 
-        <CardFooter className="flex justify-between">
-          {subscription ? (
-            <>
-              <Button variant="outline" onClick={unsubscribeFromPush} disabled={isLoading}>
-                Cancelar suscripción
-              </Button>
-              <Button onClick={sendNotification} disabled={isLoading || !message.trim()}>
-                Enviar prueba
-              </Button>
-            </>
-          ) : permissionState === 'denied' ? (
-            <Button variant="outline" onClick={() => {
-              if (isMobile) {
-                toast.info('Por favor, cambia los permisos de notificaciones en la configuración de tu navegador');
-              } else {
-                window.open('about:settings');
-              }
-            }}>
-              <Settings className="h-4 w-4 mr-2" />
-              Ir a configuración del navegador
-            </Button>
-          ) : (
-            <Button 
-              onClick={isMobile ? initiatePermissionRequest : subscribeToPush} 
-              disabled={isLoading}
-            >
-              <Bell className="h-4 w-4 mr-2" />
-              Activar notificaciones
-            </Button>
-          )}
-        </CardFooter>
+  {/* Show instructions for denied permissions */}
+  {permissionState === 'denied' && (
+    <div className="space-y-2 mb-4">
+      <p className="text-sm">
+        Has bloqueado las notificaciones para este sitio. Para recibirlas, deberás cambiar la configuración en tu navegador.
+      </p>
+      {isMobile && (
+        <ul className="text-sm list-disc pl-5 space-y-1">
+          <li>Ve a la configuración de tu navegador</li>
+          <li>Busca la sección de Permisos o Configuración de sitios</li>
+          <li>Encuentra este sitio y cambia el permiso de notificaciones</li>
+        </ul>
+      )}
+    </div>
+  )}
+
+  {subscription && (
+    <div className="space-y-4">
+      <Input
+        type="text"
+        placeholder="Escribe un mensaje para probar"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
+    </div>
+  )}
+</CardContent>
+
+<CardFooter className="flex justify-between">
+  {subscription ? (
+    <>
+      <Button variant="outline" onClick={unsubscribeFromPush} disabled={isLoading}>
+        Cancelar suscripción
+      </Button>
+      <div className="flex gap-2">
+        {systemNotificationsDisabled && (
+          <Button 
+            variant="outline" 
+            onClick={() => setShowInstallAppPrompt(true)}
+          >
+            Instalar app
+          </Button>
+        )}
+        <Button onClick={sendNotification} disabled={isLoading || !message.trim()}>
+          Enviar prueba
+        </Button>
+      </div>
+    </>
+  ) : permissionState === 'denied' ? (
+    <div className="flex gap-2 w-full justify-between">
+      <Button variant="outline" onClick={() => {
+        if (isMobile) {
+          toast.info('Por favor, cambia los permisos de notificaciones en la configuración de tu navegador');
+        } else {
+          window.open('about:settings');
+        }
+      }}>
+        <Settings className="h-4 w-4 mr-2" />
+        Ir a configuración
+      </Button>
+      <Button onClick={() => setShowInstallAppPrompt(true)}>
+        Instalar app
+      </Button>
+    </div>
+  ) : (
+    <Button 
+      onClick={isMobile ? initiatePermissionRequest : subscribeToPush} 
+      disabled={isLoading}
+    >
+      <Bell className="h-4 w-4 mr-2" />
+      Activar notificaciones
+    </Button>
+  )}
+</CardFooter>
       </Card>
 
       {/* Diálogo explicativo sobre notificaciones para móviles */}
@@ -794,7 +881,7 @@ export function PushNotificationManager() {
             <div className="flex flex-col space-y-2">
               <h4 className="font-medium">¿Cómo funcionan en dispositivos móviles?</h4>
               <p className="text-sm text-muted-foreground">
-                En tu dispositivo móvil, aparecerá una solicitud de permiso del navegador. 
+                En tu dispositivo móvil, aparecerá una solicitud de permiso del navegador.
                 Debes seleccionar Permitir para recibir notificaciones.
               </p>
             </div>
@@ -835,6 +922,90 @@ export function PushNotificationManager() {
             </Button>
             <Button onClick={confirmAndRequestPermissions}>
               Solicitar permiso
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo con instrucciones para habilitar notificaciones a nivel de sistema */}
+      <Dialog open={showSystemPermissionsGuide} onOpenChange={setShowSystemPermissionsGuide}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Habilitar notificaciones del sistema</DialogTitle>
+            <DialogDescription>
+              El navegador requiere permisos adicionales para mostrar notificaciones.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm">
+              Aunque has permitido las notificaciones web, tu navegador no puede mostrarlas porque las
+              notificaciones del sistema están desactivadas para Chrome.
+            </p>
+
+            <div className="space-y-2">
+              <h4 className="font-medium">Sigue estos pasos:</h4>
+              <ol className="list-decimal pl-5 space-y-2 text-sm">
+                <li>Abre la aplicación <strong>Configuración</strong> de tu dispositivo</li>
+                <li>Busca la sección <strong>Aplicaciones</strong> o <strong>Administrador de aplicaciones</strong></li>
+                <li>Encuentra y selecciona el navegador <strong>Chrome</strong> (o el que estés usando)</li>
+                <li>Toca <strong>Notificaciones</strong></li>
+                <li>Activa <strong>Permitir notificaciones</strong></li>
+                <li>Vuelve a esta página y reinicia el proceso</li>
+              </ol>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-md dark:bg-blue-950">
+              <h4 className="font-medium">Otra alternativa:</h4>
+              <p className="text-sm mt-1">
+                Puedes instalar nuestra aplicación para recibir notificaciones de manera más confiable.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowSystemPermissionsGuide(false)}>
+              Lo intentaré después
+            </Button>
+            <Button onClick={() => {
+              setShowSystemPermissionsGuide(false);
+              setShowInstallAppPrompt(true);
+            }}>
+              Ver opciones de instalación
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para instalar la aplicación como alternativa */}
+      <Dialog open={showInstallAppPrompt} onOpenChange={setShowInstallAppPrompt}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Instalar como aplicación</DialogTitle>
+            <DialogDescription>
+              Instala Tengo Lugar como una aplicación para una mejor experiencia.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm">
+              Al instalar nuestra aplicación web en tu dispositivo:
+            </p>
+
+            <ul className="list-disc pl-5 space-y-1 text-sm">
+              <li>Recibirás notificaciones de manera más confiable</li>
+              <li>Tendrás acceso rápido desde tu pantalla de inicio</li>
+              <li>Disfrutarás de una experiencia similar a una app nativa</li>
+              <li>No ocupará espacio adicional en tu dispositivo</li>
+            </ul>
+
+            <div className="bg-muted p-3 rounded-md mt-2">
+              <h4 className="font-medium">¿Cómo instalar?</h4>
+              <p className="text-sm mt-1">
+                En la mayoría de navegadores, busca la opción Añadir a pantalla de inicio o Instalar aplicación en el menú del navegador.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowInstallAppPrompt(false)}>
+              Entendido
             </Button>
           </DialogFooter>
         </DialogContent>
