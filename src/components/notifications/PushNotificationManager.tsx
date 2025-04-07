@@ -214,7 +214,7 @@ export function PushNotificationManager() {
       handleResponse(result)
 
     } catch (error) {
-      console.error('Error subscribing to push:', error)
+      console.log('Error subscribing to push:', error)
       toast.error('Error al suscribirse a notificaciones push')
     } finally {
       setIsLoading(false)
