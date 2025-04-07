@@ -305,6 +305,7 @@ export async function subscribeUser(subscription: PushSubscriptionData) {
 
     return ApiHandler.handleSuccess(null, 'Suscripción a notificaciones exitosa');
   } catch (error) {
+    console.log('Error subscribing user:', error);
     return ApiHandler.handleError(error);
   }
 }
