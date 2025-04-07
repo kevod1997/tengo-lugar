@@ -9,10 +9,10 @@
 // function urlBase64ToUint8Array(base64String: string) {
 //   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
 //   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  
+
 //   const rawData = window.atob(base64)
 //   const outputArray = new Uint8Array(rawData.length)
-  
+
 //   for (let i = 0; i < rawData.length; ++i) {
 //     outputArray[i] = rawData.charCodeAt(i)
 //   }
@@ -23,14 +23,14 @@
 //   const [isSupported, setIsSupported] = useState(false)
 //   const [subscription, setSubscription] = useState<PushSubscription | null>(null)
 //   const [loading, setLoading] = useState(false)
-  
+
 //   useEffect(() => {
 //     if ('serviceWorker' in navigator && 'PushManager' in window) {
 //       setIsSupported(true)
 //       registerServiceWorker()
 //     }
 //   }, [])
-  
+
 //   async function registerServiceWorker() {
 //     try {
 //       const registration = await navigator.serviceWorker.register('/sw.js', {
@@ -42,21 +42,21 @@
 //       console.error('Service worker registration failed:', error)
 //     }
 //   }
-  
+
 //   async function subscribeToPush() {
 //     setLoading(true)
 //     try {
 //       const registration = await navigator.serviceWorker.ready
-      
+
 //       const sub = await registration.pushManager.subscribe({
 //         userVisibleOnly: true,
 //         applicationServerKey: urlBase64ToUint8Array(
 //           process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
 //         ),
 //       })
-      
+
 //       setSubscription(sub)
-      
+
 //       // Send the subscription to the server
 //       const serializedSub = JSON.parse(JSON.stringify(sub))
 //       const result = await subscribeUserToPush(serializedSub)
@@ -72,7 +72,7 @@
 //       setLoading(false)
 //     }
 //   }
-  
+
 //   async function unsubscribeFromPush() {
 //     setLoading(true)
 //     if (subscription) {
@@ -94,7 +94,7 @@
 //       }
 //     }
 //   }
-  
+
 //   if (!isSupported) {
 //     return (
 //       <div className="rounded-md border p-4 bg-background/50">
@@ -102,14 +102,14 @@
 //       </div>
 //     )
 //   }
-  
+
 //   return (
 //     <div className="rounded-md border p-4 mt-6">
 //       <h3 className="text-lg font-medium mb-2">Notificaciones</h3>
 //       <p className="text-sm text-muted-foreground mb-4">
 //         Recibe notificaciones sobre tus viajes, incluso cuando no estés usando la aplicación.
 //       </p>
-      
+
 //       {subscription ? (
 //         <Button 
 //           onClick={unsubscribeFromPush} 
@@ -142,6 +142,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { useApiResponse } from '@/hooks/ui/useApiResponse'
+import { set } from 'zod'
 
 interface NotificationResponse {
   sent: boolean;
@@ -168,6 +169,7 @@ export function PushNotificationManager() {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const { handleResponse } = useApiResponse()
 
   useEffect(() => {
@@ -187,6 +189,7 @@ export function PushNotificationManager() {
       setSubscription(sub)
     } catch (error) {
       console.error('Service worker registration failed:', error)
+      setError('Error al registrar el service worker')
       toast.error('Error al registrar el trabajador de servicio')
     }
   }
@@ -215,6 +218,7 @@ export function PushNotificationManager() {
 
     } catch (error) {
       console.log('Error subscribing to push:', error)
+      setError(`Error al suscribirse a notificaciones push: ${error}`)
       toast.error('Error al suscribirse a notificaciones push')
     } finally {
       setIsLoading(false)
@@ -273,6 +277,7 @@ export function PushNotificationManager() {
       }
     } catch (error) {
       console.error('Error sending notification:', error);
+      setError(`Error al enviar la notificación: ${error}`);
       toast.error('Error al enviar la notificación');
     } finally {
       setIsLoading(false);
@@ -299,6 +304,11 @@ export function PushNotificationManager() {
             ? 'Estás suscrito a notificaciones push.'
             : 'Recibe notificaciones incluso cuando no estás usando la aplicación.'}
         </CardDescription>
+        <CardFooter className="flex justify-between">
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
+        </CardFooter>
       </CardHeader>
 
       <CardContent>
