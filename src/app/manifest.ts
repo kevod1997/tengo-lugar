@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
-    theme_color: "#6336C8", // Your primary color
+    theme_color: "#6336C8",
     lang: "es",
     dir: "ltr",
     orientation: "portrait",
@@ -34,3 +34,29 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
   }
 }
+
+// import type { MetadataRoute } from 'next'
+ 
+// export default function manifest(): MetadataRoute.Manifest {
+//   return {
+//     name: 'Next.js PWA',
+//     short_name: 'NextPWA',
+//     description: 'A Progressive Web App built with Next.js',
+//     start_url: '/',
+//     display: 'standalone',
+//     background_color: '#ffffff',
+//     theme_color: '#000000',
+//     icons: [
+//       {
+//         src: '/icon-192x192.png',
+//         sizes: '192x192',
+//         type: 'image/png',
+//       },
+//       {
+//         src: '/icon-512x512.png',
+//         sizes: '512x512',
+//         type: 'image/png',
+//       },
+//     ],
+//   }
+// }

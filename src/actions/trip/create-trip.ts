@@ -1,4 +1,3 @@
-// src/actions/trip/create-trip.ts
 'use server'
 
 import { auth } from "@/lib/auth"
@@ -28,8 +27,6 @@ export async function createTrip(tripData: TripData) {
         return await prisma.$transaction(async (tx) => {
             // Find driver
             const driver = await findDriver(session.user.id, tx)
-            console.log('Driver found:', driver)
-            console.log(validatedData)
 
             // Check if driver has selected car
             const driverCar = await tx.driverCar.findFirst({
@@ -38,7 +35,6 @@ export async function createTrip(tripData: TripData) {
                     driverId: driver.id
                 }
             })
-            console.log('Driver car found:', driverCar)
 
             if (!driverCar) {
                 throw ServerActionError.ValidationFailed(
@@ -52,6 +48,7 @@ export async function createTrip(tripData: TripData) {
             const trip = await tx.trip.create({
                 data: {
                     driverCarId: driverCar.id,
+                    status: 'ACTIVE',
 
                     // Origin details
                     originAddress: validatedData.originAddress,
@@ -70,9 +67,10 @@ export async function createTrip(tripData: TripData) {
                     // Route information
                     googleMapsUrl: validatedData.googleMapsUrl,
                     date: validatedData.date,
+                    serviceFee: 10,
                     departureTime: validatedData.departureTime,
-                    price: Math.round(validatedData.price * 100), // Store as cents/centavos
-                    priceGuide: Math.round(validatedData.priceGuide * 100), // Store as cents/centavos
+                    price: Math.round(validatedData.price), 
+                    priceGuide: Math.round(validatedData.priceGuide), 
                     distance: validatedData.distance,
                     duration: validatedData.duration,
                     durationSeconds: validatedData.durationSeconds,

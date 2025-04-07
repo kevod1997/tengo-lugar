@@ -24,6 +24,34 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { authClient } from "@/lib/auth-client"
 
+// const authenticatedNavItems = [
+//   {
+//     title: "Dashboard",
+//     url: "/dashboard",
+//     icon: LayoutDashboard,
+//   },
+//   {
+//     title: "Viajes",
+//     url: "/viajes",
+//     icon: CarFrontIcon,
+//     items: [
+//       {
+//         title: "Viajes Finalizados",
+//         url: "#",
+//       },
+//       {
+//         title: "Proximos viajes",
+//         url: "#",
+//       },
+//     ]
+//   },
+//   {
+//     title: "Notificaciones",
+//     url: "/notificaciones",
+//     icon: Bell,
+//   },
+// ]
+
 const authenticatedNavItems = [
   {
     title: "Dashboard",
@@ -31,19 +59,19 @@ const authenticatedNavItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Viajes",
+    title: "Mis Viajes",
     url: "/viajes",
     icon: CarFrontIcon,
-    items: [
-      {
-        title: "Viajes Finalizados",
-        url: "#",
-      },
-      {
-        title: "Proximos viajes",
-        url: "#",
-      },
-    ]
+    // items: [
+    //   {
+    //     title: "Viajes Finalizados",
+    //     url: "#",
+    //   },
+    //   {
+    //     title: "Proximos viajes",
+    //     url: "#",
+    //   },
+    // ]
   },
   {
     title: "Notificaciones",

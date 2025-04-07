@@ -189,7 +189,7 @@ function SignIn() {
 					</div>
 					<div className="mt-4">
 						<LoadingButton
-						pending={false}
+							pending={false}
 							// pending={pendingFacebook}
 							onClick={() => toast.info("Esta funcionalidad no está disponible aún")}
 						>
@@ -221,10 +221,10 @@ function SignIn() {
 	);
 }
 
-export default function  SignInPage() {
+export default function SignInPage() {
 	return (
 		<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
-		<SignIn />
-	</Suspense>
+			<SignIn />
+		</Suspense>
 	)
 }

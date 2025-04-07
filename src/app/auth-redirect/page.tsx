@@ -175,3 +175,31 @@ export default function AuthRedirect() {
     </Suspense>
   )
 }
+
+// 'use client'
+
+// import { Suspense } from 'react'
+// import Loading from '../loading'
+// import { useAuth } from '@/components/providers/AuthProvider'
+
+// function AuthRedirectContent() {
+//   const { isLoading } = useAuth()
+  
+//   // The actual redirection is now handled by the AuthProvider
+//   // This component just needs to exist as a destination for auth redirects
+  
+//   if (isLoading) {
+//     return <Loading />
+//   }
+  
+//   // The provider will handle actual redirection, but we can show a message while transitioning
+//   return <Loading />
+// }
+
+// export default function AuthRedirect() {
+//   return (
+//     <Suspense fallback={<Loading />}>
+//       <AuthRedirectContent />
+//     </Suspense>
+//   )
+// }

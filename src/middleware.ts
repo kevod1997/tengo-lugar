@@ -5,7 +5,7 @@ import type { Session } from "./lib/auth";
 const authRoutes = ["/login", "/registro"];
 const passwordRoutes = ["/resetear-clave", "/olvide-mi-clave", "/reset-password"];
 const adminRoutes = ["/admin"];
-const publicRoutes = ["/", "/about", "/contact"]; 
+const publicRoutes = ["/", "/about", "/contact"];
 
 export default async function authMiddleware(request: NextRequest) {
   const pathName = request.nextUrl.pathname;
@@ -14,33 +14,36 @@ export default async function authMiddleware(request: NextRequest) {
   const isAdminRoute = adminRoutes.some(route => pathName.startsWith(route));
   const isPublicRoute = publicRoutes.some(route => pathName === route);
 
-  const { data: session } = await betterFetch<Session>(
-    "/api/auth/get-session",
-    {
-      baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? "http://localhost:3000",
-      headers: {
-        cookie: request.headers.get("cookie") || "",
-      },
-    },
-  );
+  // Manual cookie parsing as temporary workaround
+  const cookieHeader = request.headers.get("cookie");
+  const cookies = cookieHeader?.split("; ").reduce((acc, cookie) => {
+    const [key, value] = cookie.split("=");
+    acc.set(key, value);
+    return acc;
+  }, new Map());
+
+  const sessionCookie =
+    cookies?.get("better-auth.session_token") ||
+    cookies?.get("__Secure-better-auth.session_token");
+
+
 
   // If user is not authenticated
-  if (!session) {
-    console.log("User is not authenticated");
+  if (!sessionCookie) {
     // Allow access to auth, password reset, and public routes
     if (isAuthRoute || isPasswordRoute || isPublicRoute) {
-      console.log("Allowing access to", pathName);
       return NextResponse.next();
     }
-    
+
     // For protected routes, redirect to login with the intended URL as redirect_url parameter
     const url = request.nextUrl.clone();
     const intendedUrl = url.pathname + url.search;
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect_url", intendedUrl);
-    
+
     return NextResponse.redirect(loginUrl);
   }
+
 
   // User is authenticated but trying to access auth or password routes
   if (isAuthRoute || isPasswordRoute) {
@@ -48,8 +51,22 @@ export default async function authMiddleware(request: NextRequest) {
   }
 
   // User trying to access admin routes without admin role
-  if (isAdminRoute && session.user.role !== "admin") {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (isAdminRoute) {
+
+    const { data: session } = await betterFetch<Session>(
+      "/api/auth/get-session",
+      {
+        baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? "http://localhost:3000",
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
+      },
+    );
+
+    if (!session || session.user.role !== "admin") {
+      console.log("User is not an admin", session?.user.role);
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   // Allow access to all other routes for authenticated users
@@ -57,5 +74,5 @@ export default async function authMiddleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$|favicon.ico|sw.js|manifest.webmanifest|.*\\.json$).*)'],
 };

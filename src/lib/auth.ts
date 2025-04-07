@@ -1,6 +1,6 @@
 import { betterAuth, BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { admin } from "better-auth/plugins"
+import { admin, jwt } from "better-auth/plugins"
 import prisma from "./prisma";
 import { EmailService } from "@/services/email/email-service";
 
@@ -38,12 +38,12 @@ export const auth = betterAuth({
             // Add the token to the callback URL to ensure it's available when redirected
             const encodedToken = encodeURIComponent(token);
             const callbackWithTokenAndUserId = `${process.env.EMAIL_VERIFICATION_CALLBACK_URL}?token=${encodedToken}?userId=${user.id}`;
-            
+
             const verificationUrl = `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? 'http://localhost:3000'}/api/auth/verify-email?token=${encodedToken}&callbackURL=${encodeURIComponent(callbackWithTokenAndUserId)}`;
-            
+
             await emailService.sendEmail(
-                user.email, 
-                'Verifica tu email', 
+                user.email,
+                'Verifica tu email',
                 `Haz click en el siguiente enlace para verificar tu email: <a href="${verificationUrl}">${verificationUrl}</a>`
             );
         },
@@ -79,7 +79,15 @@ export const auth = betterAuth({
         }
     },
     plugins: [
-        admin()
+        admin(),
+        jwt({
+            jwks: {
+                keyPairConfig: {
+                    alg: "RS256",  // Correcto
+                    modulusLength: 2048  // Opcional, el valor predeterminado es 2048
+                }
+            }
+        })
     ]
 } satisfies BetterAuthOptions);
 

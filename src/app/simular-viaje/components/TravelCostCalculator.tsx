@@ -49,9 +49,9 @@ const TravelCostCalculator = ({ routeInfo, fuels, onPriceChange, onCarChange }: 
 
     useEffect(() => {
         if (adjustedCostPerPassenger > 0 && onPriceChange) {
-            onPriceChange({ price: adjustedCostPerPassenger, priceGuide: costPerPassenger })
+            onPriceChange({ price: adjustedCostPerPassenger, priceGuide: costPerPassenger });
         }
-    }, [adjustedCostPerPassenger, costPerPassenger, onPriceChange])
+    }, [adjustedCostPerPassenger, costPerPassenger, onPriceChange]);
 
 
     useEffect(() => {
@@ -78,12 +78,6 @@ const TravelCostCalculator = ({ routeInfo, fuels, onPriceChange, onCarChange }: 
             }
         }
     }, [selectedCar, fuels, user])
-
-    useEffect(() => {
-        if (adjustedCostPerPassenger > 0 && onPriceChange) {
-            onPriceChange({ price: adjustedCostPerPassenger, priceGuide: costPerPassenger });
-        }
-    }, [adjustedCostPerPassenger, costPerPassenger, onPriceChange]);
 
     useEffect(() => {
         if (costPerPassenger > 0) {

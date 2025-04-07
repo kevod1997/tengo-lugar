@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -13,61 +12,19 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
+import { useTripPreferencesStore } from '@/store/trip-preferences-store'
 
-interface TripPreferencesFormProps {
-  onPreferencesChange?: (preferences: {
-    availableSeats: number;
-    luggageAllowance: string;
-    allowPets: boolean;
-    allowChildren: boolean;
-    smokingAllowed: boolean;
-    autoApproveReservations: boolean;
-    additionalNotes: string;
-  }) => void;
-}
-
-const TripPreferencesForm: React.FC<TripPreferencesFormProps> = ({ onPreferencesChange }) => {
-  const [preferences, setPreferences] = useState({
-    availableSeats: 4, // Add this property
-    luggageAllowance: 'MEDIUM',
-    allowPets: false,
-    allowChildren: true,
-    smokingAllowed: false,
-    autoApproveReservations: false,
-    additionalNotes: '',
-});
-
-interface Preferences {
-    availableSeats: number;
-    luggageAllowance: string;
-    allowPets: boolean;
-    allowChildren: boolean;
-    smokingAllowed: boolean;
-    autoApproveReservations: boolean;
-    additionalNotes: string;
-}
-
-type PreferenceKey = keyof Preferences;
-
-const handleChange = (key: PreferenceKey, value: Preferences[PreferenceKey]) => {
-    const updatedPreferences: Preferences = {
-        ...preferences,
-        [key]: value
-    };
-    setPreferences(updatedPreferences);
-    if (onPreferencesChange) {
-        onPreferencesChange(updatedPreferences);
-    }
-};
-
+const TripPreferencesForm = () => {
+  const preferences = useTripPreferencesStore()
+  
   // Validate seats input (1-4 range)
-const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     let value: number = parseInt(e.target.value)
     if (isNaN(value)) value = 1
     if (value < 1) value = 1
     if (value > 4) value = 4
-    handleChange('availableSeats', value)
-}
+    preferences.setAvailableSeats(value)
+  }
 
   return (
     <Card className="mt-6">
@@ -75,7 +32,7 @@ const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         <CardTitle>Preferencias de viaje</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Add available seats selector */}
+        {/* Available seats selector */}
         <div className="space-y-2">
           <Label htmlFor="available-seats">Asientos disponibles (1-4)</Label>
           <div className="flex space-x-2 items-center">
@@ -90,7 +47,7 @@ const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
             />
             <Select 
               value={preferences.availableSeats.toString()} 
-              onValueChange={(value) => handleChange('availableSeats', parseInt(value))}
+              onValueChange={(value) => preferences.setAvailableSeats(parseInt(value))}
             >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Selecciona asientos" />
@@ -108,11 +65,12 @@ const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
           </p>
         </div>
         
+        {/* Luggage allowance */}
         <div className="space-y-2">
           <Label htmlFor="luggage-allowance">Equipaje permitido</Label>
           <Select 
             value={preferences.luggageAllowance} 
-            onValueChange={(value) => handleChange('luggageAllowance', value)}
+            onValueChange={preferences.setLuggageAllowance}
           >
             <SelectTrigger id="luggage-allowance">
               <SelectValue placeholder="Selecciona tamaño de equipaje" />
@@ -121,17 +79,19 @@ const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
               <SelectItem value="SMALL">Pequeño (mochila o bolso)</SelectItem>
               <SelectItem value="MEDIUM">Mediano (maleta de mano)</SelectItem>
               <SelectItem value="LARGE">Grande (maleta de bodega)</SelectItem>
+              <SelectItem value="EXTRA">Extra (deportes, instrumentos)</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
+        {/* Boolean preferences */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex items-center justify-between space-x-2">
             <Label htmlFor="allow-pets" className="flex-1">Permitir mascotas</Label>
             <Switch 
               id="allow-pets" 
               checked={preferences.allowPets} 
-              onCheckedChange={(checked) => handleChange('allowPets', checked)}
+              onCheckedChange={preferences.togglePets}
             />
           </div>
           
@@ -140,7 +100,7 @@ const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
             <Switch 
               id="allow-children" 
               checked={preferences.allowChildren} 
-              onCheckedChange={(checked) => handleChange('allowChildren', checked)}
+              onCheckedChange={preferences.toggleChildren}
             />
           </div>
           
@@ -149,7 +109,7 @@ const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
             <Switch 
               id="smoking-allowed" 
               checked={preferences.smokingAllowed} 
-              onCheckedChange={(checked) => handleChange('smokingAllowed', checked)}
+              onCheckedChange={preferences.toggleSmoking}
             />
           </div>
           
@@ -158,19 +118,24 @@ const handleSeatsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
             <Switch 
               id="auto-approve" 
               checked={preferences.autoApproveReservations} 
-              onCheckedChange={(checked) => handleChange('autoApproveReservations', checked)}
+              onCheckedChange={preferences.toggleAutoApprove}
             />
           </div>
         </div>
         
+        {/* Additional notes */}
         <div className="space-y-2">
           <Label htmlFor="additional-notes">Notas adicionales</Label>
           <Textarea 
             id="additional-notes" 
             placeholder="Puedes agregar reglas o información adicional para tus pasajeros..."
             value={preferences.additionalNotes}
-            onChange={(e) => handleChange('additionalNotes', e.target.value)}
+            onChange={(e) => preferences.setAdditionalNotes(e.target.value)}
+            maxLength={500}
           />
+          <p className="text-xs text-muted-foreground text-right">
+            {preferences.additionalNotes.length}/500
+          </p>
         </div>
       </CardContent>
     </Card>

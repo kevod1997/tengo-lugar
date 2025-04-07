@@ -10,7 +10,7 @@ import ProfileForm from "./ProfileForm"
 import AccountManagement from "./AccountManagement"
 import { useHydration } from "@/hooks/ui/useHydration"
 import { HydrationLoading } from "@/components/ui/hydration-loading"
-import PushNotificationManager from "@/components/notifications/PushNotificationManager"
+import { PushNotificationManager } from "@/components/notifications/PushNotificationManager"
 
 interface ProfileContentProps { 
     birthDate: Date | null | undefined;

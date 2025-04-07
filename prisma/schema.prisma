@@ -83,6 +83,13 @@ model Verification {
   updatedAt  DateTime @updatedAt
 }
 
+model jwks {
+  id         String   @id @default(cuid()) @map("_id")
+  publicKey  String
+  privateKey String
+  createdAt  DateTime @default(now())
+}
+
 model IdentityCard {
   id            String             @id @default(uuid())
   userId        String             @unique
@@ -176,6 +183,23 @@ model CarModel {
 
   @@unique([brandId, model, year], name: "brandId_model_year")
   @@index([brandId])
+}
+
+model FuelPrice {
+  id             String    @id @default(uuid())
+  name           String
+  fuelType       FuelType
+  price          Float // Precio por litro/kWh
+  regionCode     String? // Código de región o provincia (opcional, si los precios varían por región)
+  effectiveDate  DateTime // Fecha desde la que aplica este precio
+  expirationDate DateTime? // Fecha opcional hasta la que aplica
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([fuelType, isActive])
+  @@index([fuelType, regionCode, effectiveDate])
+  @@index([effectiveDate])
 }
 
 model Car {
@@ -274,14 +298,37 @@ model Insurance {
 }
 
 model Trip {
-  id                      String           @id @default(uuid())
-  driverCarId             String
-  origin                  String
-  destination             String
-  date                    DateTime
-  departureTime           DateTime
-  price                   Int
-  distance                Float?
+  id          String @id @default(uuid())
+  driverCarId String
+
+  // Enhanced origin details
+  originAddress   String? // Full formatted address
+  originCity      String // City name
+  originProvince  String // Province/state name
+  originLatitude  Float? // Latitude coordinate
+  originLongitude Float? // Longitude coordinate
+
+  // Enhanced destination details
+  destinationAddress   String? // Full formatted address
+  destinationCity      String // City name
+  destinationProvince  String // Province/state name
+  destinationLatitude  Float? // Latitude coordinate
+  destinationLongitude Float? // Longitude coordinate
+
+  // Route information
+  googleMapsUrl   String? // URL to Google Maps route
+  date            DateTime
+  departureTime   DateTime
+  price           Int
+  distance        Float?
+  duration        String? // Duration string from Google (e.g. "2h 15m")
+  durationSeconds Int? // Duration in seconds for easier calculations
+
+  // Toll information
+  hasTolls           Boolean @default(false)
+  tollEstimatedPrice Float? // Estimated toll price
+
+  // Trip details
   availableSeats          Int
   status                  TripStatus       @default(PENDING)
   isFull                  Boolean          @default(false)
@@ -368,29 +415,25 @@ model Payment {
 }
 
 model BankTransfer {
-  id                 String             @id @default(uuid())
-  paymentId          String             @unique
-  accountOwner       String?
-  transferDate       DateTime?
-  proofFileKey       String?
-  verificationStatus VerificationStatus @default(PENDING)
-  verifiedAt         DateTime?
-  verifiedBy         String?
-  failureReason      String?
+  id            String    @id @default(uuid())
+  paymentId     String    @unique
+  accountOwner  String?
+  transferDate  DateTime?
+  proofFileKey  String?
+  verifiedAt    DateTime?
+  verifiedBy    String?
+  failureReason String?
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-
-  @@index([verificationStatus])
 }
 
 model TripCategory {
-  id          String  @id @default(uuid())
+  id          String    @id @default(uuid())
   feePolicyId String
   name        String
   description String?
-
-  trips     Trip[]
-  feePolicy FeePolicy @relation(fields: [feePolicyId], references: [id])
+  trips       Trip[]
+  feePolicy   FeePolicy @relation(fields: [feePolicyId], references: [id])
 
   @@index([feePolicyId])
 }
@@ -490,7 +533,9 @@ enum TripStatus {
 
 enum ReservationStatus {
   PENDING_APPROVAL // Waiting for driver approval
+  WAITLISTED // Trip full but passenger is on waiting list
   APPROVED // Driver approved, pending payment
+  APRROVED_PENDING_PAYMENT // Driver approved, payment pending
   REJECTED // Driver rejected the request
   CONFIRMED // Confirmed (approved and paid)
   CANCELLED_BY_DRIVER // Cancelled by driver
@@ -522,4 +567,29 @@ enum LuggageAllowance {
   MEDIUM // Medium luggage (cabin luggage)
   LARGE // Large suitcases
   EXTRA // Extra or bulky luggage (sports, instruments, etc.)
+}
+
+enum ChatRoomStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ChatRoomRole {
+  DRIVER
+  PASSENGER
+  ADMIN
+}
+
+enum MessageContentType {
+  TEXT
+  IMAGE
+  LOCATION
+  SYSTEM
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
 }
