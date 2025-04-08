@@ -922,6 +922,7 @@ import { ExplanationDialog } from './dialogs/ExplanationDialog'
 import { PermissionDialog } from './dialogs/PermissionDialog'
 import { SystemPermissionsDialog } from './dialogs/SystemPermissionDialog'
 import { InstallAppDialog } from './dialogs/InstallAppDialog'
+import { authClient } from '@/lib/auth-client'
 
 interface NotificationResponse {
   sent: boolean;
@@ -931,6 +932,8 @@ interface NotificationResponse {
 }
 
 export function PushNotificationManager() {
+  const { data } = authClient.useSession();
+
   const [isSupported, setIsSupported] = useState(false)
   const [subscription, setSubscription] = useState<PushSubscription | null>(null)
   const [permissionState, setPermissionState] = useState<NotificationPermission | 'unsupported'>('unsupported')
@@ -1095,6 +1098,7 @@ export function PushNotificationManager() {
       setError('Tu navegador no soporta notificaciones push.');
     }
   }, [ensureServiceWorkerReady]);
+
 
   // Mostrar diálogo explicativo en móviles
   function initiatePermissionRequest() {
@@ -1333,6 +1337,10 @@ export function PushNotificationManager() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if(!data) {
+    return null;
   }
 
   if (!isSupported) {

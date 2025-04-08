@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import Loading from "./loading";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { AuthCheck } from "@/components/AuthCheck";
+import { NavigationMessageListener } from "@/components/NavigationMessengerListener";
 
 export const metadata: Metadata = {
   title: {
@@ -28,6 +29,7 @@ export default function RootLayout({
         <Providers>
           <NavigationProgress />
           <AuthCheck />
+          <NavigationMessageListener />
           <div className="flex w-full">
             <AppSidebar className="hidden lg:flex" />
             <div className="flex flex-col flex-1 w-full m-4 px-2">
