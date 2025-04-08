@@ -18,6 +18,7 @@ import LoadingButton from "@/components/loader/loading-button";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { forgotPasswordSchema } from "@/schemas/validation/auth-schemas";
+import Header from "@/components/header/header";
 
 
 export default function ForgotPassword() {
@@ -42,7 +43,7 @@ export default function ForgotPassword() {
 				description: error.message,
 			});
 		} else {
-			toast.success('Exito',{
+			toast.success('Exito', {
 				description:
 					"Si el email ingresado corresponde a una cuenta existente, recibirás un email con instrucciones para resetear tu contraseña.",
 			});
@@ -51,39 +52,48 @@ export default function ForgotPassword() {
 	};
 
 	return (
-		<div className="grow flex items-center justify-center p-4">
-			<Card className="w-full max-w-md">
-				<CardHeader>
-					<CardTitle className="text-3xl font-bold text-center text-gray-800">
-						Olvide mi contraseña
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-							<FormField
-								control={form.control}
-								name="email"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Email</FormLabel>
-										<FormControl>
-											<Input
-												type="email"
-												placeholder="Ingresa tu email"
-												{...field}
-												autoComplete="email"
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<LoadingButton pending={isPending}>Enviar link de reseteo</LoadingButton>
-						</form>
-					</Form>
-				</CardContent>
-			</Card>
-		</div>
+		<>
+			<Header
+				breadcrumbs={[
+					{ label: 'Inicio', href: '/' },
+					{ label: 'Login', href: '/login' },
+					{ label: 'Olvide mi contraseña' },
+				]
+				} />
+			<div className="grow flex items-center justify-center p-4">
+				<Card className="w-full max-w-md">
+					<CardHeader>
+						<CardTitle className="text-3xl font-bold text-center text-gray-800">
+							Olvide mi contraseña
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<Form {...form}>
+							<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+								<FormField
+									control={form.control}
+									name="email"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Email</FormLabel>
+											<FormControl>
+												<Input
+													type="email"
+													placeholder="Ingresa tu email"
+													{...field}
+													autoComplete="email"
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<LoadingButton pending={isPending}>Enviar link de reseteo</LoadingButton>
+							</form>
+						</Form>
+					</CardContent>
+				</Card>
+			</div>
+		</>
 	);
 }

@@ -25,6 +25,7 @@ import LoadingButton from "@/components/loader/loading-button";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
+import Header from "@/components/header/header";
 
 function SignIn() {
 	const [pendingCredentials, setPendingCredentials] = useState(false);
@@ -113,111 +114,119 @@ function SignIn() {
 	// };
 
 	return (
-		<div className="grow flex items-center justify-center p-4">
-			<Card className="w-full max-w-md">
-				<div className="flex justify-center mt-6">
-					<Image
-						src="/imgs/logo.png"
-						alt="Logo"
-						width={60}
-						height={20}
-						className="h-auto rounded-full"
-						priority
-					/>
-				</div>
-				<CardHeader>
-					<CardTitle className="text-3xl font-bold text-center text-gray-800">
-						Iniciar Sesión
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<Form {...form}>
-						<form
-							onSubmit={form.handleSubmit(handleCredentialsSignIn)}
-							className="space-y-6"
-						>
-							{["email", "password"].map((field) => {
-								const labelMap: Record<string, string> = {
-									email: "Email",
-									password: "Contraseña"
-								};
+		<>
+			<Header
+				breadcrumbs={[
+					{ label: 'Inicio', href: '/' },
+					{ label: 'Login' },
+				]
+				} />
+			<div className="grow flex items-center justify-center p-4">
+				<Card className="w-full max-w-md">
+					<div className="flex justify-center mt-6">
+						<Image
+							src="/imgs/logo.png"
+							alt="Logo"
+							width={60}
+							height={20}
+							className="h-auto rounded-full"
+							priority
+						/>
+					</div>
+					<CardHeader>
+						<CardTitle className="text-3xl font-bold text-center text-gray-800">
+							Iniciar Sesión
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<Form {...form}>
+							<form
+								onSubmit={form.handleSubmit(handleCredentialsSignIn)}
+								className="space-y-6"
+							>
+								{["email", "password"].map((field) => {
+									const labelMap: Record<string, string> = {
+										email: "Email",
+										password: "Contraseña"
+									};
 
-								const placeholderMap: Record<string, string> = {
-									email: "Ingresa tu email",
-									password: "Ingresa tu contraseña"
-								};
+									const placeholderMap: Record<string, string> = {
+										email: "Ingresa tu email",
+										password: "Ingresa tu contraseña"
+									};
 
-								return (
-									<FormField
-										control={form.control}
-										key={field}
-										name={field as keyof z.infer<typeof signInSchema>}
-										render={({ field: fieldProps }) => (
-											<FormItem>
-												<FormLabel>
-													{labelMap[field]}
-												</FormLabel>
-												<FormControl>
-													<Input
-														type={field === "password" ? "password" : "email"}
-														placeholder={placeholderMap[field]}
-														{...fieldProps}
-														autoComplete={
-															field === "password" ? "current-password" : "email"
-														}
-													/>
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-								)
-							})}
-							<LoadingButton pending={pendingCredentials}>
-								Iniciar sesión
+									return (
+										<FormField
+											control={form.control}
+											key={field}
+											name={field as keyof z.infer<typeof signInSchema>}
+											render={({ field: fieldProps }) => (
+												<FormItem>
+													<FormLabel>
+														{labelMap[field]}
+													</FormLabel>
+													<FormControl>
+														<Input
+															type={field === "password" ? "password" : "email"}
+															placeholder={placeholderMap[field]}
+															{...fieldProps}
+															autoComplete={
+																field === "password" ? "current-password" : "email"
+															}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									)
+								})}
+								<LoadingButton pending={pendingCredentials}>
+									Iniciar sesión
+								</LoadingButton>
+							</form>
+						</Form>
+						<div className="mt-4">
+							<LoadingButton
+								pending={pendingGoogle}
+								onClick={handleSignInWithGoogle}
+							>
+								<FaGoogle className="w-4 h-4 mr-2" />
+								Continuar con Google
 							</LoadingButton>
-						</form>
-					</Form>
-					<div className="mt-4">
-						<LoadingButton
-							pending={pendingGoogle}
-							onClick={handleSignInWithGoogle}
-						>
-							<FaGoogle className="w-4 h-4 mr-2" />
-							Continuar con Google
-						</LoadingButton>
-					</div>
-					<div className="mt-4">
-						<LoadingButton
-							pending={false}
-							// pending={pendingFacebook}
-							onClick={() => toast.info("Esta funcionalidad no está disponible aún")}
-						>
-							<FaFacebook className="w-4 h-4 mr-2" />
-							Continuar con Facebook
-						</LoadingButton>
-					</div>
-					<Separator className="mt-4" />
-					<div className="mt-4 text-center text-sm">
-						<Link
-							href="/olvide-mi-clave"
-							className="text-primary hover:underline"
-						>
-							¿Olvidaste tu contraseña?
-						</Link>
-					</div>
-					<Separator className="mt-4" />
-					<div className="mt-4 text-center text-sm">
-						<Link
-							href="/registro"
-							className="text-primary hover:underline"
-						>
-							¿No tienes cuenta? Regístrate
-						</Link>
-					</div>
-				</CardContent>
-			</Card>
-		</div>
+						</div>
+						<div className="mt-4">
+							<LoadingButton
+								pending={false}
+								// pending={pendingFacebook}
+								onClick={() => toast.info("Esta funcionalidad no está disponible aún")}
+							>
+								<FaFacebook className="w-4 h-4 mr-2" />
+								Continuar con Facebook
+							</LoadingButton>
+						</div>
+						<Separator className="mt-4" />
+						<div className="mt-4 text-center text-sm">
+							<Link
+								href="/olvide-mi-clave"
+								className="text-primary hover:underline"
+							>
+								¿Olvidaste tu contraseña?
+							</Link>
+						</div>
+						<Separator className="mt-4" />
+						<div className="mt-4 text-center text-sm">
+							<Link
+								href="/registro"
+								className="text-primary hover:underline"
+							>
+								¿No tienes cuenta? Regístrate
+							</Link>
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		</>
 	);
 }
 

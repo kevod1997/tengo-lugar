@@ -23,6 +23,7 @@ import LoadingButton from "@/components/loader/loading-button";
 import { useRouter } from "next/navigation";
 import { LoggingService } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
+import Header from "@/components/header/header";
 
 
 export default function SignUp() {
@@ -84,81 +85,87 @@ export default function SignUp() {
     };
 
     return (
-        <div className="grow flex items-center justify-center p-4">
-            <Card className="w-full max-w-md">
-                <div className="flex justify-center mt-6">
-                    <Image
-                        src="/imgs/logo.png"
-                        alt="Logo"
-                        width={60}
-                        height={20}
-                        className="h-auto rounded-full"
-                        priority
-                    />
-                </div>
-                <CardHeader>
-                    <CardTitle className="text-3xl font-bold text-center text-gray-800">
-                        Crear Cuenta
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            {["name", "email", "password", "confirmPassword"].map((field) => {
-                                const labelMap: Record<string, string> = {
-                                    name: "Nombre",
-                                    email: "Email",
-                                    password: "Contraseña",
-                                    confirmPassword: "Confirmar Contraseña"
-                                };
-
-                                const placeholderMap: Record<string, string> = {
-                                    name: "Ingresa tu nombre",
-                                    email: "Ingresa tu email",
-                                    password: "Ingresa tu contraseña",
-                                    confirmPassword: "Confirma tu contraseña"
-                                };
-
-                                return (
-                                    <FormField
-                                        control={form.control}
-                                        key={field}
-                                        name={field as keyof z.infer<typeof signUpSchema>}
-                                        render={({ field: fieldProps }) => (
-                                            <FormItem>
-                                                <FormLabel>
-                                                    {labelMap[field]}
-                                                </FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type={
-                                                            field.includes("password")
-                                                                ? "password"
-                                                                : field === "email"
-                                                                    ? "email"
-                                                                    : "text"
-                                                        }
-                                                        placeholder={placeholderMap[field]}
-                                                        {...fieldProps}
-                                                        autoComplete="off"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                )
-                            })}
-                            <LoadingButton pending={pending}>Registrarse</LoadingButton>
-                        </form>
-                    </Form>
-                    <div className="mt-4 text-center text-sm">
-                        <Link href="/login" className="text-primary hover:underline">
-                            ¿Ya tienes una cuenta? Inicia sesión
-                        </Link>
+        <>
+            <Header breadcrumbs={[
+                { label: 'Inicio', href: '/' },
+                { label: 'Registro' },
+            ]} />
+            <div className="grow flex items-center justify-center p-4">
+                <Card className="w-full max-w-md">
+                    <div className="flex justify-center mt-6">
+                        <Image
+                            src="/imgs/logo.png"
+                            alt="Logo"
+                            width={60}
+                            height={20}
+                            className="h-auto rounded-full"
+                            priority
+                        />
                     </div>
-                </CardContent>
-            </Card>
-        </div>
+                    <CardHeader>
+                        <CardTitle className="text-3xl font-bold text-center text-gray-800">
+                            Crear Cuenta
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                {["name", "email", "password", "confirmPassword"].map((field) => {
+                                    const labelMap: Record<string, string> = {
+                                        name: "Nombre",
+                                        email: "Email",
+                                        password: "Contraseña",
+                                        confirmPassword: "Confirmar Contraseña"
+                                    };
+
+                                    const placeholderMap: Record<string, string> = {
+                                        name: "Ingresa tu nombre",
+                                        email: "Ingresa tu email",
+                                        password: "Ingresa tu contraseña",
+                                        confirmPassword: "Confirma tu contraseña"
+                                    };
+
+                                    return (
+                                        <FormField
+                                            control={form.control}
+                                            key={field}
+                                            name={field as keyof z.infer<typeof signUpSchema>}
+                                            render={({ field: fieldProps }) => (
+                                                <FormItem>
+                                                    <FormLabel>
+                                                        {labelMap[field]}
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type={
+                                                                field.includes("password")
+                                                                    ? "password"
+                                                                    : field === "email"
+                                                                        ? "email"
+                                                                        : "text"
+                                                            }
+                                                            placeholder={placeholderMap[field]}
+                                                            {...fieldProps}
+                                                            autoComplete="off"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )
+                                })}
+                                <LoadingButton pending={pending}>Registrarse</LoadingButton>
+                            </form>
+                        </Form>
+                        <div className="mt-4 text-center text-sm">
+                            <Link href="/login" className="text-primary hover:underline">
+                                ¿Ya tienes una cuenta? Inicia sesión
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </>
     );
 }
