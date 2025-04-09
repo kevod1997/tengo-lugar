@@ -80,11 +80,167 @@ export const auth = betterAuth({
     },
     plugins: [
         admin(),
+        // jwt({
+        //     jwt: {
+        //        expirationTime: 60 * 60 * 24 * 7, // 7 days
+        //     },
+        //     jwks: {
+        //         keyPairConfig: {
+        //             alg: "RS256",  // Correcto
+        //             modulusLength: 2048  // Opcional, el valor predeterminado es 2048
+        //         },
+
+        //     }
+        // })
         jwt({
+            jwt: {
+                expirationTime: 60 * 60 * 24 * 7, // 7 days
+                // definePayload: async ({ user }) => {
+                //     // Buscar usuario con su relación driver
+                //     const userWithDriver = await prisma.user.findUnique({
+                //         where: { id: user.id },
+                //         include: {
+                //             driver: true,
+                //         }
+                //     });
+
+                //     const isDriver = !!userWithDriver?.driver;
+
+                //     let lastTripDriverCarId = null;
+
+                //     if (isDriver && userWithDriver.driver) {
+                //         // Buscar el último viaje creado por este conductor
+                //         const lastTrip = await prisma.trip.findFirst({
+                //             where: {
+                //                 driverCar: {
+                //                     driverId: userWithDriver.driver.id
+                //                 }
+                //             },
+                //             orderBy: {
+                //                 createdAt: 'desc'
+                //             },
+                //             select: {
+                //                 driverCarId: true
+                //             }
+                //         });
+
+                //         if (lastTrip) {
+                //             lastTripDriverCarId = lastTrip.driverCarId;
+                //         }
+                //     }
+
+                //     return {
+                //         id: user.id,
+                //         role: lastTripDriverCarId ? 'driver' : 'passenger',
+                //         driverCarId: isDriver && lastTripDriverCarId ? lastTripDriverCarId : null, 
+                //     };
+                // }
+                definePayload: async ({ user }) => {
+                    // Obtener usuario con sus relaciones
+                    const userWithRelations = await prisma.user.findUnique({
+                      where: { id: user.id },
+                      include: {
+                        driver: true,
+                        passenger: true
+                      }
+                    });
+                  
+                    let tripRole = null;
+                    let roleId = null;
+                    const driverId = userWithRelations?.driver?.id;
+                    const passengerId = userWithRelations?.passenger?.id;
+                    
+                    // Variables temporales para comparación
+                    let lastDriverTripDate = null;
+                    let lastPassengerTripDate = null;
+                    let lastDriverCarId = null;
+                    let lastPassengerTripId = null;
+                  
+                    // Verificar si el usuario tiene cuenta de conductor
+                    if (driverId) {
+                      const lastDriverTrip = await prisma.trip.findFirst({
+                        where: {
+                          driverCar: {
+                            driverId: driverId
+                          }
+                        },
+                        orderBy: { createdAt: 'desc' },
+                        select: { 
+                          driverCarId: true,
+                          createdAt: true 
+                        }
+                      });
+                  
+                      if (lastDriverTrip) {
+                        lastDriverTripDate = lastDriverTrip.createdAt;
+                        lastDriverCarId = lastDriverTrip.driverCarId;
+                      }
+                    }
+                  
+                    // Verificar si el usuario tiene cuenta de pasajero con reserva APROBADA
+                    if (passengerId) {
+                      const lastPassengerTrip = await prisma.tripPassenger.findFirst({
+                        where: { 
+                          passengerId: passengerId,
+                          reservationStatus: 'APPROVED'  // Solo considerar reservas aprobadas
+                        },
+                        orderBy: { createdAt: 'desc' },
+                        select: { 
+                          id: true,
+                          createdAt: true
+                        }
+                      });
+                  
+                      if (lastPassengerTrip) {
+                        lastPassengerTripDate = lastPassengerTrip.createdAt;
+                        lastPassengerTripId = lastPassengerTrip.id;
+                      }
+                    }
+                  
+                    // Determinar el rol más reciente
+                    if (lastDriverTripDate && lastPassengerTripDate) {
+                      // Si tiene ambos roles, elegir el más reciente
+                      if (lastDriverTripDate > lastPassengerTripDate) {
+                        tripRole = 'driver';
+                        roleId = lastDriverCarId;
+                      } else {
+                        tripRole = 'passenger';
+                        roleId = lastPassengerTripId;
+                      }
+                    } else if (lastDriverTripDate) {
+                      // Solo tiene rol de conductor
+                      tripRole = 'driver';
+                      roleId = lastDriverCarId;
+                    } else if (lastPassengerTripDate) {
+                      // Solo tiene rol de pasajero
+                      tripRole = 'passenger';
+                      roleId = lastPassengerTripId;
+                    }
+                  
+                    // Payload base que siempre tendrá el ID del usuario y su rol del sistema
+                    const payload = {
+                      id: user.id,
+                      role: user.role
+                    };
+                  
+                    // Solo agregar tripRole y roleId si efectivamente tiene uno de esos roles
+                    if (tripRole) {
+                      return {
+                        ...payload,
+                        name: user.name,
+                        tripRole,
+                        roleId
+                      };
+                    }
+                  
+                    // Si no tiene ningún rol específico, devolver solo el payload base
+                    return payload;
+                  }
+            },
             jwks: {
                 keyPairConfig: {
-                    alg: "RS256",  // Correcto
-                    modulusLength: 2048  // Opcional, el valor predeterminado es 2048
+                    alg: "RS256",
+                    modulusLength: 2048
                 }
             }
         })

@@ -35,7 +35,7 @@ export default function JwtTestPage() {
     setLoading(true);
     try {
       const response = await fetch('/api/auth/token');
-      
+      console.log('Response:', response);
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
