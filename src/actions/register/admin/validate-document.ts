@@ -12,6 +12,7 @@ import { inngest } from "@/lib/inngest";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { requireAuthorization } from "@/utils/helpers/auth-helper";
+//todo ver el comportamiento del cierre del modal cuando se hace el onclick en el validar documento
 
 const identityService = new IdentityValidationService();
 const licenceService = new LicenceValidationService();

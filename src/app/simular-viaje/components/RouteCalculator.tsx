@@ -923,6 +923,10 @@ const RouteCalculator = ({
                 originInfo={origin.locationInfo}
                 destinationInfo={destination.locationInfo}
               />
+
+              {fuels.length === 0 && (
+                <p className="text-sm text-red-500 mt-4">No hay combustibles disponibles</p>
+              )}
               
               <TravelCostCalculator
                 routeInfo={routeInfo}
