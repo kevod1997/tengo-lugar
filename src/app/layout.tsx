@@ -7,7 +7,7 @@ import { Toaster } from "sonner";
 import { Suspense } from "react";
 import Loading from "./loading";
 import { NavigationProgress } from "@/components/navigation-progress";
-import { AuthCheck } from "@/components/AuthCheck";
+// import { AuthCheck } from "@/components/AuthCheck";
 import { NavigationMessageListener } from "@/components/NavigationMessengerListener";
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function RootLayout({
       <body className={`${openSans.className} flex h-full overflow-hidden bg-background`}>
         <Providers>
           <NavigationProgress />
-          <AuthCheck />
+          {/* <AuthCheck /> */}
           <NavigationMessageListener />
           <div className="flex w-full">
             <AppSidebar className="hidden lg:flex" />
