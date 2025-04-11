@@ -82,8 +82,7 @@ export const auth = betterAuth({
     admin(),
     jwt({
       jwt: {
-        expirationTime: 60 * 60 * 24 * 7, // 7 days
-
+        expirationTime: "1w",
         //todo ver con agus el caso que un usuarios este participando en dos viajes a al vez pero en uno es ocndcutor y en otro pasajero
         definePayload: async ({ user }) => {
           // Obtener usuario con sus relaciones
