@@ -43,3 +43,21 @@ export interface TripData {
   smokingAllowed: boolean;
   additionalNotes?: string;
 }
+
+
+export interface Trip {
+  id: string
+  originCity: string
+  destinationCity: string
+  departureTime: Date  // Changed from string to Date
+  price: number
+  availableSeats: number
+  driverName: string
+  driverProfileImage: string | null
+  carInfo: {
+    brand: string
+    model: string
+    year: number
+  }
+  // Other properties...
+}

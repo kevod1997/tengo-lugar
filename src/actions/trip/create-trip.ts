@@ -81,6 +81,7 @@ export async function createTrip(tripData: TripData) {
 
                     // Preferences
                     availableSeats: validatedData.availableSeats,
+                    remainingSeats: validatedData.availableSeats,
                     autoApproveReservations: validatedData.autoApproveReservations,
                     luggageAllowance: validatedData.luggageAllowance,
                     allowPets: validatedData.allowPets,

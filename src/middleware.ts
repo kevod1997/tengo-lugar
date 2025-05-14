@@ -64,7 +64,7 @@ export default async function authMiddleware(request: NextRequest) {
     );
 
     if (!session || session.user.role !== "admin") {
-      console.log("User is not an admin", session?.user.role);
+
       return NextResponse.redirect(new URL("/", request.url));
     }
   }

@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -35,27 +36,27 @@ import { useRouter } from "next/navigation"
 import { LoggingService } from "@/services/logging/logging-service"
 import { TipoAccionUsuario } from "@/types/actions-logs"
 import { splitFullName } from "@/utils/format/user-formatter"
-import { useIsMobile } from "@/hooks/ui/useMobile"
-
+import Link from "next/link"
 
 export function NavUser({ open }: { open: boolean }) {
   const { data } = authClient.useSession();
   const router = useRouter();
-  const { isMobile } = useSidebar();
-  const isMobileView = useIsMobile(); // Usa el hook para detectar pantallas móviles
+  const { isMobile, setOpenMobile } = useSidebar(); // Get setOpenMobile to close mobile sidebar
   const { user: userDb } = useUserStore();
-  
-  // Determinar si mostrar la información del usuario (en mobile o cuando está abierto)
-  const showUserInfo = open || isMobileView;
   
   // Extraer nombre y apellido solo si hay datos de usuario
   const { firstName, lastName } = data?.user ? splitFullName(data.user.name || '') : { firstName: '', lastName: '' };
   const email = data?.user?.email;
   const isVerified = userDb?.identityStatus === 'VERIFIED' ? true : false;
-  
+
   const handleSignOut = async () => {
     if (data) {
       try {
+        // Close mobile sidebar if it's open
+        if (isMobile) {
+          setOpenMobile(false);
+        }
+        
         await authClient.signOut({
           fetchOptions: {
             onSuccess: async () => {
@@ -81,22 +82,34 @@ export function NavUser({ open }: { open: boolean }) {
     }
   }
 
+  // Handle navigation with mobile sidebar closing
+  const handleNavigation = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   if (!data) {
     return (
-      <SidebarMenu>
+      <SidebarMenu className="pb-4">
         <SidebarMenuItem>
-          <Button asChild variant="outline" className="w-full">
-            <a href="/registro">
-              <UserPlus className="h-4 w-4" />
-              {open && <span className="ml-2">Registrarse</span>}
+          <Button asChild className="w-full" onClick={handleNavigation}>
+            <a href="/login">
+              <LogIn className="h-4 w-4" />
+              {/* Show text either when sidebar is open (desktop) or always on mobile */}
+              <span className={`ml-2 ${!open && !isMobile ? "hidden" : ""}`}>
+                Ingresar
+              </span>
             </a>
           </Button>
         </SidebarMenuItem>
         <SidebarMenuItem>
-          <Button asChild className="w-full">
-            <a href="/login">
-              <LogIn className="h-4 w-4" />
-              {open && <span className="ml-2">Iniciar Sesión</span>}
+          <Button asChild variant="outline" className="w-full" onClick={handleNavigation}>
+            <a href="/registro">
+              <UserPlus className="h-4 w-4" />
+              <span className={`ml-2 ${!open && !isMobile ? "hidden" : ""}`}>
+                Crear Cuenta
+              </span>
             </a>
           </Button>
         </SidebarMenuItem>
@@ -105,7 +118,8 @@ export function NavUser({ open }: { open: boolean }) {
   }
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="pb-4">
+      <SidebarGroupLabel>Perfil</SidebarGroupLabel>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -148,8 +162,8 @@ export function NavUser({ open }: { open: boolean }) {
                 </TooltipProvider>
               </div>
 
-              {/* Información del usuario - ahora visible en móvil y cuando está abierto */}
-              {showUserInfo && (
+              {/* Información del usuario - visible when sidebar is open or on mobile */}
+              {(open || isMobile) && (
                 <div className="flex flex-1 items-center gap-1 sm:gap-2 min-w-0 overflow-visible">
                   <div className="flex-1 grid text-xs sm:text-sm leading-tight w-full">
                     <span className="truncate font-semibold">
@@ -196,32 +210,32 @@ export function NavUser({ open }: { open: boolean }) {
             <DropdownMenuSeparator />
             {userDb ? <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <a href="/perfil">
+                <Link href="/perfil" onClick={handleNavigation}>
                   <User className="mr-2 h-4 w-4" />
                   Editar Perfil
-                </a>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <a href="/alertas">
+                <Link href="/alertas" onClick={handleNavigation}>
                   <AlertCircle className="mr-2 h-4 w-4" />
                   Alertas
-                </a>
+                </Link>
               </DropdownMenuItem>
               {userDb?.cars.some((car) => car.insurance.status === "VERIFIED") ? <DropdownMenuItem asChild>
-                <a href="/vehiculos">
+                <Link href="/vehiculos" onClick={handleNavigation}>
                   <Car className="mr-2 h-4 w-4" />
                   Vehiculos
-                </a>
+                </Link>
               </DropdownMenuItem> : null}
               <DropdownMenuItem asChild disabled={true}>
-                <a href="/reviews">
+                <Link href="/reviews">
                   <ClipboardCheck className="mr-2 h-4 w-4" />
                   Reviews
-                </a>
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup> : null}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleSignOut()}>
+            <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar Sesión
             </DropdownMenuItem>

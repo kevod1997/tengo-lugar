@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("AUTH_DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -135,6 +135,7 @@ model Driver {
   userId        String      @unique
   averageRating Float       @default(0)
   totalReviews  Int         @default(0)
+  totalTrips    Int         @default(0)
   licence       Licence?
   cars          DriverCar[]
   user          User        @relation(fields: [userId], references: [id])
@@ -161,6 +162,7 @@ model Passenger {
   userId        String          @unique
   averageRating Float           @default(0)
   totalReviews  Int             @default(0)
+  totalTrips    Int             @default(0)
   trips         TripPassenger[]
   user          User            @relation(fields: [userId], references: [id])
 }
@@ -330,6 +332,7 @@ model Trip {
 
   // Trip details
   availableSeats          Int
+  remainingSeats          Int
   status                  TripStatus       @default(PENDING)
   isFull                  Boolean          @default(false)
   priceGuide              Float?

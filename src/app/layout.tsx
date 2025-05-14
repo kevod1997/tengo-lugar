@@ -13,7 +13,7 @@ import { NavigationMessageListener } from "@/components/NavigationMessengerListe
 export const metadata: Metadata = {
   title: {
     template: "%s - Tengo Lugar",
-    default: "Home - Tengo Lugar",
+    default: "Inicio - Tengo Lugar",
   },
   description: "Donde encuentras tu viaje",
 };

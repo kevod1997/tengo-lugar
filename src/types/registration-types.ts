@@ -1,10 +1,10 @@
-import CarCardForm from "@/app/dashboard/ui/registration/steps/car-card-form";
-import CarForm from "@/app/dashboard/ui/registration/steps/car-form";
-import DriverLicenseForm from "@/app/dashboard/ui/registration/steps/driver-license-form";
-import IdentityCardForm from "@/app/dashboard/ui/registration/steps/identity-card-form";
-import InsuranceForm from "@/app/dashboard/ui/registration/steps/insurance-form";
-import PersonalInfoForm from "@/app/dashboard/ui/registration/steps/personal-info-form";
-import RoleSelection from "@/app/dashboard/ui/registration/steps/role-selection";
+import CarCardForm from "@/app/(authenticated)/dashboard/ui/registration/steps/car-card-form";
+import CarForm from "@/app/(authenticated)/dashboard/ui/registration/steps/car-form";
+import DriverLicenseForm from "@/app/(authenticated)/dashboard/ui/registration/steps/driver-license-form";
+import IdentityCardForm from "@/app/(authenticated)/dashboard/ui/registration/steps/identity-card-form";
+import InsuranceForm from "@/app/(authenticated)/dashboard/ui/registration/steps/insurance-form";
+import PersonalInfoForm from "@/app/(authenticated)/dashboard/ui/registration/steps/personal-info-form";
+import RoleSelection from "@/app/(authenticated)/dashboard/ui/registration/steps/role-selection";
 
 export interface Step {
   id: string;

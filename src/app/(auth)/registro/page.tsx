@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { LoggingService } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import Header from "@/components/header/header";
+import { Button } from "@/components/ui/button";
 
 
 export default function SignUp() {
@@ -158,10 +159,12 @@ export default function SignUp() {
                                 <LoadingButton pending={pending}>Registrarse</LoadingButton>
                             </form>
                         </Form>
-                        <div className="mt-4 text-center text-sm">
-                            <Link href="/login" className="text-primary hover:underline">
+                        <div className="mt-4 text-center text-sm ">
+                            <Button variant="outline" className="w-full">
+                               <Link href="/login">
                                 ¿Ya tienes una cuenta? Inicia sesión
                             </Link>
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>

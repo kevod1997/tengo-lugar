@@ -40,6 +40,7 @@ export function useLocationInput({
     
     const autocomplete = new google.maps.places.Autocomplete(inputElement, {
       fields: ['geometry', 'formatted_address', 'address_components', 'place_id'],
+      componentRestrictions: {country: 'ar'}
     })
     
     const listener = autocomplete.addListener('place_changed', () => {

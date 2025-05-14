@@ -8,9 +8,10 @@
     "seed": "ts-node src/seed/aseguradoras-seed.ts",
     "start": "next start",
     "lint": "next lint",
-    "prisma:auth:generate": "prisma generate --schema=./prisma/schema-auth.prisma",
-    "prisma:auth:migrate": "prisma migrate dev --schema=./prisma/schema-auth.prisma",
-    "prisma:auth:studio": "prisma studio --schema=./prisma/schema-auth.prisma"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.705.0",

@@ -11,6 +11,7 @@ export interface UserInfo {
 export class S3Service {
   private s3Client: S3Client;
   private bucketName: string;
+  private environment: string;
 
   constructor() {
     if (!process.env.AWS_BUCKET_REGION || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_BUCKET_NAME) {
@@ -25,25 +26,40 @@ export class S3Service {
       },
     });
     this.bucketName = process.env.AWS_BUCKET_NAME;
+    this.environment = process.env.VERCEL_ENV || process.env.NODE_ENV || 'development';
   }
 
   private getObjectKey(type: 'profile' | 'identity' | 'license' | 'insurance' | 'car-card', fileName: string, userInfo: UserInfo, carPlate?: string) {
+    const envPrefix = this.environment === 'production' ? 'prod' : 'dev';
+    
     const prefix = {
-      profile: 'public/profile-images',
-      identity: 'private/identity-documents',
-      license: 'private/driver-licenses',
-      insurance: 'private/insurance-documents',
-      'car-card': 'private/car-card',
+      profile: `${envPrefix}/public/profile-images`,
+      identity: `${envPrefix}/private/identity-documents`,
+      license: `${envPrefix}/private/driver-licenses`,
+      insurance: `${envPrefix}/private/insurance-documents`,
+      'car-card': `${envPrefix}/private/car-card`,
     }[type];
 
     const timestamp = Date.now();
-    const hasCarPlate = carPlate ? `-${carPlate}` : `${userInfo.firstName}-${userInfo.lastName}`;
-    const sanitizedName = `${hasCarPlate}`.toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
-      .replace(/[^a-z0-9-]/g, '-'); // Reemplazar caracteres especiales con guiones
+    
+    // Corregimos la generación del segmento de la ruta
+    let folderSegment: string;
+    
+    if (carPlate) {
+      // Si hay patente, usamos solo la patente sin guion al inicio
+      folderSegment = carPlate.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
+        .replace(/[^a-z0-9-]/g, '-'); // Reemplazar caracteres especiales con guiones
+    } else {
+      // Si no hay patente, usamos el nombre y apellido
+      folderSegment = `${userInfo.firstName}-${userInfo.lastName}`.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9-]/g, '-');
+    }
 
-    return `${prefix}/${userInfo.id}/${sanitizedName}/${timestamp}-${fileName}`;
+    return `${prefix}/${userInfo.id}/${folderSegment}/${timestamp}-${fileName}`;
   }
 
   async getSignedUploadUrl(
@@ -80,19 +96,6 @@ export class S3Service {
       throw S3ServiceError.DownloadFailed('s3.ts', 'getSignedDownloadUrl', `Error generando URL de descarga: ${error.message}`);
     }
   }
-
-  // async deleteObject(key: string) {
-  //   console.log('Deleting object', key);
-  //   try {
-  //     const command = new DeleteObjectCommand({
-  //       Bucket: this.bucketName,
-  //       Key: key,
-  //     });
-  //     return await this.s3Client.send(command);
-  //   } catch (error: any) {
-  //     throw S3ServiceError.DeleteFailed('s3.ts', 'deleteObject', `Error eliminando objeto: ${error.message}`);
-  //   }
-  // }
 
   async deleteObject(keyOrUrl: string) {
     try {
