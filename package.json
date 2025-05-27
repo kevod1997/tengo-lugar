@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
+    "dev:https": "next dev --experimental-https",
     "build": "next build",
     "seed": "ts-node src/seed/aseguradoras-seed.ts",
     "start": "next start",

@@ -26,6 +26,7 @@ import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import Header from "@/components/header/header";
+//todo ver comportamiento a veces hacer un click y no navega
 
 function SignIn() {
 	const [pendingCredentials, setPendingCredentials] = useState(false);
