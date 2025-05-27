@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 
 export default function JwtTestPage() {
   const [middlewareJwt, setMiddlewareJwt] = useState<string | null>(null);
+  console.log('Middleware JWT:', middlewareJwt);
   const [directJwt, setDirectJwt] = useState<string | null>(null);
   const [decodedPayload, setDecodedPayload] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -28,8 +29,6 @@ export default function JwtTestPage() {
     
     checkMiddlewareJwt();
   }, []);
-  console.log('Middleware JWT:', middlewareJwt);
-
   
   const fetchDirectJwt = async () => {
     setLoading(true);

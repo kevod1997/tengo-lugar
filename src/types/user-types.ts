@@ -37,8 +37,8 @@ export interface UserCar {
 
 export interface FormattedUser {
   hasBirthDate: boolean;
-  age: number;
-  gender: Gender;
+  age: number | null;
+  gender: Gender | null;
   hasPhoneNumber: boolean;
   phoneNumberVerified: boolean;
   profileImageKey: string | null;

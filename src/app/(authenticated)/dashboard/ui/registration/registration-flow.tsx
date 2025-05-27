@@ -8,6 +8,7 @@ import ProgressBar from '@/components/progress-bar/progress-bar'
 import { StepId, UserRole } from '@/types/registration-types'
 import { ConfirmationDialog } from '@/components/dialog/ConfirmationDialog'
 import { useScrollToTop } from '@/hooks/ui/useScrollToTop'
+import { usePathname, useRouter } from 'next/navigation'
 
 type RegistrationFlowProps = {
   onComplete: () => void
@@ -16,10 +17,14 @@ type RegistrationFlowProps = {
   initialRole?: UserRole
 }
 
+//todo ver comportamiento de acomodar cuando hay exito en ambos flujos que se actualice la ui si es que es necesario, ver cuando se sale del modal con el dialog. osea tenes onComplete y Onclose, porque el rerender con el push no si es necesario salvo cuando el usuario se registra con sus datos personales.
+
 export default function RegistrationFlow({ onComplete, initialStep = 'role', initialRole, onClose }: RegistrationFlowProps) {
   const [isOpen, setIsOpen] = useState(true)
   const [showExitConfirmation, setShowExitConfirmation] = useState(false)
   const { scrollAreaRef, contentRef } = useScrollToTop()
+  const router = useRouter()
+  const pathname = usePathname();
 
   const {
     currentStep,
@@ -41,13 +46,15 @@ export default function RegistrationFlow({ onComplete, initialStep = 'role', ini
     }
   }, [currentStepIndex, onClose])
 
-  const handleConfirmExit = () => {
-    setShowExitConfirmation(false)
-    setIsOpen(false)
+  const handleConfirmExit = useCallback(() => {
+    setShowExitConfirmation(false);
+    setIsOpen(false);
+    router.push(pathname);
     if (onClose) {
-      onClose()
+      onClose();
     }
-  }
+
+  }, [onClose, router, pathname]);
 
   const progress = ((currentStepIndex + 1) / totalSteps) * 100
   const CurrentStepComponent = currentStep.component
@@ -85,7 +92,7 @@ export default function RegistrationFlow({ onComplete, initialStep = 'role', ini
         open={showExitConfirmation}
         onOpenChange={setShowExitConfirmation}
         title="¿Estás seguro que deseas salir?"
-        description="Podes retomar el registro en este punto más tarde."
+        description="Vas a perder toda la informacion. Podes retomar el registro en este punto más tarde."
         cancelText="Cancelar"
         confirmText="Salir"
         onConfirm={handleConfirmExit}

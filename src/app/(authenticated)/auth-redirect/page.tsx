@@ -73,11 +73,11 @@ function AuthRedirectContent() {
                 dbUser.cars.some(car => car.insurance.status === VerificationStatus.FAILED)
 
               if (needsVerification) {
-                return router.push('/dashboard')
+                return router.push('/perfil')
               }
 
               if (dbUser.hasBirthDate === false) {
-                return router.push('/dashboard')
+                return router.push('/perfil')
               }
 
               // Redirigir a la URL solicitada (con validación)
@@ -101,11 +101,11 @@ function AuthRedirectContent() {
                 dbUser.cars.some(car => car.insurance.status === VerificationStatus.FAILED)
 
               if (needsVerification) {
-                return router.push('/dashboard')
+                return router.push('/perfil')
               }
 
               if (dbUser.hasBirthDate === null) {
-                return router.push('/dashboard')
+                return router.push('/perfil')
               }
 
               // Redirigir a la URL solicitada (con validación)

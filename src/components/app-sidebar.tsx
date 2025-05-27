@@ -3,10 +3,10 @@
 
 import * as React from "react"
 import {
-  Car,
   Search,
   CarFrontIcon,
   UserIcon,
+  PlusCircleIcon,
 } from "lucide-react"
 import Image from "next/image"
 import { NavMain } from "@/components/nav-main"
@@ -24,21 +24,11 @@ import { NavMainSkeletonClient, NavUserSkeletonClient } from "./nav-skeleton"
 import Link from "next/link"
 
 const authenticatedNavItems = [
-  // {
-  //   title: "Dashboard",
-  //   url: "/dashboard",
-  //   icon: LayoutDashboard,
-  // },
   {
     title: "Mis Viajes",
     url: "/viajes",
     icon: CarFrontIcon,
   },
-  // {
-  //   title: "Mis Reservas",
-  //   url: "/reservas",
-  //   icon: CalendarArrowUp,
-  // },
 ]
 
 const authethicatedNavItems = [
@@ -51,12 +41,6 @@ const authethicatedNavItems = [
 
 const navData = {
   navMain: [
-    // {
-    //   title: "Inicio",
-    //   url: "/",
-    //   icon: Home,
-    //   isActive: true,
-    // },
     {
       title: "Buscar",
       url: "/buscar-viaje",
@@ -65,7 +49,7 @@ const navData = {
     {
       title: "Publicar",
       url: "/publicar-viaje",
-      icon: Car,
+      icon: PlusCircleIcon,
     },
   ],
 }

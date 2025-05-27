@@ -140,7 +140,7 @@ export async function searchTrips({
                 }
             }
         })
-        console.log(formattedTrips)
+        
         return ApiHandler.handleSuccess({
             trips: formattedTrips,
             pagination: {

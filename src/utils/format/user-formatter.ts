@@ -96,7 +96,11 @@ export function splitFullName(fullName: string): { firstName: string; lastName: 
   return { firstName, lastName };
 }
 
-export function getUserAge(birthDate: string): number {
+export function getUserAge(birthDate: string): number | null {
+  if (!birthDate) {
+    return null;
+  }
+
   const birth = new Date(birthDate);
   const now = new Date();
   const age = now.getFullYear() - birth.getFullYear();

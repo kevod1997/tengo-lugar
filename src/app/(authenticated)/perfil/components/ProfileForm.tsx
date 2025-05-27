@@ -1,30 +1,27 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useUserStore } from '@/store/user-store'
 import { toast } from 'sonner'
 import { useForm, SubmitHandler } from 'react-hook-form'
-import { useApiResponse } from '@/hooks/ui/useApiResponse'
-import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
-import { CountryCode } from 'libphonenumber-js'
 import { PhoneVerification } from '@/components/phone-verification/PhoneVerification'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertTriangleIcon, CalendarIcon, Loader2Icon } from "lucide-react"
-import { ExpandableAvatar } from '@/components/avatar-modal/AvatarModal'
-import { ProfileImageUploadButton } from '@/app/(authenticated)/dashboard/ui/dashboard/ProfileCard'
 import { authClient } from '@/lib/auth-client'
 import { splitFullName } from '@/utils/format/user-formatter'
-import { UserRegistrationService } from '@/services/registration/user-service'
+import { CountryCode } from 'libphonenumber-js'
 
 interface ProfileFormProps {
   isIdentityVerified: boolean
   birthDate: Date | null | undefined
   phoneNumber: string | null | undefined
+  phoneNumberVerified?: boolean
+  gender?: string | null
+  onSubmit?: (formData: any) => Promise<void>
 }
 
 interface FormValues {
@@ -37,11 +34,15 @@ interface FormValues {
   birthDate: string;
 }
 
-export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber }: ProfileFormProps) {
-  const { user, setUser } = useUserStore()
+export default function ProfileForm({ 
+  isIdentityVerified, 
+  birthDate, 
+  phoneNumber, 
+  phoneNumberVerified: initialPhoneVerified = false,
+  gender: initialGender = null,
+  onSubmit 
+}: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  // const [isReloading, setIsReloading] = useState(false);
-  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [formModified, setFormModified] = useState(false)
   const initialFormValues = useRef<FormValues>({
     firstName: '',
@@ -56,8 +57,6 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
   const formInitialized = useRef(false)
   const { data } = authClient.useSession()
   const userId = data?.user.id
-  const { handleResponse } = useApiResponse()
-  const { firstName, lastName } = splitFullName(data?.user.name || '')
 
   const { register, handleSubmit, formState: { errors }, setValue, watch, reset, getValues } = useForm<FormValues>({
     defaultValues: {
@@ -71,9 +70,9 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
     }
   });
 
-  // Update form when user data changes
+  // Update form when data changes
   useEffect(() => {
-    if (user && data) {
+    if (data) {
       const { firstName, lastName } = splitFullName(data.user.name || '')
 
       const defaultValues: FormValues = {
@@ -81,8 +80,8 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
         lastName: lastName || '',
         email: data.user.email || '',
         phoneNumber: phoneNumber || '',
-        phoneNumberVerified: user.phoneNumberVerified || false,
-        gender: user.gender || '',
+        phoneNumberVerified: initialPhoneVerified,
+        gender: initialGender || '',
         birthDate: birthDate ? new Date(birthDate).toISOString().split('T')[0] : '',
       }
 
@@ -91,12 +90,11 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
       initialFormValues.current = defaultValues
 
       // Set form as initialized after the first data load
-      // Use a short timeout to ensure values are properly set
       setTimeout(() => {
         formInitialized.current = true
       }, 100)
     }
-  }, [user, reset, data, birthDate, phoneNumber]);
+  }, [reset, data, birthDate, phoneNumber, initialPhoneVerified, initialGender]);
 
   // Check for form modifications
   useEffect(() => {
@@ -121,7 +119,7 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
   }, [watch, getValues])
 
   const phoneNumberValue = watch('phoneNumber')
-  const phoneNumberVerified = watch('phoneNumberVerified')
+  const formPhoneVerified = watch('phoneNumberVerified')
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>('AR')
 
   const handlePhoneNumberVerified = (phoneNumber: string, isVerified: boolean) => {
@@ -129,63 +127,28 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
     setValue('phoneNumberVerified', isVerified, { shouldValidate: true })
   }
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    if (!user || !userId) return;
-  
-    const userService = new UserRegistrationService();
+  const handleFormSubmit: SubmitHandler<FormValues> = async (formData) => {
+    if (!userId) return;
+
     setIsLoading(true);
-  
+
     try {
-      // 1. Call your service to update the profile
-      const result = await userService.updateUserProfile(userId, {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phoneNumber: data.phoneNumber,
-        phoneNumberVerified: data.phoneNumberVerified,
-        gender: data.gender,
-        birthDate: data.birthDate,
-        termsAccepted: true,
-      });
-  
-      if (result.success) {
-        // 2. Update local app state
-        setUser(result.data!);
-        
-        // 3. Get fresh session data
-        const { data: freshSessionData } = await authClient.getSession({
-          query: { disableCookieCache: true }
-        });
-        
-        // 4. Use the fresh session data to update form values
-        if (freshSessionData) {
-          const { firstName, lastName } = splitFullName(freshSessionData.user.name);
-          
-          // Create new initial form values with updated data
-          const updatedValues = {
-            ...getValues(),
-            firstName,
-            lastName,
-            email: freshSessionData.user.email,
-          };
-          
-          // Update the form with new values
-          reset(updatedValues);
-          
-          // Update initial values reference
-          initialFormValues.current = updatedValues;
-          
-          // Reset form modification state
-          setFormModified(false);
-        }
-  
+      // If we have an onSubmit prop provided by the parent component
+      if (onSubmit) {
+        await onSubmit(formData);
+
+        // Update initial form values to new values after successful submission
+        initialFormValues.current = { ...formData };
+        setFormModified(false);
+
         toast.success("Perfil actualizado", {
-          description: result.message || "Tus datos han sido actualizados correctamente"
+          description: "Tus datos han sido actualizados correctamente"
         });
-        
-        // No need for page reload!
       } else {
-        throw new Error(result.error?.message || "Error desconocido");
+        // Fallback if no onSubmit is provided
+        toast.error("Error de configuración", {
+          description: "No se pudo actualizar el perfil debido a un problema de configuración."
+        });
       }
     } catch (error) {
       toast.error("Error", {
@@ -196,40 +159,9 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
     }
   };
 
-  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user) return
-
-    await handleProfileImageUpload({
-      event,
-      userId: data!.user.id,
-      user,
-      setIsUploadingImage,
-      setUser,
-      handleResponse
-    })
-  }
-
-  if (!user) return null
-
-  // if (isReloading) {
-  //   return (
-  //     <div className="flex justify-center items-center p-8">
-  //       <Loader2Icon className="animate-spin h-8 w-8 text-primary" />
-  //       <span className="ml-2">Actualizando información...</span>
-  //     </div>
-  //   );
-  // }
-
   return (
     <Card>
-      {/* Card content remains the same */}
-      <CardHeader className="flex items-center pb-2">
-        <div className="relative">
-          <ExpandableAvatar imageUrl={user.profileImageKey ?? undefined} firstName={firstName} lastName={lastName} />
-          <ProfileImageUploadButton onUpload={handleImageChange} isUploading={isUploadingImage} />
-        </div>
-      </CardHeader>
-      <CardContent>
+      <CardContent className='pt-6'>
         {isIdentityVerified && (
           <Alert className="mb-6 bg-muted">
             <AlertTriangleIcon className="h-4 w-4" />
@@ -240,7 +172,7 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           {/* Form fields remain the same */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -291,7 +223,7 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
           <div className="space-y-2">
             <PhoneVerification
               initialPhone={phoneNumberValue}
-              initialVerified={phoneNumberVerified}
+              initialVerified={formPhoneVerified}
               onVerificationChange={handlePhoneNumberVerified}
               selectedCountry={selectedCountry}
               setSelectedCountry={setSelectedCountry}
@@ -306,7 +238,7 @@ export default function ProfileForm({ isIdentityVerified, birthDate, phoneNumber
             <div className="space-y-2">
               <Label htmlFor="gender">Género</Label>
               <Select
-                defaultValue={user.gender}
+                defaultValue={initialGender || ''}
                 onValueChange={(value) => {
                   register('gender').onChange({
                     target: { name: 'gender', value }

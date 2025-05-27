@@ -135,6 +135,7 @@ export default function DashboardContent() {
       {user ? (
         <>
           <ProfileCard
+            userId={data!.user.id}
             firstName={firstName}
             lastName={lastName}
             email={email!}

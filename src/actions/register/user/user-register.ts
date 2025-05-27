@@ -88,7 +88,7 @@ export async function updateUserProfile(input: UpdateUserInput) {
     })
 
     if (!session) {
-      throw ServerActionError.AuthenticationFailed('update-profile.ts', 'updateUserProfile');
+      throw ServerActionError.AuthenticationFailed('user-register.ts', 'updateUserProfile');
     }
 
     const birthDate = new Date(validatedData.birthDate);
@@ -100,7 +100,7 @@ export async function updateUserProfile(input: UpdateUserInput) {
     });
 
     if (!currentUser) {
-      throw ServerActionError.UserNotFound('update-profile.ts', 'updateUserProfile');
+      throw ServerActionError.UserNotFound('uuser-register.ts', 'updateUserProfile');
     }
     //todo scroll para arriba cuando pedimos documento de identidad (lo puse aca porque estaba apurado e)
     // Update user in a transaction
@@ -128,13 +128,13 @@ export async function updateUserProfile(input: UpdateUserInput) {
             userId: updatedUser.id,
           },
         }).catch(error => {
-          throw handlePrismaError(error, 'updateUserProfile.createPassenger', 'update-profile.ts');
+          throw handlePrismaError(error, 'updateUserProfile.createPassenger', 'user-register.ts');
         });
       }
 
       return updatedUser;
     }).catch(error => {
-      throw handlePrismaError(error, 'updateUserProfile', 'update-profile.ts');
+      throw handlePrismaError(error, 'updateUserProfile', 'user-register.ts');
     })
 
     return {

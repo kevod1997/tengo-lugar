@@ -44,8 +44,6 @@ export default function ChatTest() {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log('Received:', data);
-
       if (data.type === 'system') {
         addMessage(data.content, 'system');
       } else if (data.type === 'message') {

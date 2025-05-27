@@ -1,4 +1,3 @@
-// src/app/mis-reservas/components/ReservationsList.tsx
 'use client'
 
 import { useState } from 'react';
@@ -17,13 +16,10 @@ import {
   Calendar, 
   Clock, 
   Users, 
-  Info,
-  XCircle,
-  CheckCircle,
-  AlertTriangle
+  Info
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatDatetoLocaleDateString } from "@/utils/format/formatDate";
+import { formatDate, formatDatetoLocaleDateString, formatTime } from "@/utils/format/formatDate";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +32,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { cancelReservation } from '@/actions/trip/cancel-reservation';
+import { getStatusBadge } from '@/utils/helpers/reservation/reservation-helpers';
+import { formatCurrency } from '@/utils/format/formateCurrency';
 
 type ReservationsListProps = {
   activeReservations: any[];
@@ -52,60 +50,7 @@ export default function ReservationsList({
   const [selectedReservation, setSelectedReservation] = useState<string | null>(null);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Get status badge properties
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING_APPROVAL':
-        return { 
-          label: "Pendiente de aprobación", 
-          color: "bg-yellow-100 text-yellow-800",
-          icon: AlertTriangle
-        };
-      case 'APPROVED_PENDING_PAYMENT':
-        return { 
-          label: "Aprobada - Pendiente de pago", 
-          color: "bg-blue-100 text-blue-800",
-          icon: CheckCircle
-        };
-      case 'APPROVED':
-        return { 
-          label: "Aprobada", 
-          color: "bg-green-100 text-green-800",
-          icon: CheckCircle
-        };
-      case 'CONFIRMED':
-        return { 
-          label: "Confirmada", 
-          color: "bg-green-100 text-green-800",
-          icon: CheckCircle
-        };
-      case 'COMPLETED':
-        return { 
-          label: "Completada", 
-          color: "bg-purple-100 text-purple-800",
-          icon: CheckCircle
-        };
-      case 'CANCELLED_BY_DRIVER':
-        return { 
-          label: "Cancelada por conductor", 
-          color: "bg-red-100 text-red-800",
-          icon: XCircle
-        };
-      case 'CANCELLED_BY_PASSENGER':
-        return { 
-          label: "Cancelada por ti", 
-          color: "bg-red-100 text-red-800",
-          icon: XCircle
-        };
-      default:
-        return { 
-          label: status, 
-          color: "bg-gray-100 text-gray-800",
-          icon: Info
-        };
-    }
-  };
+
   
   const handleCancelReservation = async () => {
     if (!selectedReservation) return;
@@ -135,31 +80,6 @@ export default function ReservationsList({
     setIsCancelDialogOpen(true);
   };
   
-  // Format date utility
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-AR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long'
-    });
-  };
-  
-  // Format time utility
-  const formatTime = (date: string) => {
-    return new Date(date).toLocaleTimeString('es-AR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-  
-  // Format price utility
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
   
   const renderReservationsList = (reservations: any[], showCancelButton: boolean = false) => {
     if (reservations.length === 0) {
@@ -230,7 +150,7 @@ export default function ReservationsList({
               
               <CardFooter className="pt-2 border-t flex justify-between items-center">
                 <div className="text-sm font-medium">
-                  {formatPrice(reservation.totalPrice)}
+                  {formatCurrency(reservation.totalPrice)}
                 </div>
                 
                 <div className="flex gap-2">

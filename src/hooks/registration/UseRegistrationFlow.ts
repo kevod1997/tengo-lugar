@@ -125,7 +125,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
       
                 if (identityCardResult.success) {
                   setUser(identityCardResult.data!);
-                  router.refresh();
+                  router.push('/perfil');
                   onClose?.();
                   onComplete();
                 }
@@ -216,7 +216,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
                 handleResponse({ success: carCard.success, message: carCard.message });
                 if (carCard.success) {
                   setUser(carCard.data!);
-                  router.refresh();
+                  router.push('/perfil');
                   onComplete();
                 }
               }
@@ -244,7 +244,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         setFormData((prev: any) => ({ ...prev, role: selectedRole }));
 
         // Check which steps are needed
-        const needsPersonalInfo = !user?.termsAccepted;
+        const needsPersonalInfo = !user?.termsAccepted && !user?.hasBirthDate;
         const needsIdentity = user?.identityStatus === null ||
             user?.identityStatus === VerificationStatus.FAILED;
         const needsLicense = selectedRole === 'driver' &&

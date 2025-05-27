@@ -19,4 +19,19 @@ export function formatDate(date: string | Date): string {
     if (!date) return "N/A"
     return new Date(date).toLocaleDateString()
   }
+
+  export function formatDateLong(date: string | Date): string {
+  return new Date(date).toLocaleDateString('es-AR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  });
+}
+
+export function formatTime(date: string | Date): string {
+  return new Date(date).toLocaleTimeString('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
   

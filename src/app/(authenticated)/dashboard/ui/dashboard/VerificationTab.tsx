@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Loader2, XCircle, AlertTriangle } from 'lucide-react'
+import { CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react'
 import { FormattedUser } from "@/types/user-types"
 
 interface VerificationTabProps {
@@ -15,7 +15,7 @@ export function VerificationTab({ user, setShowIdVerification }: VerificationTab
       case 'VERIFIED':
         return <CheckCircle className="text-green-500" />
       case 'PENDING':
-        return <Loader2 className="animate-spin text-blue-500" />
+        return <Clock className=" text-blue-500" />
       case 'FAILED':
         return <XCircle className="text-red-500" />
       default:

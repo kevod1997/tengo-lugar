@@ -2,10 +2,10 @@ import { betterFetch } from "@better-fetch/fetch";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Session } from "./lib/auth";
 
-const authRoutes = ["/login", "/registro"];
+const authRoutes = ["/login", "/crear-cuenta"];
 const passwordRoutes = ["/resetear-clave", "/olvide-mi-clave", "/reset-password"];
 const adminRoutes = ["/admin"];
-const publicRoutes = ["/", "/about", "/contact"];
+const publicRoutes = ["/", "/about", "/contact", "/buscar-viaje"];
 
 export default async function authMiddleware(request: NextRequest) {
   const pathName = request.nextUrl.pathname;

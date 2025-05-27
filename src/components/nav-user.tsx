@@ -43,7 +43,7 @@ export function NavUser({ open }: { open: boolean }) {
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar(); // Get setOpenMobile to close mobile sidebar
   const { user: userDb } = useUserStore();
-  
+
   // Extraer nombre y apellido solo si hay datos de usuario
   const { firstName, lastName } = data?.user ? splitFullName(data.user.name || '') : { firstName: '', lastName: '' };
   const email = data?.user?.email;
@@ -56,7 +56,7 @@ export function NavUser({ open }: { open: boolean }) {
         if (isMobile) {
           setOpenMobile(false);
         }
-        
+
         await authClient.signOut({
           fetchOptions: {
             onSuccess: async () => {
@@ -105,7 +105,7 @@ export function NavUser({ open }: { open: boolean }) {
         </SidebarMenuItem>
         <SidebarMenuItem>
           <Button asChild variant="outline" className="w-full" onClick={handleNavigation}>
-            <a href="/registro">
+            <a href="/crear-cuenta">
               <UserPlus className="h-4 w-4" />
               <span className={`ml-2 ${!open && !isMobile ? "hidden" : ""}`}>
                 Crear Cuenta
@@ -165,11 +165,11 @@ export function NavUser({ open }: { open: boolean }) {
               {/* Información del usuario - visible when sidebar is open or on mobile */}
               {(open || isMobile) && (
                 <div className="flex flex-1 items-center gap-1 sm:gap-2 min-w-0 overflow-visible">
-                  <div className="flex-1 grid text-xs sm:text-sm leading-tight w-full">
+                  <div className="flex-1 grid leading-tight w-full">
                     <span className="truncate font-semibold">
                       {firstName} {lastName}
                     </span>
-                    <span className="truncate text-[10px] sm:text-xs text-muted-foreground">
+                    <span className="truncate text-[10px] text-muted-foreground">
                       {email}
                     </span>
                   </div>
@@ -185,7 +185,7 @@ export function NavUser({ open }: { open: boolean }) {
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+              <div className="flex items-center gap-2 px-1 py-1.5 text-left ">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={userDb?.profileImageKey ?? undefined} alt={firstName || ""} />
                   <AvatarFallback className="rounded-lg bg-slate-500 text-white">
@@ -193,7 +193,7 @@ export function NavUser({ open }: { open: boolean }) {
                     {lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left  leading-tight">
                   <span className="truncate font-semibold">{firstName}</span>
                   <span className="truncate text-xs">{email}</span>
                   <span className="text-xs text-muted-foreground">
@@ -212,10 +212,10 @@ export function NavUser({ open }: { open: boolean }) {
               <DropdownMenuItem asChild>
                 <Link href="/perfil" onClick={handleNavigation}>
                   <User className="mr-2 h-4 w-4" />
-                  Editar Perfil
+                  Perfil
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild disabled={true}>
                 <Link href="/alertas" onClick={handleNavigation}>
                   <AlertCircle className="mr-2 h-4 w-4" />
                   Alertas

@@ -75,7 +75,7 @@ export default function SignUp() {
                     setPending(true);
                 },
                 onError: (ctx: any) => {
-                    console.log("error", ctx);
+                    
                     toast.error('Error', {
                         description: ctx.error.message ?? "Algo salió mal.",
                     });

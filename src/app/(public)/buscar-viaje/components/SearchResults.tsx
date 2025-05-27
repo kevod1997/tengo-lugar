@@ -1,4 +1,3 @@
-// app/(public)/viajes/components/search-results.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Trip } from "@/types/trip-types"
 import { TripList } from "./TripList"
@@ -6,6 +5,7 @@ import { TripList } from "./TripList"
 interface SearchResultsProps {
     originCity?: string
     destinationCity?: string
+    date?: string
     trips: Trip[]
     pagination: {
         total: number
@@ -19,21 +19,31 @@ export function SearchResults({
     originCity,
     destinationCity,
     trips,
+    date,
     pagination,
     currentPage,
     pageSize
 }: SearchResultsProps) {
     return (
-        <Card>
+        <Card className="shadow-lg">
             <CardHeader>
-                <CardTitle>
+                <CardTitle className={`${trips.length === 0 && 'text-center'}`}>
                     {trips.length > 0
                         ? `Viajes de ${originCity} a ${destinationCity}`
                         : 'No se encontraron viajes'}
                 </CardTitle>
                 {trips.length > 0 && (
                     <p className="text-muted-foreground">
-                        Se encontraron {pagination.total} viajes
+                        {/* Se encontraron {pagination.total} viajes */}
+                        {date && (
+                            <span className="text-sm text-muted-foreground">
+                                {`Para el ${new Date(date).toLocaleDateString('es-ES', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                })}`}
+                            </span>
+                        )}
                     </p>
                 )}
             </CardHeader>
@@ -55,9 +65,9 @@ export function SearchResults({
 
 export function NoTripsMessage() {
     return (
-        <div className="py-8 text-center">
+        <div className="py-2 text-center">
             <p className="text-lg mb-4">No hay viajes disponibles con esos criterios de búsqueda.</p>
-            <p className="text-muted-foreground">Intenta modificar tu búsqueda o buscar en fechas diferentes.</p>
+            <p className="text-sm text-muted-foreground">Intenta modificar tu búsqueda o buscar en fechas diferentes.</p>
         </div>
     )
 }

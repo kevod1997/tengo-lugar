@@ -15,9 +15,10 @@ import { PushNotificationManager } from "@/components/notifications/PushNotifica
 interface ProfileContentProps { 
     birthDate: Date | null | undefined;
     phoneNumber: string | null | undefined
+    gender: string | null | undefined
  }
 
-export default function ProfileContent({ birthDate, phoneNumber }: ProfileContentProps) {
+export default function ProfileContent({ birthDate, phoneNumber, gender }: ProfileContentProps) {
     const { user } = useUserStore()
     const router = useRouter()
 
@@ -77,6 +78,7 @@ export default function ProfileContent({ birthDate, phoneNumber }: ProfileConten
                 isIdentityVerified={user.identityStatus === 'VERIFIED'} 
                 birthDate={birthDate} 
                 phoneNumber={phoneNumber} 
+                gender={gender}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <AccountManagement />
