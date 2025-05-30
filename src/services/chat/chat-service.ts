@@ -46,6 +46,8 @@ export class ChatService {
         'Content-Type': 'application/json'
       }
     });
+    console.log(`Fetching chat room for trip ${tripId} from ${this.baseUrl}/trip/${tripId}/chat`);
+    console.log(response)
 
     if (!response.ok) {
       throw new Error(`Failed to get chat room info: ${response.statusText}`);
