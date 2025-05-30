@@ -497,10 +497,11 @@ export default async function ChatRoomPage({ params, searchParams }: PageProps) 
 
             if (chatRoomInfo.status === 'not_created') {
               error = 'La sala de chat no ha sido creada para este viaje.';
-            } else if (chatRoomInfo.room_id && chatRoomInfo.room_id !== roomId) {
-              // Redirigir al room ID correcto
-              redirect(`/mensajes/room/${chatRoomInfo.room_id}?tripId=${tripId}`);
             }
+            //  else if (chatRoomInfo.room_id && chatRoomInfo.room_id !== roomId) {
+            //   // Redirigir al room ID correcto
+            //   redirect(`/mensajes/room/${chatRoomInfo.room_id}?tripId=${tripId}`);
+            // }
           } catch (e) {
             console.error('Error fetching chat room info:', e);
           }

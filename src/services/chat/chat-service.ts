@@ -31,6 +31,8 @@ export class ChatService {
         'Content-Type': 'application/json'
       }
     });
+    console.log(`Fetching chat history for room ${roomId} from ${this.baseUrl}/chat/${roomId}/messages?${params}`);
+    console.log(response.json())
 
     if (!response.ok) {
       throw new Error(`Failed to fetch chat history: ${response.statusText}`);
