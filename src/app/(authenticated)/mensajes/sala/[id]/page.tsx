@@ -453,7 +453,7 @@ export default async function ChatRoomPage({ params, searchParams }: PageProps) 
 
   try {
     // Obtener token para llamadas al servidor
-    const tokenResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/auth/token`, {
+    const tokenResponse = await fetch(`/api/auth/token`, {
       headers: {
         cookie: headers().toString(),
       },
