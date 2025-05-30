@@ -1,17 +1,7 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu } from '@/components/ui/sidebar'
 
 export function NavMainSkeletonClient() {
-  const [isMounted, setIsMounted] = useState(false)
-  
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-  
-  if (!isMounted) return null
   
   return (
     <SidebarGroup>
@@ -26,13 +16,6 @@ export function NavMainSkeletonClient() {
 }
 
 export function NavUserSkeletonClient({ open }: { open: boolean }) {
-  const [isMounted, setIsMounted] = useState(false)
-  
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-  
-  if (!isMounted) return null
   
   return (
     <div className="space-y-2 p-1">

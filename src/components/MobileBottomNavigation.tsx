@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { Search, Car, MessageCircle, User, PlusCircleIcon } from 'lucide-react'
+import { Search, MessageCircle, User, PlusCircleIcon, CarFrontIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 
@@ -27,7 +27,7 @@ const navItems: NavItem[] = [
   },
   {
     href: '/viajes',
-    icon: Car,
+    icon: CarFrontIcon,
     label: 'Mis Viajes',
     requiresAuth: true
   },

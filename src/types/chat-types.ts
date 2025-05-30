@@ -12,3 +12,32 @@ export interface ChatApiJWTPayload {
   iss?: string;
   // ...otros campos que tu definePayload en auth.ts pueda añadir.
 }
+
+export interface ChatMessage {
+  id?: string;
+  content: string;
+  type: 'system' | 'message' | 'error';
+  user_id?: string;
+  user_name?: string;
+  isSender: boolean;
+  timestamp: string;
+  rawTimestamp?: string;
+  isLocal?: boolean;
+  isPending?: boolean; 
+}
+
+export interface ChatRoom {
+  id: string;
+  tripId: string;
+  status: 'active' | 'archived';
+  createdAt: string;
+  members: ChatMember[];
+}
+
+export interface ChatMember {
+  id: string;
+  userId: string;
+  role: 'driver' | 'passenger';
+  isActive: boolean;
+  joinedAt: string;
+}

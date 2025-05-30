@@ -3,116 +3,176 @@
 
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { getUserTrips } from '@/actions/trip/get-user-trips';
+import prisma from '@/lib/prisma';
+import { ServerActionError } from '@/lib/exceptions/server-action-error';
+import type { Trip, TripStatus, ReservationStatus } from '@prisma/client';
 
-const CHAT_API_URL = process.env.CHAT_API_URL; // URL de tu API de FastAPI
-const NEXT_PUBLIC_CLIENT_URL = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://localhost:3000';
-
-interface ChatInfo {
-  tripId: string;
-  tripName: string;
-  roomId?: string;
-  status: 'active' | 'not_created' | 'error' | 'no_access';
-  createdAt?: string;
+export interface ActiveChatInfo {
+    tripId: string;
+    tripName: string;
+    roomId: string;   // Se asume que siempre estará presente
+    createdAt: Date;  // Se asume que siempre estará presente (para el chat)
 }
 
-async function getJwtForServerAction(): Promise<string | null> {
-  // Para que una Server Action obtenga el JWT que better-auth genera,
-  // la forma más canónica es llamar al endpoint /api/auth/token
-  // que better-auth expone. Esto requiere pasar las cookies de la sesión actual.
-  const cookieHeader = (await headers()).get('cookie');
-  if (!cookieHeader) {
-    console.error('getActiveUserChats: No cookie header, no se puede obtener JWT.');
-    return null;
-  }
+type FetchedTripDataForChat = Pick<
+    Trip,
+    'id' | 'originCity' | 'destinationCity' | 'status' | 'createdAt' | 'departureTime'
+>;
 
-  try {
-    const tokenResponse = await fetch(new URL('/api/auth/token', NEXT_PUBLIC_CLIENT_URL).toString(), {
-      headers: {
-        'Cookie': cookieHeader,
-      },
-    });
+export async function getActiveUserChats(): Promise<ActiveChatInfo[]> {
+    const session = await auth.api.getSession({ headers: await headers() });
+    const actionName = 'getActiveUserChats';
+    const originFile = 'src/actions/chat/get-active-user-chats.ts';
 
-    if (!tokenResponse.ok) {
-      console.error(
-        `getActiveUserChats: Error al obtener JWT de /api/auth/token: ${tokenResponse.status} ${await tokenResponse.text()}`
-      );
-      return null;
+    if (!session) {
+        throw ServerActionError.AuthenticationFailed(
+            'submit-card-car-info.ts',
+            'submitCardCarInfo'
+        )
     }
-    const tokenData = await tokenResponse.json();
-    return tokenData.token;
-  } catch (error) {
-    console.error('getActiveUserChats: Excepción al obtener JWT:', error);
-    return null;
-  }
-}
+    const userId = session.user.id;
 
-export async function getActiveUserChats(): Promise<ChatInfo[]> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !session.user) {
-    // console.log('getActiveUserChats: No hay sesión de usuario.');
-    return [];
-  }
-
-  if (!CHAT_API_URL) {
-    console.error('getActiveUserChats: CHAT_API_URL no está configurado.');
-    return [];
-  }
-
-  const jwtToken = await getJwtForServerAction();
-  if (!jwtToken) {
-    console.error('getActiveUserChats: No se pudo obtener el JWT para las llamadas a la API de chat.');
-    // Puedes decidir devolver un array vacío o con errores.
-    // Devolver vacío es más simple si la UI maneja "no hay chats".
-    return [];
-  }
-
-  const userTripsData = await getUserTrips();
-  const chats: ChatInfo[] = [];
-
-  const allUserTripsForChat = [
-    ...(userTripsData.activeDriverTrips?.map(trip => ({ ...trip })) || []),
-    ...(userTripsData.activePassengerTrips?.map(trip => ({ ...trip })) || []),
-  ];
-  console.log(allUserTripsForChat)
-
-  for (const tripInfo of allUserTripsForChat) {
     try {
-      const response = await fetch(`${CHAT_API_URL}/trip/${tripInfo.id}/chat`, {
-        headers: { 'Authorization': `Bearer ${jwtToken}` }, // Usa el JWT de better-auth
-      });
-
-      const tripName = `Viaje a ${tripInfo.destinationCity || 'destino desconocido'}`;
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.warn(
-          `getActiveUserChats: API de chat respondió con error para viaje ${tripInfo.id} (${response.status}): ${errorText}`
-        );
-        chats.push({
-          tripId: tripInfo.id,
-          tripName,
-          status: response.status === 403 ? 'no_access' : 'error',
+        const userWithRoles = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                driver: { select: { id: true } },
+                passenger: { select: { id: true } },
+            },
         });
-        continue;
-      }
 
-      const data = await response.json();
-      chats.push({
-        tripId: tripInfo.id,
-        tripName,
-        roomId: data.room_id,
-        status: data.status, // 'active' o 'not_created'
-        createdAt: data.created_at,
-      });
+        if (!userWithRoles) {
+            throw ServerActionError.NotFound(
+                originFile,
+                actionName,
+                'Usuario no encontrado'
+            );
+        }
+
+        const activeTripStatusesForQuery: TripStatus[] = ['PENDING', 'ACTIVE'];
+        const activePassengerReservationStatusesForQuery: ReservationStatus[] = ['APPROVED', 'CONFIRMED'];
+
+        const tripsForChatMap = new Map<string, FetchedTripDataForChat>();
+
+        // 1. Obtener viajes activos donde el usuario es el conductor
+        if (userWithRoles.driver?.id) {
+            const driverTrips = await prisma.trip.findMany({
+                where: {
+                    driverCar: {
+                        driverId: userWithRoles.driver.id,
+                    },
+                    status: { in: activeTripStatusesForQuery },
+                },
+                select: {
+                    id: true,
+                    originCity: true,
+                    destinationCity: true,
+                    status: true,
+                    createdAt: true,
+                    departureTime: true,
+                },
+                orderBy: {
+                    departureTime: 'asc',
+                },
+            });
+            driverTrips.forEach(trip => tripsForChatMap.set(trip.id, trip));
+        }
+
+        // 2. Obtener viajes activos donde el usuario es un pasajero
+        if (userWithRoles.passenger?.id) {
+            const passengerTripLinks = await prisma.tripPassenger.findMany({
+                where: {
+                    passengerId: userWithRoles.passenger.id,
+                    reservationStatus: { in: activePassengerReservationStatusesForQuery },
+                    trip: {
+                        status: { in: activeTripStatusesForQuery },
+                    },
+                },
+                select: {
+                    trip: {
+                        select: {
+                            id: true,
+                            originCity: true,
+                            destinationCity: true,
+                            status: true,
+                            createdAt: true,
+                            departureTime: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    trip: { departureTime: 'asc' },
+                },
+            });
+
+            passengerTripLinks.forEach(link => {
+                if (link.trip) { // Aseguramos que link.trip no sea null
+                    const tripData: FetchedTripDataForChat = {
+                        id: link.trip.id,
+                        originCity: link.trip.originCity,
+                        destinationCity: link.trip.destinationCity,
+                        status: link.trip.status,
+                        createdAt: link.trip.createdAt,
+                        departureTime: link.trip.departureTime,
+                    };
+                    if (!tripsForChatMap.has(link.trip.id)) {
+                        tripsForChatMap.set(link.trip.id, tripData);
+                    }
+                }
+            });
+        }
+
+        // 3. Mapear a la estructura ActiveChatInfo
+        const activeChatsResult: ActiveChatInfo[] = [];
+        for (const trip of tripsForChatMap.values()) {
+            const tripName = `Viaje de ${trip.originCity} a ${trip.destinationCity}`;
+            const roomIdPlaceholder = trip.id;
+            const chatCreatedAtPlaceholder = trip.createdAt;
+
+            activeChatsResult.push({
+                tripId: trip.id,
+                tripName: tripName,
+                roomId: roomIdPlaceholder,
+                createdAt: chatCreatedAtPlaceholder,
+            });
+        }
+
+        activeChatsResult.sort((a, b) => {
+            const tripA_departureTime = tripsForChatMap.get(a.tripId)?.departureTime;
+            const tripB_departureTime = tripsForChatMap.get(b.tripId)?.departureTime;
+            if (tripA_departureTime && tripB_departureTime) {
+                return new Date(tripA_departureTime).getTime() - new Date(tripB_departureTime).getTime();
+            }
+            if (tripA_departureTime) return -1;
+            if (tripB_departureTime) return 1;
+            return 0;
+        });
+
+        return activeChatsResult;
+
     } catch (error) {
-      console.error(`getActiveUserChats: Excepción al contactar API de chat para viaje ${tripInfo.id}:`, error);
-      chats.push({
-        tripId: tripInfo.id,
-        tripName: `Viaje a ${tripInfo.destinationCity || 'desconocido'}`,
-        status: 'error',
-      });
+        let errorMessage = 'Error inesperado al obtener los chats del usuario.';
+        let errorCode = 'UNEXPECTED_ERROR';
+        let errorDetails: unknown = error;
+
+        if (error instanceof ServerActionError) {
+            errorMessage = error.message;
+            errorCode = error.code || 'SERVER_ACTION_ERROR';
+            errorDetails = { originFunction: error.fileName, originalMessage: error.message, code: error.code };
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+            errorDetails = { name: error.name, message: error.message, stack: error.stack };
+        }
+        //todo acomodar 
+        console.log('Error en getActiveUserChats:', {
+            originFile,
+            actionName,
+            userId,
+            errorMessage,
+            errorCode,
+            errorDetails
+        });
+        return [];
     }
-  }
-  return chats;
 }

@@ -1,5 +1,4 @@
 // src/app/mensajes/page.tsx
-import { getActiveUserChats } from '@/actions/chat/get-active-user-chats';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import Link from 'next/link';
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageSquareText } from 'lucide-react';
 import Header from '@/components/header/header';
+import { getActiveUserChats, ActiveChatInfo } from '@/actions/chat/get-active-user-chats'; 
 
 export default async function MensajesPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -20,7 +20,7 @@ export default async function MensajesPage() {
     );
   }
 
-  const activeChats = await getActiveUserChats();
+  const activeChats: ActiveChatInfo[] = await getActiveUserChats();
 
   return (
     <>
@@ -36,69 +36,27 @@ export default async function MensajesPage() {
           <p className="text-muted-foreground">No tienes viajes activos con chats disponibles.</p>
         ) : (
           <div className="space-y-4">
-            {activeChats.map((chat) => {
-              if (chat.status === 'not_created') { 
-                // Si la sala no existe, a pesar de que deberían crearse automáticamente,
-                // es mejor no mostrar nada o un mensaje de "Pendiente de creación".
-                // O si 'not_created' también significa que el usuario actual (ej. pasajero)
-                // aún no debe verla hasta que el conductor haga algo, esta lógica puede cambiar.
-                // Por ahora, si es 'not_created' simplemente no mostramos botón de abrir.
-                return (
-                  <Card key={chat.tripId}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <MessageSquareText className="mr-2 h-5 w-5 text-muted-foreground" />
-                        {chat.tripName}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                       <p className="text-sm text-muted-foreground">
-                        El chat para este viaje está pendiente o no disponible por el momento.
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              }
-
-              if (chat.status === 'active' && chat.roomId) {
-                return (
-                  <Card key={chat.tripId} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span className="flex items-center">
-                          <MessageSquareText className="mr-2 h-5 w-5 text-primary" />
-                          {chat.tripName}
-                        </span>
-                        <Link href={`/mensajes/room/${chat.roomId}?tripId=${chat.tripId}`} passHref>
-                          <Button variant="outline" size="sm">Abrir Chat</Button>
-                        </Link>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        Chat disponible.
-                        {chat.createdAt && ` Creado el: ${new Date(chat.createdAt).toLocaleDateString()}`}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              }
-
-              // Manejar otros estados como 'error' o 'no_access'
+            {activeChats.map((chat) => { 
               return (
-                 <Card key={chat.tripId}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <MessageSquareText className="mr-2 h-5 w-5 text-muted-foreground" />
+                <Card key={chat.tripId} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center">
+                        <MessageSquareText className="mr-2 h-5 w-5 text-primary" />
                         {chat.tripName}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                       <p className="text-sm text-destructive">
-                        {chat.status === 'error' ? 'Error al cargar información del chat.' : 'No tienes acceso a este chat.'}
-                      </p>
-                    </CardContent>
-                  </Card>
+                      </span>
+                      <Link href={`/mensajes/sala/${chat.roomId}?tripId=${chat.tripId}`} passHref>
+                        <Button variant="outline" size="sm">Abrir Chat</Button>
+                      </Link>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Chat disponible.
+                      {` Creado el: ${new Date(chat.createdAt).toLocaleDateString()}`}
+                    </p>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>

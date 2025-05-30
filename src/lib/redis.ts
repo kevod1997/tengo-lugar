@@ -2,8 +2,8 @@ import Redis from 'ioredis';
 
 // URL de conexión a Upstash Redis
 const redisUrl = process.env.UPSTASH_REDIS_URL; // Asegúrate que esta sea la URL correcta para ioredis (no la REST URL)
-                                                 // Debería ser algo como: rediss://:<password>@<region>.<id>.upstash.io:<port>
-                                                 // O si usas el SDK de Upstash para Redis: @upstash/redis
+// Debería ser algo como: rediss://:<password>@<region>.<id>.upstash.io:<port>
+// O si usas el SDK de Upstash para Redis: @upstash/redis
 
 if (!redisUrl) {
   throw new Error('UPSTASH_REDIS_URL (o la URL de conexión de ioredis) no está definida');
