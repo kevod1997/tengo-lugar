@@ -453,7 +453,8 @@ export default async function ChatRoomPage({ params, searchParams }: PageProps) 
 
   try {
     // Obtener token para llamadas al servidor
-    const tokenResponse = await fetch('/api/auth/token')
+    const appUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://localhost:3000';
+    const tokenResponse = await fetch(`${appUrl}api/auth/token`)
 
     if (tokenResponse.ok) {
       const { token } = await tokenResponse.json();
