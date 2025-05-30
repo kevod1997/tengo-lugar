@@ -66,7 +66,7 @@
 //       return [...prev, { id: messageId, content, type, user_id: userId, user_name: userName, isSender, timestamp }];
 //     });
 //   }, []);
-  
+
 //   useEffect(() => {
 //     const fetchBetterAuthToken = async () => {
 //       if (session?.user?.id && !jwtForChat && !isFetchingToken) {
@@ -109,7 +109,7 @@
 //   useEffect(() => {
 //     const fetchHistory = async () => {
 //       if (!jwtForChat || !roomId || !NEXT_PUBLIC_CHAT_API_URL) return;
-      
+
 //       // Solo cargar historial si no hay mensajes y no se está cargando ya
 //       if (messages.length > 0 && !isLoadingHistory) return; 
 
@@ -162,7 +162,7 @@
 //     if (socketRef.current && (socketRef.current.readyState === WebSocket.OPEN || socketRef.current.readyState === WebSocket.CONNECTING)) {
 //       return;
 //     }
-    
+
 //     const wsUrl = `${NEXT_PUBLIC_CHAT_WEBSOCKET_URL}/ws/${roomId}`;
 //     addMessage(`Intentando conectar a: ${wsUrl}`, 'system', false);
 //     const socket = new WebSocket(wsUrl);
@@ -244,7 +244,7 @@
 //       sendMessage();
 //     }
 //   };
-  
+
 //   // UI de Carga y Estados de Error
 //   if (isSessionLoading) {
 //     return <div className="flex justify-center items-center h-screen"><p>Cargando sesión...</p></div>;
@@ -271,7 +271,7 @@
 //         </div>
 //     );
 //   }
-  
+
 //   if (tokenError && !jwtForChat) { // Error al obtener el token y no tenemos uno
 //       return (
 //            <div className="container mx-auto py-6 px-4">
@@ -396,7 +396,7 @@ interface PageProps {
 // Generar metadata dinámica
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  
+
   return {
     title: `Chat - Sala ${id.substring(0, 8)}`,
     description: 'Chat en tiempo real para tu viaje',
@@ -433,8 +433,9 @@ export default async function ChatRoomPage({ params, searchParams }: PageProps) 
   const tripId = resolvedSearchParams.tripId;
 
   // Verificar autenticación en el servidor
+  const currentHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: currentHeaders,
   });
 
   if (!session) {
@@ -452,18 +453,40 @@ export default async function ChatRoomPage({ params, searchParams }: PageProps) 
   let error: string | null = null;
 
   try {
+    const appUrl = process.env.NEXT_PUBLIC_CLIENT_URL; // Ensure this is your canonical public URL
+    if (!appUrl) {
+      throw new Error("Application URL (NEXT_PUBLIC_CLIENT_URL) is not configured.");
+    }
+    const cookieHeaderValue = currentHeaders.get('cookie');
+
+    const fetchHeaders: HeadersInit = {};
+    if (cookieHeaderValue) {
+      fetchHeaders['Cookie'] = cookieHeaderValue;
+    } else {
+      console.warn("Server Component: No 'cookie' header found in incoming request. /api/auth/token fetch might fail.");
+    }
+
+    console.log(`Server Component: Attempting to fetch ${appUrl}/api/auth/token.`);
+    if (cookieHeaderValue) {
+      console.log("Server Component: Forwarding cookie header:", cookieHeaderValue.substring(0, 100) + "..."); // Log a snippet for privacy
+    }
+
+
     // Obtener token para llamadas al servidor
-    const tokenResponse = await fetch(`${process.env.NEXT_PUBLIC_CLIENT_URL}/api/auth/token`, {
-      headers: {
-        cookie: headers().toString(),
-      },
+    const tokenResponse = await fetch(`${appUrl}/api/auth/token`, {
+      headers: fetchHeaders,
     });
 
-    console.log('Token response status:', tokenResponse);
+    console.log('Server Component: Token response from /api/auth/token:', {
+      status: tokenResponse.status,
+      statusText: tokenResponse.statusText,
+      ok: tokenResponse.ok,
+      url: tokenResponse.url,
+    });
 
     if (tokenResponse.ok) {
       const { token } = await tokenResponse.json();
-      
+
       if (token && process.env.NEXT_PUBLIC_CHAT_API_URL) {
         const chatService = new ChatService(process.env.NEXT_PUBLIC_CHAT_API_URL, token);
 
@@ -471,7 +494,7 @@ export default async function ChatRoomPage({ params, searchParams }: PageProps) 
         if (tripId) {
           try {
             chatRoomInfo = await chatService.getTripChatRoom(tripId);
-            
+
             if (chatRoomInfo.status === 'not_created') {
               error = 'La sala de chat no ha sido creada para este viaje.';
             } else if (chatRoomInfo.room_id && chatRoomInfo.room_id !== roomId) {
@@ -503,9 +526,9 @@ export default async function ChatRoomPage({ params, searchParams }: PageProps) 
   const breadcrumbs = [
     { label: 'Inicio', href: '/' },
     { label: 'Mensajes', href: '/mensajes' },
-    { 
-      label: tripId 
-        ? `Chat del viaje ${tripId.substring(0, 8)}...` 
+    {
+      label: tripId
+        ? `Chat del viaje ${tripId.substring(0, 8)}...`
         : 'Chat'
     },
   ];
@@ -513,14 +536,14 @@ export default async function ChatRoomPage({ params, searchParams }: PageProps) 
   return (
     <>
       <Header breadcrumbs={breadcrumbs} />
-      
+
       <div className="container mx-auto py-4 px-4">
         {error ? (
           <ChatRoomError message={error} />
         ) : (
           <Suspense fallback={<ChatRoomSkeleton />}>
-            <ChatRoom 
-              roomId={roomId} 
+            <ChatRoom
+              roomId={roomId}
               initialMessages={initialMessages}
             />
           </Suspense>
