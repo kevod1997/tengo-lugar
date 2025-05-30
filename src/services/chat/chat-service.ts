@@ -21,23 +21,54 @@ export class ChatService {
     this.token = token;
   }
 
-  async fetchHistory(roomId: string, limit = 50, beforeId?: string): Promise<ChatHistoryResponse> {
+//   async fetchHistory(roomId: string, limit = 50, beforeId?: string): Promise<ChatHistoryResponse> {
+//     const params = new URLSearchParams({ limit: limit.toString() });
+//     if (beforeId) params.append('before_id', beforeId);
+
+//     const response = await fetch(`${this.baseUrl}/chat/${roomId}/messages?${params}`, {
+//       headers: {
+//         'Authorization': `Bearer ${this.token}`,
+//         'Content-Type': 'application/json'
+//       }
+//     });
+//     console.log(`Fetching chat history for room ${roomId} from ${this.baseUrl}/chat/${roomId}/messages?${params}`);
+//     console.log(response.json())
+
+//     if (!response.ok) {
+//       throw new Error(`Failed to fetch chat history: ${response.statusText}`);
+//     }
+
+//     return response.json();
+//   }
+
+    async fetchHistory(roomId: string, limit = 50, beforeId?: string): Promise<ChatHistoryResponse> {
     const params = new URLSearchParams({ limit: limit.toString() });
     if (beforeId) params.append('before_id', beforeId);
 
-    const response = await fetch(`${this.baseUrl}/chat/${roomId}/messages?${params}`, {
+    const fetchUrl = `${this.baseUrl}/chat/${roomId}/messages?${params}`;
+    console.log(`Fetching chat history for room ${roomId} from ${fetchUrl} with token: ${this.token ? this.token.substring(0, 20) + '...' : 'null'}`);
+
+    const response = await fetch(fetchUrl, {
       headers: {
         'Authorization': `Bearer ${this.token}`,
         'Content-Type': 'application/json'
       }
     });
-    console.log(`Fetching chat history for room ${roomId} from ${this.baseUrl}/chat/${roomId}/messages?${params}`);
-    console.log(response.json())
+
+    console.log(`Response status from ${fetchUrl}: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch chat history: ${response.statusText}`);
+      let errorBody = "Could not read error body";
+      try {
+        errorBody = await response.text(); // Try to get error details from body
+      } catch (e) {
+        console.error("Failed to read error body:", e);
+      }
+      console.error(`Failed to fetch chat history from ${fetchUrl}. Status: ${response.status}. Body: ${errorBody}`);
+      throw new Error(`Failed to fetch chat history: ${response.statusText}`); // statusText will be "Not Found" for a 404
     }
 
+    // If response.ok is true, then try to parse JSON
     return response.json();
   }
 
