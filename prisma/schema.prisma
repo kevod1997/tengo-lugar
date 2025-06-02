@@ -345,6 +345,7 @@ model Trip {
   smokingAllowed          Boolean          @default(false)
   additionalNotes         String?
   categoryId              String?
+  chatRoomId              String?          @unique
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
 

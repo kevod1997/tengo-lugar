@@ -5,34 +5,34 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { ServerActionError } from '@/lib/exceptions/server-action-error';
+import { ApiHandler } from '@/lib/api-handler';
+import { ApiResponse } from '@/types/api-types';
 import type { Trip, TripStatus, ReservationStatus } from '@prisma/client';
 
 export interface ActiveChatInfo {
     tripId: string;
     tripName: string;
-    roomId: string;   // Se asume que siempre estará presente
-    createdAt: Date;  // Se asume que siempre estará presente (para el chat)
+    chatRoomId: string | null;
+    createdAt: Date;
 }
 
 type FetchedTripDataForChat = Pick<
     Trip,
-    'id' | 'originCity' | 'destinationCity' | 'status' | 'createdAt' | 'departureTime'
+    'id' | 'originCity' | 'destinationCity' | 'status' | 'createdAt' | 'departureTime' | 'chatRoomId' 
 >;
 
-export async function getActiveUserChats(): Promise<ActiveChatInfo[]> {
-    const session = await auth.api.getSession({ headers: await headers() });
-    const actionName = 'getActiveUserChats';
-    const originFile = 'src/actions/chat/get-active-user-chats.ts';
-
-    if (!session) {
-        throw ServerActionError.AuthenticationFailed(
-            'submit-card-car-info.ts',
-            'submitCardCarInfo'
-        )
-    }
-    const userId = session.user.id;
-
+export async function getActiveUserChats(): Promise<ApiResponse<ActiveChatInfo[]>> {
     try {
+        const session = await auth.api.getSession({ headers: await headers() });
+        const actionName = 'getActiveUserChats';
+        const originFile = 'get-active-user-chats.ts';
+
+        if (!session) {
+            throw ServerActionError.AuthenticationFailed(originFile, actionName);
+        }
+
+        const userId = session.user.id;
+
         const userWithRoles = await prisma.user.findUnique({
             where: { id: userId },
             select: {
@@ -71,6 +71,7 @@ export async function getActiveUserChats(): Promise<ActiveChatInfo[]> {
                     status: true,
                     createdAt: true,
                     departureTime: true,
+                    chatRoomId: true, 
                 },
                 orderBy: {
                     departureTime: 'asc',
@@ -98,6 +99,7 @@ export async function getActiveUserChats(): Promise<ActiveChatInfo[]> {
                             status: true,
                             createdAt: true,
                             departureTime: true,
+                            chatRoomId: true, 
                         },
                     },
                 },
@@ -115,6 +117,7 @@ export async function getActiveUserChats(): Promise<ActiveChatInfo[]> {
                         status: link.trip.status,
                         createdAt: link.trip.createdAt,
                         departureTime: link.trip.departureTime,
+                        chatRoomId: link.trip.chatRoomId,
                     };
                     if (!tripsForChatMap.has(link.trip.id)) {
                         tripsForChatMap.set(link.trip.id, tripData);
@@ -127,17 +130,16 @@ export async function getActiveUserChats(): Promise<ActiveChatInfo[]> {
         const activeChatsResult: ActiveChatInfo[] = [];
         for (const trip of tripsForChatMap.values()) {
             const tripName = `Viaje de ${trip.originCity} a ${trip.destinationCity}`;
-            const roomIdPlaceholder = trip.id;
-            const chatCreatedAtPlaceholder = trip.createdAt;
 
             activeChatsResult.push({
                 tripId: trip.id,
                 tripName: tripName,
-                roomId: roomIdPlaceholder,
-                createdAt: chatCreatedAtPlaceholder,
+                chatRoomId: trip.chatRoomId,
+                createdAt: trip.createdAt,
             });
         }
 
+        // Ordenar por fecha de salida
         activeChatsResult.sort((a, b) => {
             const tripA_departureTime = tripsForChatMap.get(a.tripId)?.departureTime;
             const tripB_departureTime = tripsForChatMap.get(b.tripId)?.departureTime;
@@ -149,30 +151,14 @@ export async function getActiveUserChats(): Promise<ActiveChatInfo[]> {
             return 0;
         });
 
-        return activeChatsResult;
+        return ApiHandler.handleSuccess(
+            activeChatsResult,
+            activeChatsResult.length > 0 
+                ? `Se encontraron ${activeChatsResult.length} chats activos`
+                : 'No tienes chats activos en este momento'
+        );
 
     } catch (error) {
-        let errorMessage = 'Error inesperado al obtener los chats del usuario.';
-        let errorCode = 'UNEXPECTED_ERROR';
-        let errorDetails: unknown = error;
-
-        if (error instanceof ServerActionError) {
-            errorMessage = error.message;
-            errorCode = error.code || 'SERVER_ACTION_ERROR';
-            errorDetails = { originFunction: error.fileName, originalMessage: error.message, code: error.code };
-        } else if (error instanceof Error) {
-            errorMessage = error.message;
-            errorDetails = { name: error.name, message: error.message, stack: error.stack };
-        }
-        //todo acomodar 
-        console.log('Error en getActiveUserChats:', {
-            originFile,
-            actionName,
-            userId,
-            errorMessage,
-            errorCode,
-            errorDetails
-        });
-        return [];
+        return ApiHandler.handleError(error);
     }
 }

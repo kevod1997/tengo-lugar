@@ -23,6 +23,8 @@ export const redisSubscriber = new Redis(redisUrl, {
   enableReadyCheck: false,
 });
 
+//todo ajustar esto bien teniendo en cuenta que alojamos en vercel 
+
 redisPublisher.on('error', (err) => console.error('Redis Publisher Error:', err));
 redisSubscriber.on('error', (err) => console.error('Redis Subscriber Error:', err));
 

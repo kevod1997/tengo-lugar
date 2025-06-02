@@ -9,6 +9,48 @@ import { findDriver } from "../driver/find-driver"
 import { tripCreationSchema } from "@/schemas/validation/trip-schema"
 import { TripData } from "@/types/trip-types"
 
+// Función para crear la sala de chat
+async function createChatRoom(tripId: string): Promise<string | null> {
+    try {
+        const chatApiUrl = process.env.CHAT_API_URL;
+        if (!chatApiUrl) {
+            console.warn('CHAT_API_URL not configured, skipping chat room creation');
+            return null;
+        }
+
+        // Obtener JWT token directamente aquí
+        const tokenResponse = await auth.api.getToken({
+            headers: await headers(),
+        });
+        console.log('Token response:', tokenResponse);
+
+        if (!tokenResponse) {
+            console.warn('Failed to obtain JWT token for chat API');
+            return null;
+        }
+
+        const response = await fetch(`${chatApiUrl}/chat/create/${tripId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${tokenResponse}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            console.error(`Failed to create chat room: ${response.status} ${response.statusText}`);
+            return null;
+        }
+
+        const data = await response.json();
+        return data.room_id || null;
+    } catch (error) {
+        console.error('Error creating chat room:', error);
+        return null;
+    }
+}
+
+
 export async function createTrip(tripData: TripData) {
     try {
         // Authentication check
@@ -88,11 +130,6 @@ export async function createTrip(tripData: TripData) {
                     allowChildren: validatedData.allowChildren,
                     smokingAllowed: validatedData.smokingAllowed,
                     additionalNotes: validatedData.additionalNotes,
-
-                    // Auto-create a chat room for the trip
-                    //   chatRoom: {
-                    //     create: {}
-                    //   }
                 },
                 include: {
                     driverCar: {
@@ -110,6 +147,18 @@ export async function createTrip(tripData: TripData) {
                     }
                 }
             })
+
+             // Try to create chat room
+            let chatRoomId: string | null = null;
+            chatRoomId = await createChatRoom(trip.id);
+                
+                // Update trip with chat room ID if successful
+                if (chatRoomId) {
+                    await tx.trip.update({
+                        where: { id: trip.id },
+                        data: { chatRoomId }
+                    });
+                }
 
             return ApiHandler.handleSuccess(trip, 'Viaje creado exitosamente')
         })

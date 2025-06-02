@@ -1,4 +1,3 @@
-// src/types/navigation-types.ts
 export type IconName = "Search" | "PlusCircleIcon" | "CarFrontIcon" | "MessageSquare";
 
 export interface NavSubItem {
