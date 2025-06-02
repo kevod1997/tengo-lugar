@@ -180,6 +180,7 @@ import { TripData } from "@/types/trip-types"
 
 // Función para crear la sala de chat
 async function createChatRoom(tripId: string): Promise<string> {
+    //todo tipar bien los errores por lo que ya tenemos en exceptions
     const chatApiUrl = process.env.NEXT_PUBLIC_CHAT_API_URL;
     if (!chatApiUrl) {
         throw new Error('CHAT_API_URL not configured');
@@ -236,6 +237,119 @@ async function createChatRoom(tripId: string): Promise<string> {
     }
 }
 
+// export async function createTrip(tripData: TripData) {
+//     try {
+//         // Authentication check
+//         const session = await auth.api.getSession({
+//             headers: await headers(),
+//         })
+
+//         if (!session) {
+//             throw ServerActionError.AuthenticationFailed('create-trip.ts', 'createTrip')
+//         }
+
+//         // Validate input data with Zod
+//         const validatedData = tripCreationSchema.parse(tripData)
+
+//         // Run in transaction to ensure data consistency
+//         return await prisma.$transaction(async (tx) => {
+//             // Find driver
+//             const driver = await findDriver(session.user.id, tx)
+
+//             // Check if driver has selected car
+//             const driverCar = await tx.driverCar.findFirst({
+//                 where: {
+//                     carId: validatedData.driverCarId,
+//                     driverId: driver.id
+//                 }
+//             })
+
+//             if (!driverCar) {
+//                 throw ServerActionError.ValidationFailed(
+//                     'create-trip.ts',
+//                     'createTrip',
+//                     'El vehículo seleccionado no pertenece al conductor'
+//                 )
+//             }
+
+//             // Create the trip
+//             const trip = await tx.trip.create({
+//                 data: {
+//                     driverCarId: driverCar.id,
+//                     status: 'ACTIVE',
+
+//                     // Origin details
+//                     originAddress: validatedData.originAddress,
+//                     originCity: validatedData.originCity,
+//                     originProvince: validatedData.originProvince,
+//                     originLatitude: validatedData.originCoords.latitude,
+//                     originLongitude: validatedData.originCoords.longitude,
+
+//                     // Destination details
+//                     destinationAddress: validatedData.destinationAddress,
+//                     destinationCity: validatedData.destinationCity,
+//                     destinationProvince: validatedData.destinationProvince,
+//                     destinationLatitude: validatedData.destinationCoords.latitude,
+//                     destinationLongitude: validatedData.destinationCoords.longitude,
+
+//                     // Route information
+//                     googleMapsUrl: validatedData.googleMapsUrl,
+//                     date: validatedData.date,
+//                     serviceFee: 10,
+//                     departureTime: validatedData.departureTime,
+//                     price: Math.round(validatedData.price), 
+//                     priceGuide: Math.round(validatedData.priceGuide), 
+//                     distance: validatedData.distance,
+//                     duration: validatedData.duration,
+//                     durationSeconds: validatedData.durationSeconds,
+
+//                     // Toll information
+//                     hasTolls: validatedData.hasTolls,
+//                     tollEstimatedPrice: validatedData.tollEstimatedPrice,
+
+//                     // Preferences
+//                     availableSeats: validatedData.availableSeats,
+//                     remainingSeats: validatedData.availableSeats,
+//                     autoApproveReservations: validatedData.autoApproveReservations,
+//                     luggageAllowance: validatedData.luggageAllowance,
+//                     allowPets: validatedData.allowPets,
+//                     allowChildren: validatedData.allowChildren,
+//                     smokingAllowed: validatedData.smokingAllowed,
+//                     additionalNotes: validatedData.additionalNotes,
+//                 },
+//                 include: {
+//                     driverCar: {
+//                         include: {
+//                             car: {
+//                                 include: {
+//                                     carModel: {
+//                                         include: {
+//                                             brand: true
+//                                         }
+//                                     }
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             })
+
+//             // Crear la sala de chat (esto lanzará un error si falla, provocando rollback)
+//             const chatRoomId = await createChatRoom(trip.id);
+                
+//             // Actualizar el trip con el chat room ID
+//             await tx.trip.update({
+//                 where: { id: trip.id },
+//                 data: { chatRoomId }
+//             });
+
+//             return ApiHandler.handleSuccess(trip, 'Viaje creado exitosamente')
+//         })
+//     } catch (error) {
+//         return ApiHandler.handleError(error)
+//     }
+// }
+
 export async function createTrip(tripData: TripData) {
     try {
         // Authentication check
@@ -250,8 +364,8 @@ export async function createTrip(tripData: TripData) {
         // Validate input data with Zod
         const validatedData = tripCreationSchema.parse(tripData)
 
-        // Run in transaction to ensure data consistency
-        return await prisma.$transaction(async (tx) => {
+        // PASO 1: Crear el trip en la transacción (SIN el chat room)
+        const tripResult = await prisma.$transaction(async (tx) => {
             // Find driver
             const driver = await findDriver(session.user.id, tx)
 
@@ -271,7 +385,7 @@ export async function createTrip(tripData: TripData) {
                 )
             }
 
-            // Create the trip
+            // Create the trip (SIN chatRoomId inicialmente)
             const trip = await tx.trip.create({
                 data: {
                     driverCarId: driverCar.id,
@@ -333,17 +447,28 @@ export async function createTrip(tripData: TripData) {
                 }
             })
 
-            // Crear la sala de chat (esto lanzará un error si falla, provocando rollback)
-            const chatRoomId = await createChatRoom(trip.id);
-                
-            // Actualizar el trip con el chat room ID
-            await tx.trip.update({
-                where: { id: trip.id },
+            return trip
+        })
+
+        // PASO 2: DESPUÉS de que la transacción se commitee, crear el chat room
+        let chatRoomId: string | null = null;
+        try {
+            chatRoomId = await createChatRoom(tripResult.id);
+            
+            // PASO 3: Actualizar el trip con el chatRoomId (transacción separada)
+            await prisma.trip.update({
+                where: { id: tripResult.id },
                 data: { chatRoomId }
             });
 
-            return ApiHandler.handleSuccess(trip, 'Viaje creado exitosamente')
-        })
+        } catch (chatError) {
+            // Log el error pero no fallar todo el proceso
+            console.log('Failed to create chat room:', chatError);
+            // El viaje se creó exitosamente, solo falló el chat
+        }
+
+        return ApiHandler.handleSuccess(tripResult, 'Viaje creado exitosamente')
+
     } catch (error) {
         return ApiHandler.handleError(error)
     }
