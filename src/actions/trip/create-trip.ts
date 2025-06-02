@@ -180,16 +180,22 @@ import { TripData } from "@/types/trip-types"
 
 // Función para crear la sala de chat
 async function createChatRoom(tripId: string): Promise<string> {
-    const chatApiUrl = process.env.CHAT_API_URL;
+    const chatApiUrl = process.env.NEXT_PUBLIC_CHAT_API_URL;
     if (!chatApiUrl) {
         throw new Error('CHAT_API_URL not configured');
     }
 
+     const baseUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://localhost:3000';
+
     try {
-        // Obtener el token del endpoint /api/auth/token
-        const tokenResponse = await fetch('/api/auth/token', {
+       // Obtener el token del endpoint /api/auth/token con la URL completa y cookies
+        const tokenResponse = await fetch(`${baseUrl}/api/auth/token`, {
             method: 'GET',
-            headers: await headers(),
+            headers: {
+                // Pasar las cookies del request original
+                'cookie': (await headers()).get('cookie') || '',
+                'Content-Type': 'application/json',
+            },
         });
 
         if (!tokenResponse.ok) {
@@ -202,6 +208,7 @@ async function createChatRoom(tripId: string): Promise<string> {
         if (!token) {
             throw new Error('JWT token not found in response');
         }
+        console.log('Token obtained successfully:', tokenData);
 
         // Crear la sala de chat
         const response = await fetch(`${chatApiUrl}/chat/create/${tripId}`, {
