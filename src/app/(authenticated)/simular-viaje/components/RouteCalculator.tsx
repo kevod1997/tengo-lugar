@@ -483,11 +483,6 @@ const RouteCalculator = ({
           // NUEVO: Activar estado de redirección
           setIsRedirecting(true);
           
-          // NUEVO: Toast de redirección para que el usuario sepa qué está pasando
-          toast.loading('Redirigiendo a tus viajes...', {
-            duration: 2000
-          });
-          
           // NUEVO: Delay para mostrar los toasts antes de redirigir
           setTimeout(() => {
             router.push('/viajes');

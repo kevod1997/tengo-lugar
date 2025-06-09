@@ -150,33 +150,28 @@ export async function getModels(brandId: number, groupId: number): Promise<Model
 
 export async function getModelDetails(modelId: number): Promise<DetailedModelResponse> {
   try {
-    //TODO VER SI EL MODELO NO TRAE LA DATA DEL CONSUMO PORQUE ESTA CACEHADO
     const cacheKey = CACHE_KEYS.MODEL_DETAILS(modelId)
     const cached = await redis.get<DetailedModelResponse>(cacheKey)
 
     if (cached) {
+      // Verificar si los datos cached están completos
+      const isDataComplete = validateModelData(cached.data)
+      
+      if (!isDataComplete) {
+        // Si los datos están incompletos, forzar actualización
+        return await fetchAndCacheModelDetails(cacheKey, modelId)
+      }
+
+      // Renovación en background si el TTL está por la mitad
       const ttl = await redis.ttl(cacheKey)
       if (ttl < CACHE_TIMES.MODEL_DETAILS / 2) {
-        fetchAndCache(
-          cacheKey,
-          async () => {
-            const response = await fetchFromCarApi(`/models/${modelId}`)
-            return ApiHandler.handleSuccess(response.data)
-          },
-          CACHE_TIMES.MODEL_DETAILS
-        ).catch(console.error)
+        fetchAndCacheModelDetails(cacheKey, modelId).catch(console.error)
       }
+      
       return cached
     }
 
-    return await fetchAndCache(
-      cacheKey,
-      async () => {
-        const response = await fetchFromCarApi(`/models/${modelId}`)
-        return ApiHandler.handleSuccess(response.data)
-      },
-      CACHE_TIMES.MODEL_DETAILS
-    )
+    return await fetchAndCacheModelDetails(cacheKey, modelId)
   } catch (error) {
     return ApiHandler.handleError(
       ServerActionError.FetchingFailed(
@@ -186,4 +181,30 @@ export async function getModelDetails(modelId: number): Promise<DetailedModelRes
       )
     )
   }
+}
+
+// Función helper para validar que los datos del modelo estén completos
+function validateModelData(data: any): boolean {
+  if (!data) return false
+  
+  // Verificar que tenga los campos críticos
+  const requiredFields = ['id', 'name', 'brand']
+  const hasRequiredFields = requiredFields.every(field => data[field] !== undefined)
+  
+  // Verificar campos específicos de consumo de combustible
+  const hasFuelData = data.fuelType !== null && data.fuelConsume !== null && data.fuelConsume !== undefined
+  
+  return hasRequiredFields && hasFuelData
+}
+
+// Función helper para fetch y cache
+async function fetchAndCacheModelDetails(cacheKey: string, modelId: number) {
+  return await fetchAndCache(
+    cacheKey,
+    async () => {
+      const response = await fetchFromCarApi(`/models/${modelId}`)
+      return ApiHandler.handleSuccess(response.data)
+    },
+    CACHE_TIMES.MODEL_DETAILS
+  )
 }

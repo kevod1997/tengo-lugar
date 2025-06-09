@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
 import { useUserStore } from "@/store/user-store"
 import { allSteps, driverStepIds, FormData, StepId, travelerStepIds, UserRole } from "@/types/registration-types"
 import { VerificationStatus } from "@prisma/client"
@@ -11,7 +10,6 @@ import { authClient } from "@/lib/auth-client"
 
 export function useRegistrationFlow(initialStep: StepId, onComplete: () => void, onClose: (() => void) | undefined, initialRole?: UserRole) {
     // Estados
-    const router = useRouter()
     const { user, setUser } = useUserStore()
     const { data } = authClient.useSession()
     const userId = data?.user.id
@@ -125,7 +123,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
       
                 if (identityCardResult.success) {
                   setUser(identityCardResult.data!);
-                  router.push('/perfil');
+                  // router.push('/perfil');
                   onClose?.();
                   onComplete();
                 }
@@ -143,7 +141,6 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         user?.identityStatus, 
         setUser, 
         moveToNextStep, 
-        router, 
         onClose, 
         onComplete
       ]);
@@ -216,7 +213,7 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
                 handleResponse({ success: carCard.success, message: carCard.message });
                 if (carCard.success) {
                   setUser(carCard.data!);
-                  router.push('/perfil');
+                  // router.push('/perfil');
                   onComplete();
                 }
               }
@@ -235,7 +232,6 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
         user?.cars, 
         setUser, 
         moveToNextStep, 
-        router, 
         onComplete
       ]);
 

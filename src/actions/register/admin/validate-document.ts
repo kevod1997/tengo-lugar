@@ -15,7 +15,6 @@ import { requireAuthorization } from "@/utils/helpers/auth-helper";
 import { DocumentVerificationUpdatePayload } from "@/types/sse-types";
 import { publishUserEvent } from "@/lib/sse/sse-publisher";
 import prisma from "@/lib/prisma";
-//todo ver el comportamiento del cierre del modal cuando se hace el onclick en el validar documento
 
 const identityService = new IdentityValidationService();
 const licenceService = new LicenceValidationService();
@@ -46,7 +45,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
   }
 
   const validateDocumentResult = await service.validateDocument(request);
-  
+
   if (validateDocumentResult.success && validateDocumentResult.data) {
     try {
       // Try to send the email directly first
@@ -56,18 +55,14 @@ export async function validateDocument(request: DocumentValidationRequest, userE
         status: validateDocumentResult.data?.status,
         failureReason: validateDocumentResult.data?.failureReason || undefined
       });
-
+      //todov2 probar todo el flujo de validación de documentos y envío de emails
       try {
-        // Obtener el estado actual del documento DESPUÉS de la validación
-        // para tener los fileKeys correctos y otros IDs si es necesario.
         let sseFrontFileKey: string | null | undefined = undefined;
         let sseBackFileKey: string | null | undefined = undefined;
         let sseCarId: string | undefined = undefined;
         let sseCardId: string | undefined = undefined;
         // let sseCardType: PrismaCardType | undefined = undefined; // Si es necesario
 
-        // Esta consulta es para asegurar que el payload SSE tenga la info más actualizada
-        // especialmente los fileKeys si se borraron.
         switch (request.documentType) {
           case 'IDENTITY':
             const idCard = await prisma.identityCard.findUnique({
@@ -91,8 +86,8 @@ export async function validateDocument(request: DocumentValidationRequest, userE
             break;
           case 'INSURANCE': // Necesita carId
             const policy = await prisma.insurancePolicy.findUnique({
-              where: {id: request.documentId },
-              select: { fileKey: true, insuredCar: { select: { cars: { take: 1, select: { id: true }}}}} // Ajusta esta consulta!
+              where: { id: request.documentId },
+              select: { fileKey: true, insuredCar: { select: { cars: { take: 1, select: { id: true } } } } } // Ajusta esta consulta!
             });
             if (policy) {
               sseFrontFileKey = policy.fileKey; // Asumiendo que el seguro usa 'frontFileKey' para su único archivo
@@ -102,7 +97,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
             break;
           case 'CARD': // Necesita carId y cardId (que es request.documentId)
             const vCard = await prisma.vehicleCard.findUnique({
-              where: {id: request.documentId },
+              where: { id: request.documentId },
               select: { fileKey: true, carId: true, cardType: true }
             });
             if (vCard) {
@@ -116,9 +111,9 @@ export async function validateDocument(request: DocumentValidationRequest, userE
 
         const ssePayload: DocumentVerificationUpdatePayload = {
           userId,
-          dataType: request.documentType, 
+          dataType: request.documentType,
           documentId: request.documentId,
-          status: validateDocumentResult.data.status, 
+          status: validateDocumentResult.data.status,
           failureReason: validateDocumentResult.data.failureReason || undefined,
           frontFileKey: sseFrontFileKey,
           backFileKey: sseBackFileKey,
@@ -130,19 +125,19 @@ export async function validateDocument(request: DocumentValidationRequest, userE
         const eventName = 'user_verification_update';
         await publishUserEvent(userId, eventName, ssePayload);
       } catch (sseError) {
-         console.error("Error al construir o emitir evento SSE:", sseError);
+        console.error("Error al construir o emitir evento SSE:", sseError);
       }
-      
+
       // Log successful email
       await logActionWithErrorHandling(
         {
           userId: session.user.id,
           action: TipoAccionUsuario.VERIFICACION_DOCUMENTO,
           status: 'SUCCESS',
-          details: { 
+          details: {
             documentType: request.documentType,
             status: validateDocumentResult.data?.status,
-            emailSent: true 
+            emailSent: true
           }
         },
         {
@@ -162,18 +157,17 @@ export async function validateDocument(request: DocumentValidationRequest, userE
           failureReason: validateDocumentResult.data?.failureReason || undefined
         }
       });
-      
+
       // Log that we queued the email
       await logActionWithErrorHandling(
-        //todo fix
         {
-          userId: "admin",  // Use the admin ID here or a parameter if available
+          userId: session.user.id,
           action: TipoAccionUsuario.VERIFICACION_DOCUMENTO,
           status: 'SUCCESS',
-          details: { 
+          details: {
             documentType: request.documentType,
-            status: validateDocumentResult.data?.status, 
-            emailQueued: true 
+            status: validateDocumentResult.data?.status,
+            emailQueued: true
           }
         },
         {

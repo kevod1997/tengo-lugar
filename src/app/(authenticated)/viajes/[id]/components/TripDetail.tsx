@@ -81,7 +81,7 @@ export default function TripDetail({
   // Get car details
   const carModel = trip.driverCar.car.carModel.model
   const carBrand = trip.driverCar.car.carModel.brand.name
-  const carYear = trip.driverCar.car.carModel.year
+  const carYear = trip.driverCar.car.year
   const carFuelType = trip.driverCar.car.carModel.fuelType
 
   // Get driver details

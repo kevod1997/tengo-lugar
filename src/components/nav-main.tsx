@@ -6,7 +6,7 @@ import {
   CarFrontIcon,
   PlusCircleIcon,
   MessageSquare,
-  HelpCircle 
+  HelpCircle
 } from "lucide-react";
 
 import {
@@ -24,21 +24,22 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import type { NavItem as AppNavItemType, IconName } from '@/types/navigation-types'; 
+import type { NavItem as AppNavItemType, IconName } from '@/types/navigation-types';
+import React from "react";
 
-const iconComponents: Record<IconName, LucideIcon> = {
+const ICON_COMPONENTS: Record<IconName, LucideIcon> = {
   Search: Search,
   CarFrontIcon: CarFrontIcon,
   PlusCircleIcon: PlusCircleIcon,
   MessageSquare: MessageSquare,
-};
+} as const;
 
 const DefaultIcon = HelpCircle;
 
-export function NavMain({
+export const NavMain = React.memo(function NavMain({
   items,
 }: {
-  items: AppNavItemType[] 
+  items: AppNavItemType[]
 }) {
   return (
     <SidebarGroup>
@@ -46,7 +47,7 @@ export function NavMain({
       <SidebarMenu>
         {items.map((item) => {
           // Dynamically select the icon component based on iconName
-          const IconComponent = item.iconName ? (iconComponents[item.iconName] || DefaultIcon) : null;
+          const IconComponent = item.iconName ? (ICON_COMPONENTS[item.iconName] || DefaultIcon) : null;
 
           return (
             <SidebarMenuItem key={item.title}>
@@ -93,4 +94,4 @@ export function NavMain({
       </SidebarMenu>
     </SidebarGroup>
   )
-}
+})

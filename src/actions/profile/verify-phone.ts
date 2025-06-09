@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 
-//todo ver si deberiamos usar el get-user para tener la info nueva del usuario con el telefono verificado, o si con el update es suficiente
 
 // Normalmente usarías Redis o una base de datos para esto en producción
 // Esto es solo para ejemplo

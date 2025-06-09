@@ -45,6 +45,7 @@ export async function getUsers({
                 select: {
                   id: true,
                   plate: true,
+                  year: true,
                   insuredCar: {
                     include: {
                       currentPolicy: {
@@ -59,7 +60,6 @@ export async function getUsers({
                   carModel: {
                     select: {
                       model: true,
-                      year: true,
                       fuelType: true,
                       averageFuelConsume: true,
                       brand: {

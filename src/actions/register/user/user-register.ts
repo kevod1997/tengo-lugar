@@ -102,7 +102,6 @@ export async function updateUserProfile(input: UpdateUserInput) {
     if (!currentUser) {
       throw ServerActionError.UserNotFound('uuser-register.ts', 'updateUserProfile');
     }
-    //todo scroll para arriba cuando pedimos documento de identidad (lo puse aca porque estaba apurado e)
     // Update user in a transaction
     const user = await prisma.$transaction(async (tx) => {
       // Update user information

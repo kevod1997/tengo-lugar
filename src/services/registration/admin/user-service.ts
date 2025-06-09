@@ -134,7 +134,7 @@ export class AdminDocumentService {
             model: car.carModel?.model || '',
             fuelType: car.carModel?.fuelType || null,
             averageFuelConsume: car.carModel?.averageFuelConsume || null,
-            year: car.carModel?.year || 0,
+            year: car.year,
             insurance: {
               status: policy?.status || null,
               failureReason: policy?.failureReason || null,

@@ -136,7 +136,7 @@ export async function searchTrips({
                 carInfo: {
                     brand: trip.driverCar.car.carModel.brand.name,
                     model: trip.driverCar.car.carModel.model,
-                    year: trip.driverCar.car.carModel.year
+                    year: trip.driverCar.car.year
                 }
             }
         })

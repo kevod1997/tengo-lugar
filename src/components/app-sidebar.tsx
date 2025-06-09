@@ -4,7 +4,6 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -13,19 +12,14 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { NavMainSkeletonClient } from "./nav-skeleton"
 import type { NavItem } from '@/types/navigation-types';
+import { NavUserDynamic } from "./nav-user-dynamic"
+
 export const AppSidebar = React.memo(function AppSidebar({
   initialNavItems,
   ...props
-}: React.ComponentPropsWithoutRef<typeof Sidebar> & { initialNavItems: NavItem[] }) { 
+}: React.ComponentPropsWithoutRef<typeof Sidebar> & { initialNavItems: NavItem[] }) {
   const { open, isMobile, setOpenMobile } = useSidebar()
-
-  const [isClient, setIsClient] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsClient(true)
-  }, [])
 
   const handleLogoClick = () => {
     if (isMobile) {
@@ -53,16 +47,10 @@ export const AppSidebar = React.memo(function AppSidebar({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {isClient ? (
-          <NavMain items={initialNavItems} />
-        ) : (
-          <>
-            <NavMainSkeletonClient />
-          </>
-        )}
+        <NavMain items={initialNavItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser open={open} />
+        <NavUserDynamic open={open} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar >

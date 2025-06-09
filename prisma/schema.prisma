@@ -177,13 +177,12 @@ model CarModel {
   id                 String    @id @default(uuid())
   brandId            String
   model              String
-  year               Int
   fuelType           FuelType?
   averageFuelConsume Float?
   cars               Car[]
   brand              Brand     @relation(fields: [brandId], references: [id])
 
-  @@unique([brandId, model, year], name: "brandId_model_year")
+  @@unique([brandId, model], name: "brandId_model")
   @@index([brandId])
 }
 
@@ -207,6 +206,7 @@ model FuelPrice {
 model Car {
   id           String   @id @default(uuid())
   plate        String   @unique
+  year         Int
   carModelId   String
   insuredCarId String?
   createdAt    DateTime @default(now())

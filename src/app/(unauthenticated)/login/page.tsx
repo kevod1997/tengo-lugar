@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
 	Form,
 	FormControl,
@@ -24,16 +25,19 @@ import { toast } from "sonner";
 import LoadingButton from "@/components/loader/loading-button";
 import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { Separator } from "@/components/ui/separator";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import Header from "@/components/header/header";
-//todo ver comportamiento a veces hacer un click y no navega
 
 function SignIn() {
 	const [pendingCredentials, setPendingCredentials] = useState(false);
 	const [pendingGoogle, setPendingGoogle] = useState(false);
-	// const [pendingFacebook, setPendingFacebook] = useState(false);
+	console.log(pendingGoogle);
 	const searchParams = useSearchParams();
 	const redirectUrl = searchParams.get('redirect_url');
+	
+	// Obtener parámetros de error
+	const error = searchParams.get('error');
+	const errorMessage = searchParams.get('message');
 
 	const form = useForm<z.infer<typeof signInSchema>>({
 		resolver: zodResolver(signInSchema),
@@ -50,14 +54,15 @@ function SignIn() {
 			{
 				email: values.email,
 				password: values.password,
-				callbackURL: `${redirectUrl ? `/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}` : "/auth-redirect"}`,
+				callbackURL: redirectUrl
+					? `/api/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}`
+					: "/api/auth-redirect",
 			},
 			{
 				onRequest: () => {
 					setPendingCredentials(true);
 				},
 				onError: (ctx: ErrorContext) => {
-				
 					if (ctx.error.status === 401) {
 						toast.error('Error', {
 							description: "Email o contraseña incorrectos.",
@@ -77,14 +82,15 @@ function SignIn() {
 		await authClient.signIn.social(
 			{
 				provider: "google",
-				callbackURL: `${redirectUrl ? `/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}` : "/auth-redirect"}`,
+				callbackURL: redirectUrl
+					? `/api/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}`
+					: "/api/auth-redirect",
 			},
 			{
 				onRequest: () => {
 					setPendingGoogle(true);
 				},
 				onError: (ctx: ErrorContext) => {
-					
 					toast.error('Error', {
 						description: ctx.error.message ?? "Algo salió mal.",
 					});
@@ -94,34 +100,14 @@ function SignIn() {
 		setPendingGoogle(false);
 	};
 
-	// const handleSignInWithFacebook = async () => {
-	// 	await authClient.signIn.social(
-	// 		{
-	// 			provider: "facebook",
-	// 			callbackURL: `${redirectUrl ? `/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}` : "/auth-redirect"}`,
-	// 		},
-	// 		{
-	// 			onRequest: () => {
-	// 				setPendingFacebook(true);
-	// 			},
-	// 			onError: (ctx: ErrorContext) => {
-	// 				toast.error('Error', {
-	// 					description: ctx.error.message ?? "Algo salió mal.",
-	// 				});
-	// 			},
-	// 		}
-	// 	);
-	// 	setPendingFacebook(false);
-	// };
-
 	return (
 		<>
 			<Header
 				breadcrumbs={[
 					{ label: 'Inicio', href: '/' },
 					{ label: 'Login' },
-				]
-				} />
+				]}
+			/>
 			<div className="grow flex items-center justify-center p-4">
 				<Card className="w-full max-w-md">
 					<div className="flex justify-center mt-6">
@@ -140,6 +126,16 @@ function SignIn() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
+						{/* Mostrar alerta de error si existe */}
+						{error && (
+							<Alert variant="destructive" className="mb-6">
+								<AlertCircle className="h-4 w-4" />
+								<AlertDescription>
+									{errorMessage || 'Ocurrió un error durante la autenticación. Por favor, intenta de nuevo.'}
+								</AlertDescription>
+							</Alert>
+						)}
+
 						<Form {...form}>
 							<form
 								onSubmit={form.handleSubmit(handleCredentialsSignIn)}
@@ -187,6 +183,7 @@ function SignIn() {
 								</LoadingButton>
 							</form>
 						</Form>
+						
 						<div className="mt-4">
 							<LoadingButton
 								pending={pendingGoogle}
@@ -196,17 +193,19 @@ function SignIn() {
 								Continuar con Google
 							</LoadingButton>
 						</div>
+						
 						<div className="mt-4">
 							<LoadingButton
 								pending={false}
-								// pending={pendingFacebook}
 								onClick={() => toast.info("Esta funcionalidad no está disponible aún")}
 							>
 								<FaFacebook className="w-4 h-4 mr-2" />
 								Continuar con Facebook
 							</LoadingButton>
 						</div>
+						
 						<Separator className="mt-4" />
+						
 						<div className="mt-4 text-center text-sm">
 							<Link
 								href="/olvide-mi-clave"
@@ -215,7 +214,9 @@ function SignIn() {
 								¿Olvidaste tu contraseña?
 							</Link>
 						</div>
+						
 						<Separator className="mt-4" />
+						
 						<div className="mt-4 text-center text-sm">
 							<Link
 								href="/registro"
@@ -233,7 +234,11 @@ function SignIn() {
 
 export default function SignInPage() {
 	return (
-		<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+		<Suspense fallback={
+			<div className="flex items-center justify-center min-h-screen">
+				<Loader2 className="h-8 w-8 animate-spin text-primary" />
+			</div>
+		}>
 			<SignIn />
 		</Suspense>
 	)

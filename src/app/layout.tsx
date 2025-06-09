@@ -9,10 +9,10 @@ import Loading from "./loading";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { NavigationMessageListener } from "@/components/NavigationMessengerListener";
 import { UserUpdatesListener } from "@/components/UserUpdatesListener";
-import { MobileBottomNavigation } from "@/components/MobileBottomNavigation";
+import { MobileBottomNavigationClient } from "@/components/MobileBottomNavigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { NavItem } from "@/types/navigation-types";
+import { AUTHENTICATED_NAV_ITEMS, UNAUTHENTICATED_NAV_ITEMS } from "@/config/constants";
 
 export const metadata: Metadata = {
   title: {
@@ -22,44 +22,18 @@ export const metadata: Metadata = {
   description: "Donde encuentras tu viaje",
 };
 
-const baseNavItems: NavItem[] = [
-  {
-    title: "Buscar",
-    url: "/buscar-viaje",
-    iconName: "Search",
-  },
-  {
-    title: "Publicar",
-    url: "/publicar-viaje",
-    iconName: "PlusCircleIcon",
-  },
-];
-
-const authenticatedNavItems: NavItem[] = [
-  {
-    title: "Mis Viajes",
-    url: "/viajes",
-    iconName: "CarFrontIcon",
-  },
-  {
-    title: "Mensajes",
-    url: "/mensajes",
-    iconName: "MessageSquare",
-  }
-];
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const session = await auth.api.getSession({ headers: await headers() });
-
+  console.log("Session in RootLayout:", session);
   const isSignedIn = !!session?.user;
 
-  const navItemsForSidebar: NavItem[] = isSignedIn
-    ? [...baseNavItems, ...authenticatedNavItems]
-    : baseNavItems;
+  const navItemsForSidebar = isSignedIn
+    ? AUTHENTICATED_NAV_ITEMS
+    : UNAUTHENTICATED_NAV_ITEMS;
 
   return (
     <html lang="es" className="h-full">
@@ -68,20 +42,20 @@ export default async function RootLayout({
           <NavigationProgress />
           <NavigationMessageListener />
           <UserUpdatesListener />
-          
+
           <div className="flex w-full">
             <AppSidebar className="hidden lg:flex" initialNavItems={navItemsForSidebar} />
             <div className="flex flex-col flex-1 w-full m-4 px-2">
-              <main className="flex-1 overflow-y-auto pb-16 md:pb-4">
+              <main className={`flex-1 overflow-y-auto ${isSignedIn ? " pb-16 md:pb-4" : ''}`}>
                 <Suspense fallback={<Loading />}>
                   {children}
                 </Suspense>
               </main>
             </div>
           </div>
-          
-          <MobileBottomNavigation />
-          
+
+          {isSignedIn && <MobileBottomNavigationClient />}
+
           <Toaster />
         </Providers>
       </body>

@@ -13,6 +13,7 @@ export type LoadingOperation =
   | 'uploadingDocument'
   | 'authenticatingUser'
   | 'fetchingUserData'
+  | 'signingOut'
   // Permitir keys dinámicas
   | (string & {});
 
@@ -45,6 +46,7 @@ const defaultMessages: Record<LoadingOperation, string> = {
   authenticatingUser: 'Autenticando...',
   fetchingUserData: 'Cargando datos de usuario...',
   searchingTrips: 'Buscando viajes...',
+  signingOut: 'Cerrando sesión...',
 };
 
 export const useLoadingStore = create<LoadingState>((set, get) => ({

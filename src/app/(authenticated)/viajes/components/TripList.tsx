@@ -72,7 +72,7 @@ export default function TripsList({ trips, emptyMessage, showRoleIndicator = fal
 
   if (!trips || trips.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-10 bg-muted/30 rounded-lg">
+      <div className="flex flex-col items-center justify-center p-10 rounded-lg">
         <Info className="h-12 w-12 text-muted-foreground mb-4" />
         <p className="text-muted-foreground">{emptyMessage}</p>
       </div>

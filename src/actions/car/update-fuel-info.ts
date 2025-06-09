@@ -5,6 +5,7 @@ import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import prisma from "@/lib/prisma"
 import { fetchFromCarApi } from "@/services/car-api/car-api-service"
+import { logError } from "@/services/logging/logging-service"
 import { FuelType } from "@prisma/client"
 
 interface UpdateFuelInfoInput {
@@ -55,9 +56,14 @@ export async function updateFuelInfo(data: UpdateFuelInfoInput) {
                 );
             }
         } catch (apiError) {
-            //todo acomodar aca errores de la api
-            // Log el error pero no interrumpir el flujo principal
-            console.error('Error al actualizar API externa:', apiError);
+            await logError({
+                origin: 'External Car API',
+                code: 'EXTERNAL_API_UPDATE_ERROR',
+                message: 'Error al actualizar información de combustible en API externa',
+                details: apiError instanceof Error ? apiError.message : String(apiError),
+                fileName: 'update-fuel-info.ts',
+                functionName: 'updateFuelInfo'
+            });
         }
 
         return ApiHandler.handleSuccess(

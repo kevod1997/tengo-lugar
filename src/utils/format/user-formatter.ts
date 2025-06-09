@@ -36,7 +36,7 @@ export function getCars(user: any): UserCar[] {
       model: driverCar.car.carModel?.model || '',
       fuelType: driverCar.car.carModel?.fuelType || null,
       averageFuelConsume: driverCar.car.carModel?.averageFuelConsume || null,
-      year: driverCar.car.carModel?.year || null,
+      year: driverCar.car.year || null,
       insurance: {
         status: driverCar.car.insuredCar?.currentPolicy?.status || null,
         failureReason: driverCar.car.insuredCar?.currentPolicy?.failureReason || null,

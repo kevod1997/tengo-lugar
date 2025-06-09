@@ -1,68 +1,24 @@
+// components/MobileBottomNavigationClient.tsx ('use client' solo para interactividad)
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { Search, MessageCircle, User, PlusCircleIcon, CarFrontIcon } from 'lucide-react'
+import { User, CarFrontIcon, MessageSquare, Search, PlusCircleIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { authClient } from '@/lib/auth-client'
 
-interface NavItem {
-  href: string
-  icon: React.ElementType
-  label: string
-  requiresAuth: boolean
-}
-
-const navItems: NavItem[] = [
-  {
-    href: '/buscar-viaje',
-    icon: Search,
-    label: 'Buscar',
-    requiresAuth: false
-  },
-  {
-    href: '/',
-    icon: PlusCircleIcon,
-    label: 'Publicar',
-    requiresAuth: true
-  },
-  {
-    href: '/viajes',
-    icon: CarFrontIcon,
-    label: 'Mis Viajes',
-    requiresAuth: true
-  },
-  {
-    href: '/chats',
-    icon: MessageCircle,
-    label: 'Mensajes',
-    requiresAuth: true
-  },
-  {
-    href: '/perfil',
-    icon: User,
-    label: 'Perfil',
-    requiresAuth: true
-  }
+const navItems = [
+  { href: '/buscar-viaje', icon: Search, label: 'Buscar' },
+  { href: '/publicar-viaje', icon: PlusCircleIcon, label: 'Publicar' },
+  { href: '/viajes', icon: CarFrontIcon, label: 'Mis Viajes' },
+  { href: '/mensajes', icon: MessageSquare, label: 'Mensajes' },
+  { href: '/perfil', icon: User, label: 'Perfil' }
 ]
 
-export function MobileBottomNavigation() {
+export function MobileBottomNavigationClient() {
   const pathname = usePathname()
   const router = useRouter()
-  const { data } = authClient.useSession()
-
-  const handleNavigation = (item: NavItem) => {
-    if (item.requiresAuth && !data?.user) {
-      router.push(`/login?redirect_url=${encodeURIComponent(item.href)}`)
-      return
-    }
-
-    router.push(item.href)
-  }
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/'
-    }
+    if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
   }
 
@@ -76,7 +32,7 @@ export function MobileBottomNavigation() {
           return (
             <button
               key={item.href}
-              onClick={() => handleNavigation(item)}
+              onClick={() => router.push(item.href)}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 py-2 px-1 transition-colors",
                 "hover:bg-accent hover:text-accent-foreground",
@@ -85,18 +41,8 @@ export function MobileBottomNavigation() {
                   : "text-muted-foreground"
               )}
             >
-              <Icon
-                className={cn(
-                  "h-5 w-5",
-                  active && "text-primary"
-                )}
-              />
-              <span
-                className={cn(
-                  "text-xs font-medium leading-none",
-                  active && "text-primary"
-                )}
-              >
+              <Icon className={cn("h-5 w-5", active && "text-primary")} />
+              <span className={cn("text-xs font-medium leading-none", active && "text-primary")}>
                 {item.label}
               </span>
             </button>

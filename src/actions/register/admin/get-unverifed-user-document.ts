@@ -28,6 +28,7 @@ export async function getUserDocuments(userId: string): Promise<ApiResponse<any>
                   select: {
                     id: true,
                     plate: true,
+                    year: true,
                     insuredCar: {
                       select: {
                         currentPolicy: {
@@ -40,7 +41,6 @@ export async function getUserDocuments(userId: string): Promise<ApiResponse<any>
                     carModel: {
                       select: {
                         model: true,
-                        year: true,
                         fuelType: true,
                         averageFuelConsume: true,
                         brand: {
@@ -79,7 +79,6 @@ export async function getUserDocuments(userId: string): Promise<ApiResponse<any>
     return await AdminDocumentService.getUserDocuments(user);
 
   } catch (error) {
-    //todo ver que aca manejamos mal el error
     return ApiHandler.handleError(error);
   }
 }

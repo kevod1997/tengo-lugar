@@ -52,7 +52,7 @@ export async function createCarModel(userId: string, data: any) {
         where: {
           brandId: brand.id,
           model: validatedData.model.name,
-          year: validatedData.model.year
+          // year: validatedData.model.year
         }
       })
 
@@ -60,7 +60,6 @@ export async function createCarModel(userId: string, data: any) {
         data: {
           brandId: brand.id,
           model: validatedData.model.name,
-          year: validatedData.model.year,
           fuelType: validatedData.model.fuelType,
           averageFuelConsume: validatedData.model.averageFuelConsume
         }
@@ -77,7 +76,8 @@ export async function createCarModel(userId: string, data: any) {
       const car = existingCar || await tx.car.create({
         data: {
           plate: validatedData.car.plate.toUpperCase(),
-          carModelId: carModel.id
+          carModelId: carModel.id,
+          year: validatedData.model.year,
         }
       }).catch(error => {
         throw handlePrismaError(error, 'createCarModel.car', 'create-car-model.ts')

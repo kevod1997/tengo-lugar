@@ -67,11 +67,11 @@ export function usePlateValidation(initialPlate = '') {
   // States for validation
   const [isValidating, setIsValidating] = useState(false)
   const [plateError, setPlateError] = useState<string | null>(null)
-  
+
   // Refs to avoid unnecessary re-renders
   const currentValueRef = useRef(initialPlate)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   // Validation helpers
   const shouldValidateFormat = (value: string) => {
     return value.length >= 6 && /^[A-Za-z0-9]{6,7}$/.test(value.toUpperCase())
@@ -86,11 +86,11 @@ export function usePlateValidation(initialPlate = '') {
       }
       return
     }
-    
+
     try {
       setIsValidating(true)
       const response = await checkPlateExists(value)
-      
+
       if (response.success && response.data?.exists) {
         setPlateError(response.data.message)
       } else {
@@ -107,24 +107,24 @@ export function usePlateValidation(initialPlate = '') {
   // Optimized input handler
   const handlePlateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value.toUpperCase()
-    
+
     // Store latest value in ref (doesn't cause re-render)
     currentValueRef.current = newValue
-    
+
     // Update display value (causes re-render, but needed for controlled component)
     setPlate(newValue)
-    
+
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }
-    
+
     // Clear error for short input
     if (newValue.length < 6) {
       setPlateError(null)
       return
     }
-    
+
     // Set timeout for validation
     timeoutRef.current = setTimeout(() => {
       // Use the ref value to ensure we're validating the latest input
@@ -150,25 +150,25 @@ export function usePlateValidation(initialPlate = '') {
       clearTimeout(timeoutRef.current)
       timeoutRef.current = null
     }
-    
+
     const value = currentValueRef.current
-    
+
     if (!shouldValidateFormat(value)) {
       setPlateError('Formato de patente inválido')
       return { isValid: false, error: 'Formato de patente inválido' }
     }
-    
+
     try {
       setIsValidating(true)
       const response = await checkPlateExists(value)
       const isValid = !(response.success && response.data?.exists)
       const error = isValid ? null : response.data?.message
-      
+
       setPlateError(error || null)
       return { isValid, error }
     } catch (error) {
-      //todo fix
-      console.log('Plate validation error:', error)
+      //todo log error to a service
+      console.error('Plate validation error:', error)
       const errorMsg = 'Error al verificar la patente'
       setPlateError(errorMsg)
       return { isValid: false, error: errorMsg }

@@ -78,13 +78,12 @@ export const auth = betterAuth({
       },
     }
   },
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? 'http://localhost:3000',
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? 'https://localhost:3000',
   plugins: [
     admin(),
     jwt({
       jwt: {
-        expirationTime: "1w",
-        //todo ver con agus el caso que un usuarios este participando en dos viajes a al vez pero en uno es ocndcutor y en otro pasajero
+        expirationTime: "1d",
         definePayload: async ({ user }) => {
           // Obtener usuario con sus relaciones
           const userWithRelations = await prisma.user.findUnique({

@@ -58,7 +58,7 @@ export function UserUpdatesListener() {
       eventSourceRef.current = es;
 
       es.onopen = () => { console.log('UserUpdatesListener: SSE connection established.'); };
-      //todo ver estos porque no funcionan puede ser que falte codigo
+      //todov2 ver estos porque no funcionan puede ser que falte codigo
       // es.addEventListener('connection_established', (event: MessageEvent) => { /* ... */ });
       // es.addEventListener('ping', (event: MessageEvent) => { /* ... */ });
 

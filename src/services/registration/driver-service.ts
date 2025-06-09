@@ -88,10 +88,6 @@ export class DriverRegistrationService {
   async submitCarInfo(userId: string, carInfo: any) {
     try {
       const carInfoResult = await createCarModel(userId, carInfo);
-      //todo optimizar este codigo en los servicios, ya que se repite en varios lugares y hay que sacar los api handlers de las server action cuando es el caso del error, ya que la respuesta esperada depende si hay success o no me genera un error y devuelve la respuesta posterior, por ejemplo aca me tiraba error en la funcion createCarMOdel pero me tomaba el error del codigo de abajo.
-      // if (!carInfoResult.success) {
-      //   throw ServiceError.DataSubmissionFailed('Información del vehículo', 'driver-service.ts', 'submitCarInfo');
-      // }
 
       await logActionWithErrorHandling(
         {
@@ -144,14 +140,6 @@ export class DriverRegistrationService {
       }
 
       const insuranceInfoResult = await submitInsuranceInfo(userId, insuranceInfo);
-
-      // if (!insuranceInfoResult.success) {
-      //   throw ServiceError.DataSubmissionFailed(
-      //     'Información del seguro',
-      //     'driver-service.ts',
-      //     'submitInsuranceInfo'
-      //   );
-      // }
 
       await logActionWithErrorHandling(
         {

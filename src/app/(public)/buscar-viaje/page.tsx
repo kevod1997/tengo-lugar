@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FaExclamationTriangle } from 'react-icons/fa'
 import TripSearchForm from './components/TripSearchForm'
 import { SearchResults } from './components/SearchResults'
+import TechnicalProblemsPage from '@/components/TechnicalProblems'
+import { getGoogleMapsConfig } from '@/services/env/env-service'
 
 interface SearchTripsPageProps {
   searchParams: Promise<{
@@ -21,10 +23,13 @@ interface SearchTripsPageProps {
 
 export default async function SearchTripsPage({ searchParams }: SearchTripsPageProps) {
   const params = await searchParams
+  const googleMaps = await getGoogleMapsConfig()
+
+   if (!googleMaps.available) {
+    return <TechnicalProblemsPage reason="search_unavailable" />
+  }
   const page = Number(params.page) || 1
   const pageSize = Number(params.pageSize) || 10
-  //todo ver si dejar aca para no exponer el apiKey al cliente, o si es necesario
-  // const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
 
   // Convert search params to the format expected by the server action
   const searchParamsForAction: TripSearchParams = {
@@ -54,6 +59,7 @@ export default async function SearchTripsPage({ searchParams }: SearchTripsPageP
       {/* Search Form */}
       <div className="mb-8">
         <TripSearchForm
+          apiKey={googleMaps.apiKey!}
           initialValues={{
             origin: params.originCity,
             destination: params.destinationCity,

@@ -7,12 +7,12 @@ import { StepId } from '@/types/registration-types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LoadingOverlay } from '@/components/loader/loading-overlay'
-import RegistrationFlow from '../../dashboard/ui/registration/registration-flow'
-import { VerificationTab } from '../../dashboard/ui/dashboard/VerificationTab'
-import { DriverTab } from '../../dashboard/ui/dashboard/DriverTab'
-import { ProfileCard } from '../../dashboard/ui/dashboard/ProfileCard' 
-import { AlertTriangle, Users, Car, TrendingUp, Settings, ShieldAlert } from 'lucide-react' 
-import { VerificationAlert } from '../../dashboard/ui/dashboard/VerificationAlert'
+import RegistrationFlow from './ui/registration/registration-flow'
+import { VerificationTab } from './ui/dashboard/VerificationTab'
+import { DriverTab } from './ui/dashboard/DriverTab'
+import { ProfileCard } from './ui/dashboard/ProfileCard'
+import { AlertTriangle, Users, Car, TrendingUp, Settings } from 'lucide-react'
+import { VerificationAlert } from './ui/dashboard/VerificationAlert'
 import { useApiResponse } from '@/hooks/ui/useApiResponse'
 import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
 import { toast } from 'sonner'
@@ -24,6 +24,7 @@ import { PushNotificationManager } from "@/components/notifications/PushNotifica
 import { useHydration } from "@/hooks/ui/useHydration"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangleIcon } from "lucide-react"
+import { useRouter } from 'next/navigation'
 
 type RegistrationMode = null | 'initial' | 'identity' | 'driver';
 
@@ -46,11 +47,13 @@ export default function IntegratedProfileContent({
   const email = data?.user.email;
   const { user, setUser } = useUserStore()
   const { handleResponse } = useApiResponse()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [registrationStep, setRegistrationStep] = useState<StepId>('role')
   const [initialRole, setInitialRole] = useState<'traveler' | 'driver' | undefined>(undefined)
   const [registrationMode, setRegistrationMode] = useState<RegistrationMode>(null)
   const [activeTab, setActiveTab] = useState("general")
+  const hasCompletedProfile = user?.hasBirthDate !== false;
 
   const { isHydrated } = useHydration({
     isHydratedFn: () => useUserStore.getState().user !== null
@@ -65,19 +68,39 @@ export default function IntegratedProfileContent({
     if (user?.hasBirthDate === false) {
       setRegistrationMode('initial')
     }
-  }, [user])
+  }, [user?.hasBirthDate])
 
-  const handleRegistrationComplete = () => {
+  const handleRegistrationComplete = async () => {
     setRegistrationMode(null)
     setIsLoading(false)
-    // Potentially trigger a re-fetch or update of user data if needed
-    // Example: queryClient.invalidateQueries(['userProfileData']) or similar
+
+    // Si el birthDate del servidor sigue siendo null pero el usuario completó el perfil
+    if (birthDate === null && user?.hasBirthDate !== false) {
+      await authClient.getSession({
+        query: { disableCookieCache: true }
+      })
+      // Luego refrescar la página para obtener los nuevos props
+      router.refresh()
+    }
+  }
+
+  const handleClose = async () => {
+    setRegistrationMode(null)
+
+    // Si el birthDate del servidor sigue siendo null pero el usuario completó el perfil  
+    if (birthDate === null && user?.hasBirthDate !== false) {
+      await authClient.getSession({
+        query: { disableCookieCache: true }
+      })
+      // Luego refrescar la página para obtener los nuevos props
+      router.refresh()
+    }
   }
 
   const startDriverRegistration = () => {
     if (!user) return;
 
-    if (user.identityStatus === 'FAILED') {
+    if (!user.identityStatus || user.identityStatus === 'FAILED') {
       setRegistrationStep('identityCard');
     } else if (!user.licenseStatus) {
       setRegistrationStep('driverLicense');
@@ -153,7 +176,7 @@ export default function IntegratedProfileContent({
     )
   }
 
-  if (birthDate === null && registrationMode !== 'initial') { // Allow showing content if registrationMode is 'initial'
+  if (!hasCompletedProfile) {
     return (
       <div className="container mx-auto p-4 max-w-3xl">
         <Alert className="my-6 bg-card border">
@@ -171,6 +194,14 @@ export default function IntegratedProfileContent({
             <p>No podrás acceder a todas las funciones hasta que completes tu registro.</p>
           </CardContent>
         </Card>
+        {registrationMode && (
+          <RegistrationFlow
+            onComplete={handleRegistrationComplete}
+            initialStep={getInitialStepForMode()}
+            onClose={() => setRegistrationMode(null)}
+            initialRole={registrationMode === 'driver' ? 'driver' : initialRole}
+          />
+        )}
       </div>
     )
   }
@@ -197,16 +228,16 @@ export default function IntegratedProfileContent({
           userId={userId} // Pass userId for the public profile link
         />
 
-         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-sm:pb-16">
             <TabsTrigger value="general">
               Información
             </TabsTrigger>
             <TabsTrigger value="verification" className="flex items-center justify-center gap-1 sm:gap-2">
-              Verificación
-              {(user?.identityStatus === 'FAILED' || user?.identityStatus === 'PENDING') && (
-                <ShieldAlert className={`h-4 w-4 ${user.identityStatus === 'FAILED' ? 'text-destructive' : 'text-blue-500'}`} />
+              {(user?.identityStatus === 'FAILED' || user?.identityStatus === 'PENDING' || user?.identityStatus === null) && (
+                <AlertTriangle className={`h-4 w-4 ${user.identityStatus === 'FAILED' ? 'text-destructive' : 'text-yellow-500'}`} />
               )}
+              Verificación
             </TabsTrigger>
             <TabsTrigger
               disabled={user?.hasBirthDate === false}
@@ -232,7 +263,6 @@ export default function IntegratedProfileContent({
               phoneNumber={phoneNumber}
               // phoneNumberVerified={user.phoneNumberVerified} // Assuming user object has this
               gender={gender}
-              // onSubmit={async (formData) => { /* Handle profile form submission if needed here, or let ProfileForm handle it */ }}
             />
 
             <Card>
@@ -262,7 +292,7 @@ export default function IntegratedProfileContent({
           <TabsContent value="verification" className="mt-6">
             <VerificationTab
               user={user}
-              setShowIdVerification={() => setRegistrationMode('identity')}
+              setShowIdVerification={() => setRegistrationMode('initial')}
             />
           </TabsContent>
 
@@ -281,7 +311,7 @@ export default function IntegratedProfileContent({
         <RegistrationFlow
           onComplete={handleRegistrationComplete}
           initialStep={getInitialStepForMode()}
-          onClose={() => setRegistrationMode(null)}
+          onClose={handleClose}
           initialRole={registrationMode === 'driver' ? 'driver' : initialRole}
         />
       )}
