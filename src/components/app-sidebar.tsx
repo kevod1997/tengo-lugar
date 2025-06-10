@@ -13,12 +13,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import type { NavItem } from '@/types/navigation-types';
-import { NavUserDynamic } from "./nav-user-dynamic"
+import { NavUser } from "./nav-user"
 
 export const AppSidebar = React.memo(function AppSidebar({
   initialNavItems,
+  user,
   ...props
-}: React.ComponentPropsWithoutRef<typeof Sidebar> & { initialNavItems: NavItem[] }) {
+}: React.ComponentPropsWithoutRef<typeof Sidebar> & { initialNavItems: NavItem[], user: any }) {
   const { open, isMobile, setOpenMobile } = useSidebar()
 
   const handleLogoClick = () => {
@@ -50,7 +51,7 @@ export const AppSidebar = React.memo(function AppSidebar({
         <NavMain items={initialNavItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUserDynamic open={open} />
+        <NavUser open={open} user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar >

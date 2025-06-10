@@ -13,6 +13,7 @@ import { MobileBottomNavigationClient } from "@/components/MobileBottomNavigatio
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { AUTHENTICATED_NAV_ITEMS, UNAUTHENTICATED_NAV_ITEMS } from "@/config/constants";
+import { AuthSessionHandler } from "@/components/AuthSessionHandler";
 
 export const metadata: Metadata = {
   title: {
@@ -28,7 +29,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth.api.getSession({ headers: await headers() });
-  console.log("Session in RootLayout:", session);
   const isSignedIn = !!session?.user;
 
   const navItemsForSidebar = isSignedIn
@@ -39,12 +39,13 @@ export default async function RootLayout({
     <html lang="es" className="h-full">
       <body className={`${openSans.className} flex h-full overflow-hidden bg-background`}>
         <Providers>
+          <AuthSessionHandler />
           <NavigationProgress />
           <NavigationMessageListener />
           <UserUpdatesListener />
 
           <div className="flex w-full">
-            <AppSidebar className="hidden lg:flex" initialNavItems={navItemsForSidebar} />
+            <AppSidebar className="hidden lg:flex" initialNavItems={navItemsForSidebar} user={session?.user} />
             <div className="flex flex-col flex-1 w-full m-4 px-2">
               <main className={`flex-1 overflow-y-auto ${isSignedIn ? " pb-16 md:pb-4" : ''}`}>
                 <Suspense fallback={<Loading />}>

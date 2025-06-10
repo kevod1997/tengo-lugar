@@ -22,7 +22,13 @@ export const useUserStore = create<UserState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...userData } : null
         })),
-      clearUser: () => set({ user: null, lastFetch: null }),
+      clearUser: () => {
+        set({ user: null })
+        // Asegurar limpieza de localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('user-storage')
+        }
+      },
       lastFetch: null,
       updateLastFetch: () => set({ lastFetch: Date.now() }),
       shouldRefetch: (cacheTime = 30000) => {
