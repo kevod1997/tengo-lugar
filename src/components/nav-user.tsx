@@ -43,9 +43,7 @@ import { useLoadingStore } from "@/store/loadingStore"
 import React, { useMemo, useCallback } from "react"
 
 export const NavUser = React.memo(function NavUser({ open, user }: { open: boolean, user: any }) {
-  // const [isMounted, setIsMounted] = useState(false)
   const { isLoading, startLoading, stopLoading } = useLoadingStore()
-  // const { data: session, isPending } = authClient.useSession()
   const { user: userDb, clearUser } = useUserStore()
   const router = useRouter()
   const { isMobile, setOpenMobile } = useSidebar()
@@ -73,44 +71,38 @@ export const NavUser = React.memo(function NavUser({ open, user }: { open: boole
     [userDb?.identityStatus]
   )
 
-  const handleSignOut = useCallback(async () => {
-    if (!user || isSigningOut) return
+const handleSignOut = useCallback(async () => {
+  if (!user || isSigningOut) return
 
-    startLoading('signingOut')
+  startLoading('signingOut')
 
-    try {
-      if (isMobile) {
-        setOpenMobile(false)
-      }
-
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: async () => {
-            // ✅ Navegar PRIMERO (esto triggera nueva página con session=null)
-            router.push("/")
-
-            // ✅ Limpiar DESPUÉS
-            setTimeout(() => {
-              clearUser()
-            }, 50)
-
-            await LoggingService.logActionWithErrorHandling({
-              userId: user.id,
-              action: TipoAccionUsuario.CIERRE_SESION,
-              status: 'SUCCESS',
-            }, {
-              fileName: 'nav-user.tsx',
-              functionName: 'handleSignOut'
-            })
-          },
-        },
-      })
-    } catch (error) {
-      console.error("Error signing out:", error)
-    } finally {
-      stopLoading('signingOut')
+  try {
+    if (isMobile) {
+      setOpenMobile(false)
     }
-  }, [user, isSigningOut, isMobile, clearUser, setOpenMobile, router, startLoading, stopLoading])
+
+    clearUser() 
+    await authClient.signOut()
+    
+    // ✅ Logging asíncrono
+    LoggingService.logActionWithErrorHandling({
+      userId: user.id,
+      action: TipoAccionUsuario.CIERRE_SESION,
+      status: 'SUCCESS',
+    }, {
+      fileName: 'nav-user.tsx',
+      functionName: 'handleSignOut'
+    }).catch(console.error)
+
+    // ✅ FORZAR NAVEGACIÓN AL HOME
+    window.location.href = '/'
+
+  } catch (error) {
+    console.error("Error signing out:", error)
+  } finally {
+    stopLoading('signingOut')
+  }
+}, [user, isSigningOut, isMobile, setOpenMobile, router, startLoading, stopLoading])
 
   // ✅ Loading states mejorados
   if (user && !userDb) {

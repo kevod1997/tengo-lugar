@@ -31,15 +31,10 @@ export default async function RootLayout({
   const session = await auth.api.getSession({ headers: await headers() });
   const isSignedIn = !!session?.user;
 
-  const navItemsForSidebar = isSignedIn
-    ? AUTHENTICATED_NAV_ITEMS
-    : UNAUTHENTICATED_NAV_ITEMS;
-
   return (
     <html lang="es" className="h-full">
       <body className={`${openSans.className} flex h-full overflow-hidden bg-background`}>
         <Providers initialSession={session}>
-          {/* <AuthSessionHandler initialSession={session} /> */}
            <LoadingOverlay 
             overlayOperations={['authRedirect', 'signingOut']}
           />
@@ -48,7 +43,11 @@ export default async function RootLayout({
           <UserUpdatesListener />
 
           <div className="flex w-full">
-            <AppSidebar className="hidden lg:flex" initialNavItems={navItemsForSidebar} user={session?.user} />
+              <AppSidebar 
+              className="hidden lg:flex" 
+              initialNavItems={isSignedIn ? AUTHENTICATED_NAV_ITEMS : UNAUTHENTICATED_NAV_ITEMS}
+              user={session?.user}
+            />
             <div className="flex flex-col flex-1 w-full m-4 px-2">
               <main className={`flex-1 overflow-y-auto ${isSignedIn ? " pb-16 md:pb-4" : ''}`}>
                 <Suspense fallback={<Loading />}>
