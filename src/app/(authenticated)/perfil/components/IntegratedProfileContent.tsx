@@ -160,7 +160,7 @@ export default function IntegratedProfileContent({
   }
 
   if (isLoading || !isHydrated) {
-    return <LoadingOverlay isLoading={true} />
+    return <LoadingOverlay customMessage='Cargando perfil...' />
   }
 
   if (!user) {

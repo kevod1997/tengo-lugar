@@ -11,6 +11,7 @@ export type LoadingOperation =
   | 'fetchingFuelPrices'
   // Otros módulos de la aplicación
   | 'uploadingDocument'
+  | 'authRedirect'
   | 'authenticatingUser'
   | 'fetchingUserData'
   | 'signingOut'
@@ -43,6 +44,7 @@ const defaultMessages: Record<LoadingOperation, string> = {
   fetchingCars: 'Cargando vehículos...',
   fetchingFuelPrices: 'Cargando precios de combustible...',
   uploadingDocument: 'Subiendo documento...',
+  authRedirect: 'Autenticando...',
   authenticatingUser: 'Autenticando...',
   fetchingUserData: 'Cargando datos de usuario...',
   searchingTrips: 'Buscando viajes...',

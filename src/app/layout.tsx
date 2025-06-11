@@ -13,7 +13,7 @@ import { MobileBottomNavigationClient } from "@/components/MobileBottomNavigatio
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { AUTHENTICATED_NAV_ITEMS, UNAUTHENTICATED_NAV_ITEMS } from "@/config/constants";
-import { AuthSessionHandler } from "@/components/AuthSessionHandler";
+import { LoadingOverlay } from "@/components/loader/loading-overlay";
 
 export const metadata: Metadata = {
   title: {
@@ -38,8 +38,11 @@ export default async function RootLayout({
   return (
     <html lang="es" className="h-full">
       <body className={`${openSans.className} flex h-full overflow-hidden bg-background`}>
-        <Providers>
-          <AuthSessionHandler />
+        <Providers initialSession={session}>
+          {/* <AuthSessionHandler initialSession={session} /> */}
+           <LoadingOverlay 
+            overlayOperations={['authRedirect', 'signingOut']}
+          />
           <NavigationProgress />
           <NavigationMessageListener />
           <UserUpdatesListener />

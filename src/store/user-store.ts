@@ -8,14 +8,11 @@ interface UserState {
   setUser: (user: FormattedUser | null) => void
   updateUser: (userData: Partial<FormattedUser>) => void
   clearUser: () => void
-  lastFetch: number | null
-  updateLastFetch: () => void
-  shouldRefetch: (cacheTime?: number) => boolean
 }
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       setUser: (user) => set({ user }),
       updateUser: (userData) =>
@@ -24,17 +21,7 @@ export const useUserStore = create<UserState>()(
         })),
       clearUser: () => {
         set({ user: null })
-        // Asegurar limpieza de localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('user-storage')
-        }
-      },
-      lastFetch: null,
-      updateLastFetch: () => set({ lastFetch: Date.now() }),
-      shouldRefetch: (cacheTime = 30000) => {
-        const { lastFetch } = get()
-        if (!lastFetch) return true
-        return Date.now() - lastFetch > cacheTime
+        localStorage.removeItem('user-storage')
       },
     }),
     {

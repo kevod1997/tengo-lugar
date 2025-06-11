@@ -111,7 +111,7 @@ export default function DashboardContent() {
   }
 
   if (isLoading) {
-    return <LoadingOverlay isLoading={true} />
+    return <LoadingOverlay customMessage='Cargando...' />
   }
 
   const calculateProfileCompletion = () => {
