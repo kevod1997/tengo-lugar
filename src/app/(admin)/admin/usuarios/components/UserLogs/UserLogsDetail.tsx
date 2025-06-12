@@ -127,7 +127,7 @@ export function UserLogsView({ userId }: UserLogsViewProps) {
           </div>
 
           {isLoading ? (
-            <LoadingOverlay customMessage="Cargando registros..." />
+            <LoadingOverlay forceShow customMessage="Cargando registros..." />
           ) : (
             <>
               <UserLogsTable logs={logs} />

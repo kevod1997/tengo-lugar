@@ -27,6 +27,7 @@ interface LoadingOverlayProps {
   overlayOperations?: LoadingOperation[]
   // ✅ Personalizar mensaje si no quieres usar el del store
   customMessage?: string
+  forceShow?: boolean
   // ✅ Personalizar el fondo
   className?: string
 }
@@ -34,6 +35,7 @@ interface LoadingOverlayProps {
 export function LoadingOverlay({ 
   overlayOperations = ['authRedirect', 'authenticatingUser', 'signingOut'],
   customMessage,
+  forceShow = false,
   className = "fixed inset-0 bg-background/80 flex items-center justify-center z-50"
 }: LoadingOverlayProps) {
   const { isLoading, getLoadingMessage } = useLoadingStore()
@@ -41,10 +43,11 @@ export function LoadingOverlay({
   // ✅ Verificar si alguna operación de overlay está activa
   const activeOperation = overlayOperations.find(operation => isLoading(operation))
   
-  if (!activeOperation) return null
+   if (!activeOperation && !forceShow) return null
 
   // ✅ Obtener mensaje de la operación activa o usar custom
-  const message = customMessage || getLoadingMessage(activeOperation)
+ const message = customMessage || 
+    (activeOperation ? getLoadingMessage(activeOperation) : 'Cargando...')
 
   return (
     <div className={className}>

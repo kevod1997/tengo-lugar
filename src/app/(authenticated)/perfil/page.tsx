@@ -19,7 +19,7 @@ export default async function UserProfilePage() {
         breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Perfil' }]}
         showBackButton={false}
       />
-      <Suspense fallback={<LoadingOverlay customMessage='Cargando perfil...' />}>
+      <Suspense fallback={<LoadingOverlay customMessage='Cargando perfil...' forceShow />}>
          <IntegratedProfileContent 
           birthDate={birthDate} 
           phoneNumber={phoneNumber} 

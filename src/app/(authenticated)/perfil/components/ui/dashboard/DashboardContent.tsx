@@ -30,17 +30,17 @@ export default function DashboardContent() {
   const { user, setUser } = useUserStore()
   const { handleResponse } = useApiResponse()
 
-  const [isLoading, setIsLoading] = useState(true)
+  // const [isLoading, setIsLoading] = useState(true)
   const [registrationStep, setRegistrationStep] = useState<StepId>('role')
   const [initialRole, setInitialRole] = useState<'traveler' | 'driver' | undefined>(undefined)
   
   // Un único estado para controlar el modo de registro
   const [registrationMode, setRegistrationMode] = useState<RegistrationMode>(null)
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000)
-    return () => clearTimeout(timer)
-  }, [])
+  // useEffect(() => {
+  //   const timer = setTimeout(() => setIsLoading(false), 1000)
+  //   return () => clearTimeout(timer)
+  // }, [])
 
   useEffect(() => {
     // Si el usuario no tiene fecha de nacimiento, iniciamos el flujo de registro inicial
@@ -51,7 +51,7 @@ export default function DashboardContent() {
 
   const handleRegistrationComplete = () => {
     setRegistrationMode(null)
-    setIsLoading(false)
+    // setIsLoading(false)
   }
 
   const startDriverRegistration = () => {
@@ -110,9 +110,9 @@ export default function DashboardContent() {
     })
   }
 
-  if (isLoading) {
-    return <LoadingOverlay customMessage='Cargando...' />
-  }
+  // if (isLoading) {
+  //   return <LoadingOverlay forceShow customMessage='Cargando...' />
+  // }
 
   const calculateProfileCompletion = () => {
     if (user?.termsAccepted && user?.identityStatus === null) return 33

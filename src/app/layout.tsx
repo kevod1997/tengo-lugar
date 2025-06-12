@@ -40,7 +40,7 @@ export default async function RootLayout({
           />
           <NavigationProgress />
           <NavigationMessageListener />
-          <UserUpdatesListener />
+          {/* <UserUpdatesListener /> */}
 
           <div className="flex w-full">
               <AppSidebar 
