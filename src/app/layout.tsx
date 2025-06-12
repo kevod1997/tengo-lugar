@@ -8,7 +8,7 @@ import { Suspense } from "react";
 import Loading from "./loading";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { NavigationMessageListener } from "@/components/NavigationMessengerListener";
-import { UserUpdatesListener } from "@/components/UserUpdatesListener";
+// import { UserUpdatesListener } from "@/components/UserUpdatesListener";
 import { MobileBottomNavigationClient } from "@/components/MobileBottomNavigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
