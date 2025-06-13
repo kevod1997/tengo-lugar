@@ -49,8 +49,8 @@ export default async function RootLayout({
               user={session?.user}
             />
             {/* <div className="flex flex-col flex-1 w-full m-4 px-2"> */}
-            <div className="flex flex-col flex-1 w-full lg:m-4 lg:px-2">
-              <main className={`flex-1 overflow-y-auto ${isSignedIn ? " pb-16 md:pb-4" : ''}`}>
+            <div className="flex flex-col flex-1 w-full">
+              <main className={`flex-1 overflow-y-auto ${isSignedIn ? " pb-16 md:pb-0" : ''}`}>
                 <Suspense fallback={<Loading />}>
                   {children}
                 </Suspense>

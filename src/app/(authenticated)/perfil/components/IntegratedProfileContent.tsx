@@ -106,7 +106,7 @@ export default function IntegratedProfileContent({
 
   const startDriverRegistration = () => {
     if (!user) return;
-    if (user.hasEnabledCar)  router.push('/publicar-viaje') 
+    if (user.hasEnabledCar) router.push('/publicar-viaje')
 
     if (!user.identityStatus || user.identityStatus === 'FAILED') {
       setRegistrationStep('identityCard');

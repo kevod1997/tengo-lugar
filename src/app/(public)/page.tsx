@@ -27,7 +27,7 @@ export default async function HomePage() {
         <div className="container mx-auto px-4">
           
           {/* Hero Section */}
-          <section className="pt-16 pb-12 text-center space-y-8">
+          <section className="pt-4 pb-12 text-center space-y-8">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-full text-sm text-primary font-medium">
                 <Sparkles className="w-4 h-4" />
@@ -42,7 +42,7 @@ export default async function HomePage() {
                 </span>
               </h1>
               
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed max-sm:hidden">
                 La plataforma que conecta conductores y pasajeros para viajes más inteligentes, 
                 seguros y económicos por toda Argentina.
               </p>
@@ -52,7 +52,7 @@ export default async function HomePage() {
             <div className="max-w-md md:max-w-full mx-auto">
               <Card className="border-border shadow-2xl shadow-primary/10 bg-card">
                 <CardContent className="p-6 md:p-8">
-                  <div className="text-center mb-6">
+                  <div className="text-center mb-6 max-sm:hidden">
                     <h2 className="text-lg font-semibold text-card-foreground mb-2">
                       ¿A dónde vas?
                     </h2>

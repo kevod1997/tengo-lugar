@@ -48,7 +48,8 @@ export default async function SearchTripsPage({ searchParams }: SearchTripsPageP
   const response = hasSearchParams ? await searchTrips(searchParamsForAction) : null
 
   return (
-    <div className="container mx-auto pb-8 px-4 md:px-6">
+    <div className="">
+    {/* <div className="container mx-auto pb-8 px-4 md:px-6"> */}
       <Header
         breadcrumbs={[
           { label: 'Inicio', href: '/' },
