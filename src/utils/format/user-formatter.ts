@@ -2,32 +2,31 @@ import { FormattedUser, FormattedUserForAdminDashboard, UserCar } from "@/types/
 
 
 export function getCars(user: any): UserCar[] {
-  // Guard clause to handle case when driver or cars is missing
   if (!user?.driver?.cars) {
     return [];
   }
 
   const cars = user.driver.cars.map((driverCar: any) => {
     // Check if car has all requirements to be fully enabled
-    const hasRequiredCard = 
-      (driverCar.vehicleCards?.[0]?.cardType === 'GREEN' && driverCar.vehicleCards[0].status === 'VERIFIED') || 
-      (driverCar.vehicleCards?.[0]?.cardType === 'BLUE' && driverCar.vehicleCards[0].status === 'VERIFIED');
+    // const hasRequiredCard = 
+    //   (driverCar.vehicleCards?.[0]?.cardType === 'GREEN' && driverCar.vehicleCards[0].status === 'VERIFIED') || 
+    //   (driverCar.vehicleCards?.[0]?.cardType === 'BLUE' && driverCar.vehicleCards[0].status === 'VERIFIED');
     
-    const hasRequiredFuelInfo = 
-      driverCar.car.carModel?.fuelType !== null && 
-      driverCar.car.carModel?.averageFuelConsume !== null;
+    // const hasRequiredFuelInfo = 
+    //   driverCar.car.carModel?.fuelType !== null && 
+    //   driverCar.car.carModel?.averageFuelConsume !== null;
     
-    const hasVerifiedInsurance = 
-      driverCar.car.insuredCar?.currentPolicy?.status === 'VERIFIED';
+    // const hasVerifiedInsurance = 
+    //   driverCar.car.insuredCar?.currentPolicy?.status === 'VERIFIED';
     
-    const noPendingCards = !(driverCar.vehicleCards?.[0]?.status === 'PENDING');
+    // const noPendingCards = !(driverCar.vehicleCards?.[0]?.status === 'PENDING');
 
     // Car is fully enabled if it meets all criteria
-    const isFullyEnabled = 
-      hasRequiredCard && 
-      hasRequiredFuelInfo && 
-      hasVerifiedInsurance && 
-      noPendingCards;
+    // const isFullyEnabled = 
+    //   hasRequiredCard && 
+    //   hasRequiredFuelInfo && 
+    //   hasVerifiedInsurance && 
+    //   noPendingCards;
 
     return {
       id: driverCar.car.id,
@@ -55,7 +54,7 @@ export function getCars(user: any): UserCar[] {
       hasBlueCard: driverCar.vehicleCards?.[0]?.cardType === 'BLUE' &&
         driverCar.vehicleCards[0].status === 'VERIFIED' || false,
       hasPendingCards: driverCar.vehicleCards?.[0]?.status === 'PENDING' || false,
-      isFullyEnabled: isFullyEnabled
+      // isFullyEnabled: isFullyEnabled
     };
   });
   
@@ -115,7 +114,7 @@ export function getUserAge(birthDate: string): number | null {
 export function formatUserResponse(user: any): FormattedUser {
   const cars = getCars(user);
   const age = getUserAge(user.birthDate);
-  const hasEnabledCar = cars.some(car => car.isFullyEnabled);
+  // const hasEnabledCar = cars.some(car => car.isFullyEnabled);
 
   return {
     hasBirthDate: !!user.birthDate,
@@ -145,7 +144,7 @@ export function formatUserResponse(user: any): FormattedUser {
     hasPendingCards: cars.some((car: UserCar) =>
       car.hasPendingCards
     ),
-    hasEnabledCar: hasEnabledCar
+    hasEnabledCar: user.driver?.isEnabled || false
   };
 }
 

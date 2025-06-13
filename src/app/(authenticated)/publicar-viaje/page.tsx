@@ -1,47 +1,108 @@
-'use client'
+// import { getFuels } from '@/actions/fuel/get-fuels'
+// import RouteCalculator from './components/RouteCalculator'
+// import Header from '@/components/header/header'
+// import { redirect } from 'next/navigation';
+// import { headers } from 'next/headers';
+// import { auth } from '@/lib/auth';
+// import { getDriverEligibility } from '@/actions/driver/driver-eligibility';
 
-import { useUserStore } from "@/store/user-store"
-import { useRouter } from "next/navigation"
-// import { useEffect } from "react"
+// export default async function RouteSimulatorPage() {
+//   const session = await auth.api.getSession({
+//     headers: await headers(),
+//   });
 
-export default function PublicarViajePage() {
-  const { user } = useUserStore()
-  const router = useRouter()
-  
-//   useEffect(() => {
-//     if (!user?.hasEnabledCar) {
-//       router.push('/dashboard?error=no-enabled-car')
-//     }
-//   }, [user, router])
-  
-  if (!user?.hasEnabledCar) {
+//   if (!session) {
+//     redirect("/login?redirect_url=/publicar-viaje");
+//   }
+//   // Get API key on the server
+//   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
+
+//   // Await the promise and extract the data
+//   const fuelsResponse = await getFuels()
+//   const fuelsData = fuelsResponse?.data || []
+//   const isDriver = await getDriverEligibility(session.user.id)
+
+//   return (
+//     <div className="container mx-auto py-8">
+//       <Header
+//         breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Publicar Viaje' }]}
+//         showBackButton={false}
+//       />
+//       <RouteCalculator
+//         apiKey={apiKey}
+//         initialOrigin=""
+//         initialDestination=""
+//         fuels={fuelsData}
+//       />
+//     </div>
+//   )
+// }
+
+import { getFuels } from '@/actions/fuel/get-fuels'
+import RouteCalculator from './components/RouteCalculator'
+import Header from '@/components/header/header'
+import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
+import { getDriverEligibility } from '@/actions/driver/driver-eligibility';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; 
+import { AlertTriangle } from 'lucide-react'; 
+import { Button } from '@/components/ui/button'; 
+import Link from 'next/link'; 
+
+export default async function RouteSimulatorPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    redirect("/login?redirect_url=/publicar-viaje");
+  }
+
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
+  const fuelsResponse = await getFuels()
+  const fuelsData = fuelsResponse?.data || []
+  const driverEligibility = await getDriverEligibility(session.user.id)
+
+  // 👇 Versión simple sin missingRequirements
+  if (!driverEligibility.isEnabled) {
     return (
-      <div className="flex flex-col items-center justify-center p-8">
-        <h1 className="text-2xl font-bold mb-4">No puedes publicar un viaje</h1>
-        <p className="text-gray-600 mb-6">
-          Para publicar un viaje, necesitas tener un vehículo completamente habilitado.
-        </p>
-        <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mb-6 w-full max-w-md">
-          <h2 className="font-semibold text-amber-800 mb-2">¿Qué necesitas para habilitar tu vehículo?</h2>
-          <ul className="list-disc list-inside text-amber-700 space-y-1">
-            <li>Tener una tarjeta verde o azul verificada</li>
-            <li>Tener un seguro verificado</li>
-            <li>No tener documentos pendientes de verificación</li>
-          </ul>
+      <div className="container mx-auto py-8">
+        <Header
+          breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Publicar Viaje' }]}
+          showBackButton={false}
+        />
+        <div className="max-w-2xl mx-auto mt-8">
+          <Alert className="border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertTitle className="text-orange-800">No puedes publicar viajes aún</AlertTitle>
+            <AlertDescription className="text-orange-700 space-y-4">
+              <p>{driverEligibility.reason}</p>
+              <Link href="/perfil?setup=driver">
+                <Button className="w-full sm:w-auto">
+                  Completar requisitos en mi perfil
+                </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
         </div>
-        <button 
-          onClick={() => router.push('/dashboard')}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-        >
-          Volver al Dashboard
-        </button>
       </div>
     )
   }
-  
+  // 👆
+
   return (
-   <div>
-        {/* Aquí va el formulario de publicar viaje */}
-   </div>
+    <div className="container mx-auto py-8">
+      <Header
+        breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Publicar Viaje' }]}
+        showBackButton={false}
+      />
+      <RouteCalculator
+        apiKey={apiKey}
+        initialOrigin=""
+        initialDestination=""
+        fuels={fuelsData}
+      />
+    </div>
   )
 }

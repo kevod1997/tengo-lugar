@@ -131,14 +131,18 @@ model UserTermsAcceptance {
 }
 
 model Driver {
-  id            String      @id @default(uuid())
-  userId        String      @unique
-  averageRating Float       @default(0)
-  totalReviews  Int         @default(0)
-  totalTrips    Int         @default(0)
-  licence       Licence?
-  cars          DriverCar[]
-  user          User        @relation(fields: [userId], references: [id])
+  id                   String      @id @default(uuid())
+  userId               String      @unique
+  averageRating        Float       @default(0)
+  totalReviews         Int         @default(0)
+  totalTrips           Int         @default(0)
+  isEnabled            Boolean     @default(false)
+  enabledAt            DateTime?
+  disabledReason       String?
+  lastEligibilityCheck DateTime    @default(now())
+  licence              Licence?
+  cars                 DriverCar[]
+  user                 User        @relation(fields: [userId], references: [id])
 }
 
 model Licence {

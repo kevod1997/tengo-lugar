@@ -1,6 +1,6 @@
 'use server'
 
-import { auth } from "@/lib/auth"
+import { auth, Session } from "@/lib/auth"
 import { headers } from "next/headers"
 import prisma from "@/lib/prisma"
 import { ApiHandler } from "@/lib/api-handler"
@@ -10,6 +10,7 @@ import { tripCreationSchema } from "@/schemas/validation/trip-schema"
 import { TripData } from "@/types/trip-types"
 import { ServiceError } from "@/lib/exceptions/service-error"
 import { logError } from "@/services/logging/logging-service"
+import { updateDriverStatus } from "../driver/driver-eligibility"
 
 // Función para crear la sala de chat
 async function createChatRoom(tripId: string): Promise<string> {
@@ -88,16 +89,31 @@ async function createChatRoom(tripId: string): Promise<string> {
     }
 }
 
-
 export async function createTrip(tripData: TripData) {
     try {
         // Authentication check
-        const session = await auth.api.getSession({
+        const session: Session | null = await auth.api.getSession({
             headers: await headers(),
         })
 
         if (!session) {
             throw ServerActionError.AuthenticationFailed('create-trip.ts', 'createTrip')
+        }
+
+        const driver = await prisma.driver.findFirst({
+            where: { userId: session.user.id }
+        });
+
+        if (!driver?.isEnabled) {
+            // Si no está habilitado O necesita recheck, validar en tiempo real
+            const eligibility = await updateDriverStatus(session.user.id);
+            if (!eligibility.isEnabled) {
+                throw ServerActionError.ValidationFailed(
+                    'create-trip.ts',
+                    'createTrip',
+                    `No puedes crear viajes: ${eligibility.reason}`
+                );
+            }
         }
 
         // Validate input data with Zod

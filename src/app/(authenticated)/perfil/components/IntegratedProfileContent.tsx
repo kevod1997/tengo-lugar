@@ -20,7 +20,6 @@ import { authClient } from '@/lib/auth-client'
 import { splitFullName } from '@/utils/format/user-formatter'
 import ProfileForm from "./ProfileForm"
 import AccountManagement from "./AccountManagement"
-import { PushNotificationManager } from "@/components/notifications/PushNotificationManager"
 import { useHydration } from "@/hooks/ui/useHydration"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangleIcon } from "lucide-react"
@@ -33,13 +32,15 @@ interface IntegratedProfileContentProps {
   phoneNumber: string | null | undefined;
   gender: string | null | undefined;
   userId: string;
+  setupMode?: string;
 }
 
 export default function IntegratedProfileContent({
   birthDate,
   phoneNumber,
   gender,
-  userId
+  userId,
+  setupMode
 }: IntegratedProfileContentProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const { data } = authClient.useSession()
@@ -70,6 +71,12 @@ export default function IntegratedProfileContent({
     }
   }, [user?.hasBirthDate])
 
+  useEffect(() => {
+    if (setupMode === 'driver' && hasCompletedProfile) {
+      startDriverRegistration();
+    }
+  }, [setupMode, hasCompletedProfile]);
+
   const handleRegistrationComplete = async () => {
     setRegistrationMode(null)
     setIsLoading(false)
@@ -99,6 +106,7 @@ export default function IntegratedProfileContent({
 
   const startDriverRegistration = () => {
     if (!user) return;
+    if (user.hasEnabledCar)  router.push('/publicar-viaje') 
 
     if (!user.identityStatus || user.identityStatus === 'FAILED') {
       setRegistrationStep('identityCard');
@@ -115,8 +123,6 @@ export default function IntegratedProfileContent({
     } else if (user.hasRegisteredCar && !user.hasAllRequiredCards && !user.hasPendingCards) {
       setRegistrationStep('carCard');
     } else {
-      // Default to identity card if other conditions aren't met,
-      // or consider a more specific starting point if applicable.
       setRegistrationStep('identityCard');
     }
     setInitialRole('driver');
@@ -125,8 +131,8 @@ export default function IntegratedProfileContent({
 
   const getInitialStepForMode = (): StepId => {
     if (registrationMode === 'identity') return 'identityCard';
-    if (registrationMode === 'driver') return registrationStep; // registrationStep is already set in startDriverRegistration
-    return 'role'; // Default for 'initial' mode
+    if (registrationMode === 'driver') return registrationStep;
+    return 'role';
   };
 
   const onProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,7 +147,7 @@ export default function IntegratedProfileContent({
 
     await handleProfileImageUpload({
       event,
-      userId: data!.user.id, // or simply userId prop
+      userId: data!.user.id,
       user,
       setIsUploadingImage,
       setUser,
@@ -154,7 +160,7 @@ export default function IntegratedProfileContent({
     if (user.termsAccepted && user.identityStatus === null) return 33;
     if (user.identityStatus === 'PENDING') return 66;
     if (user.identityStatus === 'VERIFIED') {
-      return user.profileImageKey ? 100 : 90; // Assuming profileImageKey is the field for profile picture
+      return user.profileImageKey ? 100 : 90;
     }
     return 0;
   }
@@ -221,11 +227,11 @@ export default function IntegratedProfileContent({
           firstName={firstName}
           lastName={lastName}
           email={email!}
-          user={user} // Pass the full user object
+          user={user}
           completion={calculateProfileCompletion()}
           isUploadingImage={isUploadingImage}
           onImageUpload={onProfileImageUpload}
-          userId={userId} // Pass userId for the public profile link
+          userId={userId}
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
@@ -302,7 +308,6 @@ export default function IntegratedProfileContent({
 
           <TabsContent value="settings" className="space-y-6 mt-6">
             <AccountManagement />
-            <PushNotificationManager />
           </TabsContent>
         </Tabs>
       </div>

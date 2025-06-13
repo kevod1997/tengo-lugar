@@ -28,9 +28,10 @@ interface TripSearchFormProps {
         passengers?: string
     }
     className?: string
+    redirectToSearch?: boolean
 }
 
-export default function TripSearchForm({ apiKey, initialValues = {}, className }: TripSearchFormProps) {
+export default function TripSearchForm({ apiKey, initialValues = {}, className, redirectToSearch = false }: TripSearchFormProps) {
     const router = useRouter()
     const { executeWithLoading } = useAsyncLoading()
     const [formData, setFormData] = useState({
@@ -90,6 +91,7 @@ export default function TripSearchForm({ apiKey, initialValues = {}, className }
 
         // The URL that will trigger the server action
         const searchUrl = `/buscar-viaje?${params.toString()}`
+        
 
         await executeWithLoading(
             'searchingTrips',
