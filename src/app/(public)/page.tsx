@@ -61,7 +61,6 @@ export default async function HomePage() {
                   <TripSearchForm
                     apiKey={googleMaps.apiKey!}
                     initialValues={{}}
-                    redirectToSearch={true}
                   />
                 </CardContent>
               </Card>

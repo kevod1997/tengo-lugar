@@ -28,10 +28,9 @@ interface TripSearchFormProps {
         passengers?: string
     }
     className?: string
-    redirectToSearch?: boolean
 }
 
-export default function TripSearchForm({ apiKey, initialValues = {}, className, redirectToSearch = false }: TripSearchFormProps) {
+export default function TripSearchForm({ apiKey, initialValues = {}, className }: TripSearchFormProps) {
     const router = useRouter()
     const { executeWithLoading } = useAsyncLoading()
     const [formData, setFormData] = useState({
