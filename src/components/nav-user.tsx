@@ -42,11 +42,12 @@ import { NavUserSkeletonClient } from "./nav-skeleton"
 import { useLoadingStore } from "@/store/loadingStore"
 import React, { useMemo, useCallback } from "react"
 
-export const NavUser = React.memo(function NavUser({ open, user }: { open: boolean, user: any }) {
+export const NavUser = React.memo(function NavUser({ open, initialSession }: { open: boolean, initialSession: any }) {
   const { isLoading, startLoading, stopLoading } = useLoadingStore()
   const { user: userDb, clearUser } = useUserStore()
   const router = useRouter()
   const { isMobile, setOpenMobile } = useSidebar()
+  const user = initialSession?.user
 
   // ✅ Estados de loading
   const isSigningOut = isLoading('signingOut')

@@ -36,7 +36,7 @@ export default async function RootLayout({
       <body className={`${openSans.className} flex h-full overflow-hidden bg-background`}>
         <Providers initialSession={session}>
            <LoadingOverlay 
-            overlayOperations={['authRedirect', 'signingOut']}
+            overlayOperations={['authenticatingUser', 'signingOut', 'authRedirect']}
           />
           <NavigationProgress />
           <NavigationMessageListener />
@@ -46,7 +46,7 @@ export default async function RootLayout({
               <AppSidebar 
               className="hidden lg:flex" 
               initialNavItems={isSignedIn ? AUTHENTICATED_NAV_ITEMS : UNAUTHENTICATED_NAV_ITEMS}
-              user={session?.user}
+              initialSession={session}
             />
             {/* <div className="flex flex-col flex-1 w-full m-4 px-2"> */}
             <div className="flex flex-col flex-1 w-full">

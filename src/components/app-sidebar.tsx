@@ -17,9 +17,9 @@ import { NavUser } from "./nav-user"
 
 export const AppSidebar = React.memo(function AppSidebar({
   initialNavItems,
-  user,
+  initialSession,
   ...props
-}: React.ComponentPropsWithoutRef<typeof Sidebar> & { initialNavItems: NavItem[], user: any }) {
+}: React.ComponentPropsWithoutRef<typeof Sidebar> & { initialNavItems: NavItem[], initialSession: any }) {
   const { open, isMobile, setOpenMobile } = useSidebar()
 
   const handleLogoClick = () => {
@@ -51,7 +51,7 @@ export const AppSidebar = React.memo(function AppSidebar({
         <NavMain items={initialNavItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser open={open} user={user} />
+        <NavUser open={open} initialSession={initialSession} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar >
