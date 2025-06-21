@@ -35,12 +35,12 @@ function ResetPasswordContent() {
     if (!token || error === "invalid_token") {
       setIsTokenValid(false);
     }
-    
+
     // Short delay to ensure state is properly set
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [token, error]);
 
@@ -87,7 +87,7 @@ function ResetPasswordContent() {
       <>
         {/* Meta refresh tag for redirection after 3 seconds */}
         <meta httpEquiv="refresh" content="1;url=/login" />
-        <div className="grow flex items-center justify-center p-4">
+        <div className="page-content flex items-center justify-center">
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle className="text-3xl font-bold text-center text-gray-800">
@@ -167,10 +167,10 @@ function ResetPasswordContent() {
   );
 }
 
-export default function  ResetPasswordPage() {
+export default function ResetPasswordPage() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
-    <ResetPasswordContent />
-  </Suspense>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }

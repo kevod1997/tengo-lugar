@@ -25,10 +25,14 @@ import { LoggingService } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import Header from "@/components/header/header";
 import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
+import { ErrorContext } from "better-auth/react";
 
 
 export default function SignUp() {
     const [pending, setPending] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const router = useRouter();
     const form = useForm<z.infer<typeof signUpSchema>>({
         resolver: zodResolver(signUpSchema),
@@ -74,10 +78,9 @@ export default function SignUp() {
                 onRequest: () => {
                     setPending(true);
                 },
-                onError: (ctx: any) => {
-                    
+                onError: (ctx: ErrorContext) => {
                     toast.error('Error', {
-                        description: ctx.error.message ?? "Algo salió mal.",
+                        description: ctx.error.status === 422 ? "Este email ya se encuentra en uso." : "Algo salió mal.",
                     });
                 },
             }
@@ -87,13 +90,11 @@ export default function SignUp() {
 
     return (
         <>
-            <Header breadcrumbs={[
-                { label: 'Inicio', href: '/' },
-                { label: 'Registro' },
-            ]} />
-            <div className="grow flex items-center justify-center p-4">
+            <Header
+                showBackButton={false} />
+            <div className="page-content flex items-center justify-center">
                 <Card className="w-full max-w-md">
-                    <div className="flex justify-center mt-6">
+                    <div className="flex justify-center mt-4">
                         <Image
                             src="/imgs/logo.png"
                             alt="Logo"
@@ -126,6 +127,16 @@ export default function SignUp() {
                                         confirmPassword: "Confirma tu contraseña"
                                     };
 
+                                    // Determinar tipo de input y visibilidad
+                                    const getInputType = () => {
+                                        if (field === "password") return showPassword ? "text" : "password";
+                                        if (field === "confirmPassword") return showConfirmPassword ? "text" : "password";
+                                        if (field === "email") return "email";
+                                        return "text";
+                                    };
+
+                                    const isPasswordField = field.includes("password");
+
                                     return (
                                         <FormField
                                             control={form.control}
@@ -137,18 +148,42 @@ export default function SignUp() {
                                                         {labelMap[field]}
                                                     </FormLabel>
                                                     <FormControl>
-                                                        <Input
-                                                            type={
-                                                                field.includes("password")
-                                                                    ? "password"
-                                                                    : field === "email"
-                                                                        ? "email"
-                                                                        : "text"
-                                                            }
-                                                            placeholder={placeholderMap[field]}
-                                                            {...fieldProps}
-                                                            autoComplete="off"
-                                                        />
+                                                        <div className="relative">
+                                                            <Input
+                                                                type={getInputType()}
+                                                                placeholder={placeholderMap[field]}
+                                                                {...fieldProps}
+                                                                autoComplete="off"
+                                                                className={isPasswordField ? "pr-10" : ""}
+                                                            />
+                                                            {isPasswordField && (
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                                                    onClick={() => {
+                                                                        if (field === "password") {
+                                                                            setShowPassword(!showPassword);
+                                                                        } else {
+                                                                            setShowConfirmPassword(!showConfirmPassword);
+                                                                        }
+                                                                    }}
+                                                                    aria-label={
+                                                                        field === "password"
+                                                                            ? (showPassword ? "Ocultar contraseña" : "Mostrar contraseña")
+                                                                            : (showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña")
+                                                                    }
+                                                                >
+                                                                    {((field === "password" && showPassword) ||
+                                                                        (field === "confirmPassword" && showConfirmPassword)) ? (
+                                                                        <EyeOff className="h-4 w-4 text-gray-500" />
+                                                                    ) : (
+                                                                        <Eye className="h-4 w-4 text-gray-500" />
+                                                                    )}
+                                                                </Button>
+                                                            )}
+                                                        </div>
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -161,9 +196,9 @@ export default function SignUp() {
                         </Form>
                         <div className="mt-4 text-center text-sm ">
                             <Button variant="outline" className="w-full">
-                               <Link href="/login">
-                                ¿Ya tienes una cuenta? Inicia sesión
-                            </Link>
+                                <Link href="/login">
+                                    ¿Ya tienes una cuenta? Inicia sesión
+                                </Link>
                             </Button>
                         </div>
                     </CardContent>

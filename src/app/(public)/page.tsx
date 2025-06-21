@@ -21,13 +21,13 @@ export default async function HomePage() {
   
   return (
     <>
-      <Header breadcrumbs={[{ label: 'Inicio', href: '/' }]} showBackButton={false} />
+      <Header showBackButton={false} />
       
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4">
           
           {/* Hero Section */}
-          <section className="pt-4 pb-12 text-center space-y-8">
+          <section className="pt-6 md:pt-12 pb-12 text-center space-y-8">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-full text-sm text-primary font-medium">
                 <Sparkles className="w-4 h-4" />
@@ -92,7 +92,7 @@ export default async function HomePage() {
           </section>
 
           {/* Value Propositions */}
-          <section className="py-20">
+          <section className="pt-8 pb-20">
             <div className="grid gap-12 max-w-4xl mx-auto">
               
               {/* For Passengers */}

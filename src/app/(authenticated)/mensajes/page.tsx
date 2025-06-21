@@ -26,7 +26,7 @@ export default async function MensajesPage() {
           { label: 'Mensajes' },
         ]}
       />
-      <div className="container mx-auto py-6 px-4">
+      <div className="page-content">
         <h1 className="text-3xl font-bold mb-6">Mis Chats</h1>
         
         {!chatsResponse.success ? (

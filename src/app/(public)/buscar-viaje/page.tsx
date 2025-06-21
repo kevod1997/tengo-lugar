@@ -25,7 +25,7 @@ export default async function SearchTripsPage({ searchParams }: SearchTripsPageP
   const params = await searchParams
   const googleMaps = await getGoogleMapsConfig()
 
-   if (!googleMaps.available) {
+  if (!googleMaps.available) {
     return <TechnicalProblemsPage reason="search_unavailable" />
   }
   const page = Number(params.page) || 1
@@ -48,56 +48,56 @@ export default async function SearchTripsPage({ searchParams }: SearchTripsPageP
   const response = hasSearchParams ? await searchTrips(searchParamsForAction) : null
 
   return (
-    <div className="">
-    {/* <div className="container mx-auto pb-8 px-4 md:px-6"> */}
+    <>
       <Header
         breadcrumbs={[
           { label: 'Inicio', href: '/' },
           { label: 'Buscar Viajes' },
         ]}
       />
+        {/* Search Form */}
+        <div className="page-content">
+          <div className="mb-8">
+            <TripSearchForm
+              apiKey={googleMaps.apiKey!}
+              initialValues={{
+                origin: params.originCity,
+                destination: params.destinationCity,
+                date: params.date,
+                passengers: params.passengers
+              }}
+            />
+          </div>
 
-      {/* Search Form */}
-      <div className="mb-8">
-        <TripSearchForm
-          apiKey={googleMaps.apiKey!}
-          initialValues={{
-            origin: params.originCity,
-            destination: params.destinationCity,
-            date: params.date,
-            passengers: params.passengers
-          }}
-        />
-      </div>
-
-      {/* Results Content */}
-      {hasSearchParams && response?.success && response.data ? (
-        <SearchResults
-          originCity={params.originCity}
-          destinationCity={params.destinationCity}
-          date={params.date}
-          trips={response.data.trips}
-          pagination={response.data.pagination}
-          currentPage={page}
-          pageSize={pageSize}
-        />
-      ) : !hasSearchParams ? (
-        <Card className="text-center">
-          <CardHeader>
-            <CardTitle>Busca tu próximo viaje</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Usa el formulario de búsqueda para encontrar viajes disponibles</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Alert variant="destructive">
-          <FaExclamationTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Error al cargar los viajes: {response?.error?.message}
-          </AlertDescription>
-        </Alert>
-      )}
-    </div>
+          {/* Results Content */}
+          {hasSearchParams && response?.success && response.data ? (
+            <SearchResults
+              originCity={params.originCity}
+              destinationCity={params.destinationCity}
+              date={params.date}
+              trips={response.data.trips}
+              pagination={response.data.pagination}
+              currentPage={page}
+              pageSize={pageSize}
+            />
+          ) : !hasSearchParams ? (
+            <Card className="text-center">
+              <CardHeader>
+                <CardTitle>Busca tu próximo viaje</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Usa el formulario de búsqueda para encontrar viajes disponibles</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Alert variant="destructive">
+              <FaExclamationTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Error al cargar los viajes: {response?.error?.message}
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+    </>
   )
 }

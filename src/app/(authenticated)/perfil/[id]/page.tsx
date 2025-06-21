@@ -4,6 +4,7 @@ import Header from '@/components/header/header';
 import { headers } from 'next/headers';
 import { UserProfileView } from './components/UserProfileView';
 import { getUserProfileById } from '@/actions/user/get-user-profile-by-id';
+import { toast } from 'sonner';
 
 export default async function TripPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({
@@ -17,8 +18,9 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
 
   try {
     const user = await getUserProfileById(resolvedParams.id);
-
+    console.log('User Profile:', user);
     if (!user) {
+      toast.error('Usuario no encontrado');
       notFound();
     }
 
@@ -34,7 +36,8 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
       </>
     );
   } catch (error) {
-    console.error('Error fetching trip:', error);
+    console.log('Error fetching user profile:', error);
+    toast.error('Error al cargar el perfil del usuario');
     notFound();
   }
 }

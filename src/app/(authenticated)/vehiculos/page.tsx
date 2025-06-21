@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Loading from '../../loading'
+import { toast } from 'sonner'
 
 export default function VehiculosPage() {
     const { user } = useUserStore()
@@ -58,98 +59,101 @@ export default function VehiculosPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <>
             <Header
                 breadcrumbs={[
                     { label: 'Inicio', href: '/' },
-                    { label: 'Dashboard', href: '/dashboard' },
+                    { label: 'Perfil', href: '/perfil' },
                     { label: 'Vehículos' },
                 ]}
             />
+            <div className="page-content">
 
-            {!user?.hasRegisteredCar && (
-                <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>No tienes vehículos registrados</AlertTitle>
-                    <AlertDescription>
-                        Para poder ofrecer viajes, necesitas registrar al menos un vehículo con su seguro correspondiente.
-                    </AlertDescription>
-                </Alert>
-            )}
+                {!user?.hasRegisteredCar && (
+                    <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>No tienes vehículos registrados</AlertTitle>
+                        <AlertDescription>
+                            Para poder ofrecer viajes, necesitas registrar al menos un vehículo con su seguro correspondiente.
+                        </AlertDescription>
+                    </Alert>
+                )}
 
-            <div className="grid gap-6">
-                {/* Sección de vehículos registrados */}
-                {user?.cars.map((car) => {
-                    const insuranceStatus = getInsuranceStatus(car.insurance.status)
-                    const InsuranceIcon = insuranceStatus.icon
+                <div className="grid gap-6">
+                    {/* Sección de vehículos registrados */}
+                    {user?.cars.map((car) => {
+                        const insuranceStatus = getInsuranceStatus(car.insurance.status)
+                        const InsuranceIcon = insuranceStatus.icon
 
-                    return (
-                        <Card key={car.id}>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <div>
-                                    <CardTitle>{car.plate}</CardTitle>
-                                    <CardDescription>
-                                        {car.brand} {car.model} {car.year}
-                                    </CardDescription>
-                                </div>
-                                <Badge
-                                    variant="secondary"
-                                    className={`${insuranceStatus.className} text-white`}
-                                >
-                                    <InsuranceIcon className="mr-1 h-4 w-4" />
-                                    {insuranceStatus.label}
-                                </Badge>
-                            </CardHeader>
-                            <CardContent>
-                                {car.insurance.status === 'FAILED' && (
-                                    <Alert variant="destructive" className="mt-2">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <AlertTitle>Seguro rechazado</AlertTitle>
-                                        <AlertDescription>
-                                            {car.insurance.failureReason}
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
-
-                                {car.insurance.status !== 'VERIFIED' && (
-                                    <Button 
-                                        variant="secondary" 
-                                        className="mt-4"
-                                        asChild
+                        return (
+                            <Card key={car.id}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <div>
+                                        <CardTitle>{car.plate}</CardTitle>
+                                        <CardDescription>
+                                            {car.brand} {car.model} {car.year}
+                                        </CardDescription>
+                                    </div>
+                                    <Badge
+                                        variant="secondary"
+                                        className={`${insuranceStatus.className} text-white`}
                                     >
-                                        <Link href={`/vehiculos/${car.id}/seguro`}>
-                                            Actualizar seguro
-                                        </Link>
-                                    </Button>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )
-                })}
+                                        <InsuranceIcon className="mr-1 h-4 w-4" />
+                                        {insuranceStatus.label}
+                                    </Badge>
+                                </CardHeader>
+                                <CardContent>
+                                    {car.insurance.status === 'FAILED' && (
+                                        <Alert variant="destructive" className="mt-2">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <AlertTitle>Seguro rechazado</AlertTitle>
+                                            <AlertDescription>
+                                                {car.insurance.failureReason}
+                                            </AlertDescription>
+                                        </Alert>
+                                    )}
 
-                {/* Botón para agregar nuevo vehículo */}
-                <Button 
-                    variant="outline" 
-                    className="w-full py-8" 
-                    asChild
-                >
-                    <Link href="/vehiculos/nuevo">
+                                    {car.insurance.status !== 'VERIFIED' && (
+                                        <Button
+                                            variant="secondary"
+                                            className="mt-4"
+                                            asChild
+                                        >
+                                            <Link href={`/vehiculos/${car.id}/seguro`}>
+                                                Actualizar seguro
+                                            </Link>
+                                        </Button>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )
+                    })}
+
+                    {/* Botón para agregar nuevo vehículo */}
+                    <Button
+                        className="w-full py-8"
+                        onClick={() => {
+                            toast.warning('Funcionalidad en desarrollo')
+                            // router.push('/vehiculos/nuevo')
+
+                        }}
+                    >
                         <PlusCircle className="mr-2 h-5 w-5" />
                         Agregar vehículo
-                    </Link>
-                </Button>
-            </div>
+                    </Button>
+                </div>
 
-            {/* Información adicional sobre verificación pendiente */}
-            {user?.hasPendingInsurance && (
-                <Alert className="mt-6">
-                    <Clock className="h-4 w-4" />
-                    <AlertTitle>Verificación en proceso</AlertTitle>
-                    <AlertDescription>
-                        Algunos de tus seguros están siendo verificados. Te notificaremos cuando el proceso esté completo.
-                    </AlertDescription>
-                </Alert>
-            )}
-        </div>
+                {/* Información adicional sobre verificación pendiente */}
+                {user?.hasPendingInsurance && (
+                    <Alert className="mt-6">
+                        <Clock className="h-4 w-4" />
+                        <AlertTitle>Verificación en proceso</AlertTitle>
+                        <AlertDescription>
+                            Algunos de tus seguros están siendo verificados. Te notificaremos cuando el proceso esté completo.
+                        </AlertDescription>
+                    </Alert>
+                )}
+            </div>
+        </>
     )
 }

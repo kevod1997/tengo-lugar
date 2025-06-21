@@ -54,13 +54,8 @@ export default function ForgotPassword() {
 	return (
 		<>
 			<Header
-				breadcrumbs={[
-					{ label: 'Inicio', href: '/' },
-					{ label: 'Login', href: '/login' },
-					{ label: 'Olvide mi contraseña' },
-				]
-				} />
-			<div className="grow flex items-center justify-center p-4">
+			/>
+			<div className="page-content flex items-center justify-center">
 				<Card className="w-full max-w-md">
 					<CardHeader>
 						<CardTitle className="text-3xl font-bold text-center text-gray-800">
@@ -88,7 +83,7 @@ export default function ForgotPassword() {
 										</FormItem>
 									)}
 								/>
-								<LoadingButton pending={isPending}>Enviar link de reseteo</LoadingButton>
+								<LoadingButton pending={isPending}>Enviar</LoadingButton>
 							</form>
 						</Form>
 					</CardContent>

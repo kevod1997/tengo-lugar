@@ -30,7 +30,7 @@ export function UserProfileView({ profile }: UserProfileViewProps) {
   }).format(memberSinceDate);
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto page-content">
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center gap-4">
           <div className="relative">

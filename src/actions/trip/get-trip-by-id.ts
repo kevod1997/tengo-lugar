@@ -62,7 +62,7 @@ export async function getTripById(tripId: string) {
     });
 
     if (!trip) {
-      throw ServerActionError.NotFound('get-trip-by-id.ts', 'getTripById', 'Viaje no encontrado');
+      return null; // O lanzar un error si prefieres
     }
 
     // Determinar el rol del usuario actual en este viaje

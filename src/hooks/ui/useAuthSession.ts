@@ -100,7 +100,7 @@ export function useAuthSession(initialSession: any) {
                     }
                 })
                 .catch((error) => {
-                    console.error('Error cargando usuario:', error)
+                    console.log('Error cargando usuario:', error)
                     toast.error('Error al cargar los datos del usuario')
                 })
                 .finally(() => {

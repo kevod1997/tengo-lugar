@@ -191,6 +191,7 @@ export async function getUserProfileById(userId: string): Promise<UserProfileDat
       reviews
     };
   } catch (error) {
+    //todo: handle error
     console.error('Error fetching user profile:', error);
     throw ServerActionError.FetchingFailed(
       'get-user-profile.ts',

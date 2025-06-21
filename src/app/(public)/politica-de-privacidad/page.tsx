@@ -14,8 +14,8 @@ export default function PoliticaPrivacidadPage() {
         ]}
         showBackButton={true}
       />
-      
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+
+      <div className="page-content max-w-4xl mx-auto">
         <div className="space-y-8">
           {/* Header */}
           <div className="text-center space-y-4">
@@ -31,8 +31,8 @@ export default function PoliticaPrivacidadPage() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground leading-relaxed">
-                En <strong>Tengo Lugar</strong>, respetamos tu privacidad y nos comprometemos a proteger 
-                tu información personal. Esta Política de Privacidad explica cómo recopilamos, usamos, 
+                En <strong>Tengo Lugar</strong>, respetamos tu privacidad y nos comprometemos a proteger
+                tu información personal. Esta Política de Privacidad explica cómo recopilamos, usamos,
                 divulgamos y protegemos tu información cuando utilizas nuestra plataforma de viajes compartidos.
               </p>
             </CardContent>
@@ -40,7 +40,7 @@ export default function PoliticaPrivacidadPage() {
 
           {/* Secciones */}
           <div className="space-y-6">
-            
+
             {/* Información que Recopilamos */}
             <Card>
               <CardHeader>
@@ -50,14 +50,14 @@ export default function PoliticaPrivacidadPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Información de Cuenta</h4>
                   <p className="text-muted-foreground">
-                    Nombre, dirección de correo electrónico, número de teléfono, fecha de nacimiento, 
+                    Nombre, dirección de correo electrónico, número de teléfono, fecha de nacimiento,
                     género y fotografía de perfil.
                   </p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Información de Verificación</h4>
                   <p className="text-muted-foreground">
-                    Documento de identidad, licencia de conducir, información del vehículo y documentos 
+                    Documento de identidad, licencia de conducir, información del vehículo y documentos
                     de seguros para conductores verificados.
                   </p>
                 </div>
@@ -97,21 +97,21 @@ export default function PoliticaPrivacidadPage() {
                 <div>
                   <h4 className="font-semibold mb-2">Con Otros Usuarios</h4>
                   <p className="text-muted-foreground">
-                    Compartimos información básica del perfil (nombre, foto, calificaciones) con otros 
+                    Compartimos información básica del perfil (nombre, foto, calificaciones) con otros
                     usuarios para facilitar los viajes compartidos.
                   </p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Proveedores de Servicios</h4>
                   <p className="text-muted-foreground">
-                    Trabajamos con terceros de confianza para procesar pagos, verificar identidades 
+                    Trabajamos con terceros de confianza para procesar pagos, verificar identidades
                     y proporcionar servicios de mapas.
                   </p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Cumplimiento Legal</h4>
                   <p className="text-muted-foreground">
-                    Podemos divulgar información cuando sea requerido por ley o para proteger los 
+                    Podemos divulgar información cuando sea requerido por ley o para proteger los
                     derechos y seguridad de nuestros usuarios.
                   </p>
                 </div>
@@ -125,8 +125,8 @@ export default function PoliticaPrivacidadPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  Implementamos medidas de seguridad técnicas y organizativas apropiadas para proteger 
-                  tu información personal contra acceso no autorizado, alteración, divulgación o destrucción. 
+                  Implementamos medidas de seguridad técnicas y organizativas apropiadas para proteger
+                  tu información personal contra acceso no autorizado, alteración, divulgación o destrucción.
                   Esto incluye encriptación de datos, acceso restringido y monitoreo continuo de nuestros sistemas.
                 </p>
               </CardContent>
@@ -155,8 +155,8 @@ export default function PoliticaPrivacidadPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  Conservamos tu información personal mientras tu cuenta esté activa o según sea necesario 
-                  para brindarte servicios. También podemos conservar cierta información durante períodos 
+                  Conservamos tu información personal mientras tu cuenta esté activa o según sea necesario
+                  para brindarte servicios. También podemos conservar cierta información durante períodos
                   adicionales cuando sea requerido por ley o para proteger nuestros intereses legítimos.
                 </p>
               </CardContent>
@@ -169,8 +169,8 @@ export default function PoliticaPrivacidadPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  Utilizamos cookies y tecnologías similares para mejorar tu experiencia, recordar tus 
-                  preferencias y analizar el uso de nuestra plataforma. Puedes controlar las cookies 
+                  Utilizamos cookies y tecnologías similares para mejorar tu experiencia, recordar tus
+                  preferencias y analizar el uso de nuestra plataforma. Puedes controlar las cookies
                   a través de la configuración de tu navegador.
                 </p>
               </CardContent>
@@ -183,8 +183,8 @@ export default function PoliticaPrivacidadPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  Nuestros servicios están dirigidos a personas mayores de 18 años. No recopilamos 
-                  intencionalmente información personal de menores de edad sin el consentimiento 
+                  Nuestros servicios están dirigidos a personas mayores de 18 años. No recopilamos
+                  intencionalmente información personal de menores de edad sin el consentimiento
                   verificable de los padres.
                 </p>
               </CardContent>
@@ -197,8 +197,8 @@ export default function PoliticaPrivacidadPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  Podemos actualizar esta Política de Privacidad ocasionalmente. Te notificaremos sobre 
-                  cambios significativos publicando la nueva política en nuestra plataforma y, cuando 
+                  Podemos actualizar esta Política de Privacidad ocasionalmente. Te notificaremos sobre
+                  cambios significativos publicando la nueva política en nuestra plataforma y, cuando
                   corresponda, enviándote una notificación por correo electrónico.
                 </p>
               </CardContent>
@@ -211,7 +211,7 @@ export default function PoliticaPrivacidadPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  Si tienes preguntas sobre esta Política de Privacidad o sobre el manejo de tu 
+                  Si tienes preguntas sobre esta Política de Privacidad o sobre el manejo de tu
                   información personal, puedes contactarnos:
                 </p>
                 <div className="space-y-2 text-muted-foreground">
@@ -219,8 +219,8 @@ export default function PoliticaPrivacidadPage() {
                   <p><strong>Dirección:</strong> Argentina</p>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  También puedes actualizar tu información personal en cualquier momento desde la 
-                  sección <Link href="/perfil" className="text-primary hover:underline">Perfil</Link> de 
+                  También puedes actualizar tu información personal en cualquier momento desde la
+                  sección <Link href="/perfil" className="text-primary hover:underline">Perfil</Link> de
                   tu cuenta.
                 </p>
               </CardContent>

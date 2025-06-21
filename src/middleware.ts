@@ -5,7 +5,7 @@ import type { Session } from "./lib/auth";
 const authRoutes = ["/login", "/crear-cuenta", "/verificar-email"];
 const passwordRoutes = ["/resetear-clave", "/olvide-mi-clave"];
 const adminRoutes = ["/admin"];
-const publicRoutes = ["/", "/about", "/contact", "/buscar-viaje"];
+const publicRoutes = ["/", "/about", "/contact", "/buscar-viaje", "/politica-de-privacidad", "/terminos-y-condiciones", "/faq"];
 
 export default async function authMiddleware(request: NextRequest) {
   const pathName = request.nextUrl.pathname;

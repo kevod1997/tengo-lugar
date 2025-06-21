@@ -30,7 +30,7 @@ export default async function TripsPage() {
         ]} 
         showBackButton={false}
       />
-      {/* <div className="container py-6"> */}
+      <div className="page-content">
         <TripsOverview 
           // Datos de viajes
           activeDriverTrips={tripsData.activeDriverTrips}
@@ -42,7 +42,7 @@ export default async function TripsPage() {
           completedReservations={reservationsData.completedReservations}
           cancelledReservations={reservationsData.cancelledReservations}
         />
-      {/* </div> */}
+      </div>
     </>
   );
 }

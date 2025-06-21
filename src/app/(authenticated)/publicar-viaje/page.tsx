@@ -45,10 +45,10 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { getDriverEligibility } from '@/actions/driver/driver-eligibility';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; 
-import { AlertTriangle } from 'lucide-react'; 
-import { Button } from '@/components/ui/button'; 
-import Link from 'next/link'; 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default async function RouteSimulatorPage() {
   const session = await auth.api.getSession({
@@ -64,15 +64,14 @@ export default async function RouteSimulatorPage() {
   const fuelsData = fuelsResponse?.data || []
   const driverEligibility = await getDriverEligibility(session.user.id)
 
-  // 👇 Versión simple sin missingRequirements
   if (!driverEligibility.isEnabled) {
     return (
-      <div className="container mx-auto py-8">
+      <>
         <Header
           breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Publicar Viaje' }]}
           showBackButton={false}
         />
-        <div className="max-w-2xl mx-auto mt-8">
+        <div className="page-container">
           <Alert className="border-orange-200 bg-orange-50">
             <AlertTriangle className="h-4 w-4 text-orange-600" />
             <AlertTitle className="text-orange-800">No puedes publicar viajes aún</AlertTitle>
@@ -86,23 +85,24 @@ export default async function RouteSimulatorPage() {
             </AlertDescription>
           </Alert>
         </div>
-      </div>
+      </>
     )
   }
-  // 👆
 
   return (
-    <div className="container mx-auto py-8">
+    <>
       <Header
         breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Publicar Viaje' }]}
         showBackButton={false}
       />
-      <RouteCalculator
-        apiKey={apiKey}
-        initialOrigin=""
-        initialDestination=""
-        fuels={fuelsData}
-      />
-    </div>
+      <div className="page-content">
+        <RouteCalculator
+          apiKey={apiKey}
+          initialOrigin=""
+          initialDestination=""
+          fuels={fuelsData}
+        />
+      </div>
+    </>
   )
 }

@@ -6,13 +6,13 @@ import { LoggingService } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 
 interface EmailVerifiedPageProps {
-	params?: any;
-	searchParams?: any;
-  }
-  
-  export default async function EmailVerifiedPage({
-	searchParams = {},
-  }: EmailVerifiedPageProps) {
+  params?: any;
+  searchParams?: any;
+}
+
+export default async function EmailVerifiedPage({
+  searchParams = {},
+}: EmailVerifiedPageProps) {
   // Accede a los valores sin usar await
   const token = searchParams.token as string | undefined;
   const userId = searchParams.userId as string | undefined;
@@ -63,12 +63,12 @@ interface EmailVerifiedPageProps {
   }
 
   // Redirección después de un corto retraso
-  const redirectTo = callbackURL || "/auth-redirect";
+  const redirectTo = callbackURL || "/perfil";
 
   return (
     <>
       <meta httpEquiv="refresh" content={`2;url=${redirectTo}`} />
-      <div className="flex items-center justify-center min-h-[70vh]">
+      <div className="page-content flex items-center justify-center min-h-[70vh]">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-center text-green-500">Email Verificado!</CardTitle>

@@ -163,11 +163,10 @@ export default function TripDetail({
     router.refresh()
   }
 
-  console.log(trip)
-
   return (
     <>
-      <div className="container mx-auto py-6 px-4 lg:px-8 max-w-5xl">
+      <div className="">
+      {/* <div className="container mx-auto py-6 px-4 lg:px-8 max-w-5xl"> */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">

@@ -19,7 +19,6 @@ export default async function UserProfilePage({
 
   return (
     <>
-    {/* // <div className="flex flex-col w-full"> */}
       <Header
         breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Perfil' }]}
         showBackButton={false}
@@ -33,7 +32,6 @@ export default async function UserProfilePage({
           setupMode={params.setup}
         />
       </Suspense>
-    {/* // </div> */}
     </>
   )
 }

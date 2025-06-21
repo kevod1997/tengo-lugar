@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import TripDetail from './components/TripDetail';
 import Header from '@/components/header/header';
 import { headers } from 'next/headers';
+import NotFound from '@/app/not-found';
 
 export default async function TripPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({
@@ -19,7 +20,7 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
     const trip = await getTripById(resolvedParams.id);
 
     if (!trip) {
-      notFound();
+     return <NotFound />;
     }
 
     // Verificar si el usuario puede reservar este viaje
@@ -34,6 +35,7 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
             { label: 'Detalle del viaje' }
           ]}
         />
+        <div className="page-content">
         <TripDetail
           trip={trip}
           userId={session.user.id}
@@ -41,6 +43,7 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
           reserveReason={reserveCheck.reason}
           availableSeats={reserveCheck.remainingSeats || trip.remainingSeats}
         />
+        </div>
       </>
     );
   } catch (error) {

@@ -253,14 +253,17 @@ export default function ChatRoomPage() {
 
   if (!session?.user && !isSessionLoading) {
     return (
-      <div className="container mx-auto py-6 px-4">
+      <>
+      {/* <div className="container mx-auto py-6 px-4"> */}
         <Header breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Mensajes', href: '/mensajes' }]} />
+      <div className="page-content">
         <div className="mt-6 text-center p-4 border border-red-300 bg-red-50 rounded-md">
           <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
           <h2 className="mt-2 text-xl font-semibold text-red-700">Acceso Denegado</h2>
           <p className="mt-1 text-red-600">Debes iniciar sesión para acceder a esta página.</p>
         </div>
       </div>
+      </>
     );
   }
 
@@ -274,27 +277,33 @@ export default function ChatRoomPage() {
 
   if (tokenError && !jwtForChat) {
     return (
-      <div className="container mx-auto py-6 px-4">
+      <>
+      {/* <div className="container mx-auto py-6 px-4"> */}
         <Header breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Mensajes', href: '/mensajes' }]} />
+          <div className="page-content">
         <div className="mt-6 text-center p-4 border border-red-300 bg-red-50 rounded-md">
           <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
           <h2 className="mt-2 text-xl font-semibold text-red-700">Error de Autenticación</h2>
           <p className="mt-1 text-red-600">No se pudo obtener un token válido para el chat: {tokenError}</p>
         </div>
       </div>
+      </>
     )
   }
 
   if (!roomId) {
     return (
-      <div className="container mx-auto py-6 px-4">
+      <>
+      {/* <div className="container mx-auto py-6 px-4"> */}
         <Header breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Mensajes', href: '/mensajes' }]} />
+      <div className="page-content">
         <div className="mt-6 text-center p-4 border border-orange-300 bg-orange-50 rounded-md">
           <AlertCircle className="mx-auto h-12 w-12 text-orange-400" />
           <h2 className="mt-2 text-xl font-semibold text-orange-700">Sala no Especificada</h2>
           <p className="mt-1 text-orange-600">No se ha proporcionado un ID de sala para el chat.</p>
         </div>
       </div>
+      </>
     );
   }
 
@@ -307,7 +316,8 @@ export default function ChatRoomPage() {
           { label: `Chat ${tripId ? `(Viaje ${tripId.substring(0, 8)}...)` : ''}` },
         ]}
       />
-      <div className="flex flex-col h-[calc(100vh-120px)] max-w-2xl mx-auto p-4 border rounded-lg shadow-lg bg-card">
+      {/* <div className="flex flex-col h-[calc(100vh-120px)] max-w-2xl mx-auto p-4 border rounded-lg shadow-lg bg-card"> */}
+      <div className="page-content max-w-2xl mx-auto border rounded-lg shadow-lg bg-card">
         <div className="mb-2">
           <span className={`text-sm font-semibold ${status === 'Conectado' ? 'text-green-600' :
               status === 'Conectando...' ? 'text-yellow-600' :

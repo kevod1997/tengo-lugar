@@ -34,7 +34,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <div className={`relative overflow-hidden rounded-full ${open ? 'h-24 w-24' : 'h-8 w-8 mt-6 mb-1'}`}>
+          <div className={`relative overflow-hidden rounded-full ${open ? 'h-20 w-20' : 'h-8 w-8 mt-2 mb-1'}`}>
             <Link href="/" onClick={handleLogoClick}>
               <Image
                 src="/imgs/logo.png"

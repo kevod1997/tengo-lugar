@@ -34,7 +34,7 @@ function SignIn() {
 	console.log(pendingGoogle);
 	const searchParams = useSearchParams();
 	const redirectUrl = searchParams.get('redirect_url');
-	
+
 	// Obtener parámetros de error
 	const error = searchParams.get('error');
 	const errorMessage = searchParams.get('message');
@@ -103,12 +103,9 @@ function SignIn() {
 	return (
 		<>
 			<Header
-				breadcrumbs={[
-					{ label: 'Inicio', href: '/' },
-					{ label: 'Login' },
-				]}
+				showBackButton={false}
 			/>
-			<div className="grow flex items-center justify-center p-4">
+			<div className="page-content flex items-center justify-center">
 				<Card className="w-full max-w-md">
 					<div className="flex justify-center mt-6">
 						<Image
@@ -183,7 +180,7 @@ function SignIn() {
 								</LoadingButton>
 							</form>
 						</Form>
-						
+
 						<div className="mt-4">
 							<LoadingButton
 								pending={pendingGoogle}
@@ -193,7 +190,7 @@ function SignIn() {
 								Continuar con Google
 							</LoadingButton>
 						</div>
-						
+
 						<div className="mt-4">
 							<LoadingButton
 								pending={false}
@@ -203,9 +200,9 @@ function SignIn() {
 								Continuar con Facebook
 							</LoadingButton>
 						</div>
-						
+
 						<Separator className="mt-4" />
-						
+
 						<div className="mt-4 text-center text-sm">
 							<Link
 								href="/olvide-mi-clave"
@@ -214,9 +211,9 @@ function SignIn() {
 								¿Olvidaste tu contraseña?
 							</Link>
 						</div>
-						
+
 						<Separator className="mt-4" />
-						
+
 						<div className="mt-4 text-center text-sm">
 							<Link
 								href="/registro"
