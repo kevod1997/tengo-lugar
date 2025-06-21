@@ -209,7 +209,7 @@ export default function ChatRoomPage() {
       else if (event.code === 1008) reason = 'Política violada (ej. autenticación fallida).';
       addMessage(`Conexión cerrada: ${reason} (código ${event.code})`, 'system', false);
     };
-    
+
     socket.onerror = (ev) => {
       setStatus('Error de Conexión');
       addMessage(`Error de WebSocket. Revisa la conexión.`, 'error', false);
@@ -254,15 +254,15 @@ export default function ChatRoomPage() {
   if (!session?.user && !isSessionLoading) {
     return (
       <>
-      {/* <div className="container mx-auto py-6 px-4"> */}
+        {/* <div className="container mx-auto py-6 px-4"> */}
         <Header breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Mensajes', href: '/mensajes' }]} />
-      <div className="page-content">
-        <div className="mt-6 text-center p-4 border border-red-300 bg-red-50 rounded-md">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
-          <h2 className="mt-2 text-xl font-semibold text-red-700">Acceso Denegado</h2>
-          <p className="mt-1 text-red-600">Debes iniciar sesión para acceder a esta página.</p>
+        <div className="page-content">
+          <div className="mt-6 text-center p-4 border border-red-300 bg-red-50 rounded-md">
+            <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
+            <h2 className="mt-2 text-xl font-semibold text-red-700">Acceso Denegado</h2>
+            <p className="mt-1 text-red-600">Debes iniciar sesión para acceder a esta página.</p>
+          </div>
         </div>
-      </div>
       </>
     );
   }
@@ -278,15 +278,15 @@ export default function ChatRoomPage() {
   if (tokenError && !jwtForChat) {
     return (
       <>
-      {/* <div className="container mx-auto py-6 px-4"> */}
+        {/* <div className="container mx-auto py-6 px-4"> */}
         <Header breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Mensajes', href: '/mensajes' }]} />
-          <div className="page-content">
-        <div className="mt-6 text-center p-4 border border-red-300 bg-red-50 rounded-md">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
-          <h2 className="mt-2 text-xl font-semibold text-red-700">Error de Autenticación</h2>
-          <p className="mt-1 text-red-600">No se pudo obtener un token válido para el chat: {tokenError}</p>
+        <div className="page-content">
+          <div className="mt-6 text-center p-4 border border-red-300 bg-red-50 rounded-md">
+            <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
+            <h2 className="mt-2 text-xl font-semibold text-red-700">Error de Autenticación</h2>
+            <p className="mt-1 text-red-600">No se pudo obtener un token válido para el chat: {tokenError}</p>
+          </div>
         </div>
-      </div>
       </>
     )
   }
@@ -294,15 +294,15 @@ export default function ChatRoomPage() {
   if (!roomId) {
     return (
       <>
-      {/* <div className="container mx-auto py-6 px-4"> */}
+        {/* <div className="container mx-auto py-6 px-4"> */}
         <Header breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Mensajes', href: '/mensajes' }]} />
-      <div className="page-content">
-        <div className="mt-6 text-center p-4 border border-orange-300 bg-orange-50 rounded-md">
-          <AlertCircle className="mx-auto h-12 w-12 text-orange-400" />
-          <h2 className="mt-2 text-xl font-semibold text-orange-700">Sala no Especificada</h2>
-          <p className="mt-1 text-orange-600">No se ha proporcionado un ID de sala para el chat.</p>
+        <div className="page-content">
+          <div className="mt-6 text-center p-4 border border-orange-300 bg-orange-50 rounded-md">
+            <AlertCircle className="mx-auto h-12 w-12 text-orange-400" />
+            <h2 className="mt-2 text-xl font-semibold text-orange-700">Sala no Especificada</h2>
+            <p className="mt-1 text-orange-600">No se ha proporcionado un ID de sala para el chat.</p>
+          </div>
         </div>
-      </div>
       </>
     );
   }
@@ -316,12 +316,11 @@ export default function ChatRoomPage() {
           { label: `Chat ${tripId ? `(Viaje ${tripId.substring(0, 8)}...)` : ''}` },
         ]}
       />
-      {/* <div className="flex flex-col h-[calc(100vh-120px)] max-w-2xl mx-auto p-4 border rounded-lg shadow-lg bg-card"> */}
-      <div className="page-content max-w-2xl mx-auto border rounded-lg shadow-lg bg-card">
+      <div className="flex flex-col h-[calc(100vh-120px)] max-w-2xl mx-auto p-4 border rounded-lg shadow-lg bg-card">
         <div className="mb-2">
           <span className={`text-sm font-semibold ${status === 'Conectado' ? 'text-green-600' :
-              status === 'Conectando...' ? 'text-yellow-600' :
-                (status === 'Desconectado' || status === 'Error de Conexión' || status === 'Error de Autenticación') ? 'text-red-600' : 'text-gray-500'
+            status === 'Conectando...' ? 'text-yellow-600' :
+              (status === 'Desconectado' || status === 'Error de Conexión' || status === 'Error de Autenticación') ? 'text-red-600' : 'text-gray-500'
             }`}>
             Estado: {status}
           </span>
@@ -343,8 +342,8 @@ export default function ChatRoomPage() {
               className={`mb-2 flex ${msg.isSender ? 'justify-end' : 'justify-start'}`}
             >
               <div className={`max-w-[70%] p-2 rounded-lg shadow-sm ${msg.type === 'system' ? 'bg-slate-200 text-slate-700 text-xs mx-auto text-center' :
-                  msg.type === 'error' ? 'bg-red-100 text-red-700 text-xs mx-auto text-center' :
-                    msg.isSender ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+                msg.type === 'error' ? 'bg-red-100 text-red-700 text-xs mx-auto text-center' :
+                  msg.isSender ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
                 }`}>
                 {msg.type === 'message' && !msg.isSender && msg.user_name && (
                   <p className="text-xs font-semibold mb-0.5">{msg.user_name}</p>
