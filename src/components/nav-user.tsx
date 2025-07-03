@@ -33,7 +33,6 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useUserStore } from "@/store/user-store"
 import { authClient } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
 import { LoggingService } from "@/services/logging/logging-service"
 import { TipoAccionUsuario } from "@/types/actions-logs"
 import { splitFullName } from "@/utils/format/user-formatter"
@@ -45,7 +44,6 @@ import React, { useMemo, useCallback } from "react"
 export const NavUser = React.memo(function NavUser({ open, initialSession }: { open: boolean, initialSession: any }) {
   const { isLoading, startLoading, stopLoading } = useLoadingStore()
   const { user: userDb, clearUser } = useUserStore()
-  const router = useRouter()
   const { isMobile, setOpenMobile } = useSidebar()
   const user = initialSession?.user
 
@@ -103,7 +101,7 @@ const handleSignOut = useCallback(async () => {
   } finally {
     stopLoading('signingOut')
   }
-}, [user, isSigningOut, isMobile, setOpenMobile, router, startLoading, stopLoading])
+}, [user, isSigningOut, isMobile, setOpenMobile, startLoading, stopLoading, clearUser])
 
   // ✅ Loading states mejorados
   if (user && !userDb) {

@@ -11,7 +11,7 @@ import webpush from 'web-push';
 
 // Initialize web-push with VAPID details
 webpush.setVapidDetails(
-  'mailto:kevindefalco@gmail.com', // Change to your email
+  'mailto:onboarding@resend.dev', // Change to your email
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
   process.env.VAPID_PRIVATE_KEY!
 );

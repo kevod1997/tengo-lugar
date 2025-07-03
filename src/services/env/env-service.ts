@@ -25,7 +25,7 @@ const SERVICE_CONFIGS = {
     optional: ['NEXTAUTH_URL']
   },
   email: {
-    required: ['BREVO_API_KEY'],
+    required: ['RESEND_API_KEY'],
     optional: []
   },
   storage: {
@@ -49,7 +49,7 @@ type ServiceResult<T extends ServiceName> = {
   : T extends 'auth'
   ? { NEXTAUTH_SECRET?: string; NEXTAUTH_URL?: string }
   : T extends 'email'
-  ? { BREVO_API_KEY?: string }
+  ? { RESEND_API_KEY?: string }
   : T extends 'storage'
   ? { AWS_ACCESS_KEY_ID?: string; AWS_SECRET_ACCESS_KEY?: string; AWS_REGION?: string; AWS_BUCKET_NAME?: string }
   : Record<string, string | undefined>

@@ -18,7 +18,6 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
 
   try {
     const user = await getUserProfileById(resolvedParams.id);
-    console.log('User Profile:', user);
     if (!user) {
       toast.error('Usuario no encontrado');
       notFound();

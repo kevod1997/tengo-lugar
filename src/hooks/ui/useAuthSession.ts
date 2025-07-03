@@ -88,7 +88,7 @@ export function useAuthSession(initialSession: any) {
             toast.warning('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
             return
         }
-
+        console.log('useAuthSession - sessionExists:', sessionExists, 'hasUserInStore:', hasUserInStore, 'isLoggingOut:', isLoggingOut, 'isLoadingUserRef.current:', isLoadingUserRef.current, 'shouldShowAuthLoading:', shouldShowAuthLoading)
         // ✅ 4. Cargar usuario si hay sesión pero no datos en store
         if (sessionExists && !hasUserInStore && !isLoadingUserRef.current) {
             isLoadingUserRef.current = true
@@ -129,7 +129,12 @@ export function useAuthSession(initialSession: any) {
         hasUserInStore, 
         isLoggingOut, 
         shouldShowAuthLoading,
-        initialSession?.user?.id
+        initialSession?.user?.id,
+        clearUser,
+        router,
+        setUser,
+        startLoading,
+        stopLoading
     ])
 
     return {

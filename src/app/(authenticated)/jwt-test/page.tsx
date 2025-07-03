@@ -3,14 +3,20 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
 
 export default function JwtTestPage() {
   const [middlewareJwt, setMiddlewareJwt] = useState<string | null>(null);
-  console.log('Middleware JWT:', middlewareJwt);
   const [directJwt, setDirectJwt] = useState<string | null>(null);
   const [decodedPayload, setDecodedPayload] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const session = authClient.useSession();
+  if (!session || session.data?.user.role !== 'admin') {
+    router.push('/')
+  }
 
   useEffect(() => {
     // Check if middleware added the JWT to the headers
@@ -18,18 +24,20 @@ export default function JwtTestPage() {
       try {
         const response = await fetch('/api/check-jwt-headers');
         const data = await response.json();
-        
+
         if (data.middlewareJwt) {
           setMiddlewareJwt(data.middlewareJwt);
+          console.log('Middleware JWT:', middlewareJwt);
         }
+
       } catch (err) {
         console.error('Error checking middleware JWT:', err);
       }
     };
-    
+
     checkMiddlewareJwt();
-  }, []);
-  
+  }, [middlewareJwt]);
+
   const fetchDirectJwt = async () => {
     setLoading(true);
     try {
@@ -38,15 +46,15 @@ export default function JwtTestPage() {
       if (!response.ok) {
         throw new Error(`Error: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       setDirectJwt(data.token);
-      
+
       // Decode the token automatically
       if (data.token) {
         decodeJwt(data.token);
       }
-      
+
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -63,11 +71,11 @@ export default function JwtTestPage() {
       if (parts.length !== 3) {
         throw new Error('Invalid JWT format');
       }
-      
+
       // Base64 decode the payload
       const base64Payload = parts[1];
       const payload = JSON.parse(atob(base64Payload));
-      
+
       // Set the decoded payload
       setDecodedPayload(payload);
     } catch (err) {
@@ -79,18 +87,18 @@ export default function JwtTestPage() {
   return (
     <div className="container p-4 mx-auto max-w-2xl">
       <h1 className="text-2xl font-bold mb-6">JWT Test Page</h1>
-      
+
       <div className="space-y-8">
         <div className="border p-4 rounded-md">
           <h2 className="text-lg font-semibold mb-2">Direct JWT Fetch</h2>
-          <Button 
+          <Button
             onClick={fetchDirectJwt}
             disabled={loading}
             className="mb-3"
           >
             {loading ? 'Loading...' : 'Fetch JWT Token'}
           </Button>
-          
+
           {directJwt && (
             <div className="mt-3">
               <p className="font-medium">Token received:</p>
@@ -99,14 +107,14 @@ export default function JwtTestPage() {
               </pre>
             </div>
           )}
-          
+
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-3">
               <p>{error}</p>
             </div>
           )}
         </div>
-        
+
         {decodedPayload && (
           <div className="border p-4 rounded-md">
             <h2 className="text-lg font-semibold mb-2">Decoded JWT Payload</h2>
@@ -115,14 +123,14 @@ export default function JwtTestPage() {
                 {JSON.stringify(decodedPayload, null, 2)}
               </pre>
             </div>
-            
+
             <div className="mt-4 space-y-2">
               <h3 className="font-medium">User Information:</h3>
               <p><span className="font-medium">User ID:</span> {decodedPayload.id || decodedPayload.sub}</p>
               <p><span className="font-medium">Email:</span> {decodedPayload.email}</p>
               <p><span className="font-medium">Name:</span> {decodedPayload.name}</p>
               <p><span className="font-medium">Role:</span> {decodedPayload.role}</p>
-              
+
               <h3 className="font-medium mt-4">Token Information:</h3>
               <p><span className="font-medium">Issued at:</span> {decodedPayload.iat ? new Date(decodedPayload.iat * 1000).toLocaleString() : 'N/A'}</p>
               <p><span className="font-medium">Expires:</span> {decodedPayload.exp ? new Date(decodedPayload.exp * 1000).toLocaleString() : 'N/A'}</p>

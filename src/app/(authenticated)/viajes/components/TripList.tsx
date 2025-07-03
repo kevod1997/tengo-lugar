@@ -4,10 +4,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDatetoLocaleDateString } from "@/utils/format/formatDate";
-import { MapPin, Calendar, Clock, Users, Info, UserCog } from "lucide-react";
+import { Calendar, Clock, Users, Info, UserCog } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getStatusBadgeColor, getStatusText } from "@/utils/helpers/trip/trip-helpers";
+import { useLoadingStore } from "@/store/loadingStore";
 
 type TripsListProps = {
   trips: any[];
@@ -17,6 +18,21 @@ type TripsListProps = {
 
 export default function TripsList({ trips, emptyMessage, showRoleIndicator = false }: TripsListProps) {
   const router = useRouter();
+  const { startLoading, isLoading, stopLoading } = useLoadingStore();
+
+  const isNavigating = isLoading('navigatingToTrip');
+
+  const handleTripClick = (tripId: string) => {
+    if (isNavigating) return;
+
+    startLoading('navigatingToTrip');
+
+    setTimeout(() => {
+      stopLoading('navigatingToTrip');
+    }, 3000);
+
+    router.push(`/viajes/${tripId}`);
+  };
 
   // Helper to determine if this is a driver or passenger trip
   const isDriverTrip = (trip: any) => {
@@ -85,7 +101,7 @@ export default function TripsList({ trips, emptyMessage, showRoleIndicator = fal
         <Card
           key={trip.id}
           className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer relative"
-          onClick={() => router.push(`/viajes/${trip.id}`)}
+          onClick={() => handleTripClick(trip.id)}
         >
 
 
@@ -126,10 +142,10 @@ export default function TripsList({ trips, emptyMessage, showRoleIndicator = fal
 
           <CardContent className="pt-2 pb-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
+              {/* <div className="flex items-center gap-2 text-sm">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <span>{trip.originProvince} → {trip.destinationProvince}</span>
-              </div>
+              </div> */}
 
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />

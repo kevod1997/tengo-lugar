@@ -3,11 +3,18 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { authClient } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
 
 export default function JwksTestPage() {
   const [jwksData, setJwksData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const session = authClient.useSession();
+  if(!session || session.data?.user.role !== 'admin') {
+    router.push('/')
+  }
 
   const fetchJwks = async () => {
     setLoading(true);

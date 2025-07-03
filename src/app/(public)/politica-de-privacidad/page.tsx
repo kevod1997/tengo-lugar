@@ -215,7 +215,7 @@ export default function PoliticaPrivacidadPage() {
                   información personal, puedes contactarnos:
                 </p>
                 <div className="space-y-2 text-muted-foreground">
-                  <p><strong>Email:</strong> info.tengolugar@gmail.com</p>
+                  <p><strong>Email:</strong> info@tengolugar.store</p>
                   <p><strong>Dirección:</strong> Argentina</p>
                 </div>
                 <p className="text-sm text-muted-foreground">

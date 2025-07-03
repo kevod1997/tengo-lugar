@@ -14,7 +14,6 @@ type TripsOverviewProps = {
   completedDriverTrips: any[];
   activePassengerTrips: any[];
   completedPassengerTrips: any[];
-  // Nuevos props para reservas
   activeReservations: any[];
   completedReservations: any[];
   cancelledReservations: any[];
@@ -41,8 +40,6 @@ export default function TripsOverview({
 
   // Counts for reservations
   const activeReservationsCount = activeReservations.length;
-  // const completedReservationsCount = completedReservations.length;
-  // const cancelledReservationsCount = cancelledReservations.length;
 
   // Calculate pending passengers count across all trips
   const pendingPassengersCount = activeDriverTrips.reduce((count, trip) => {
@@ -110,7 +107,7 @@ export default function TripsOverview({
         onValueChange={(value) => setContentView(value as 'viajes' | 'reservas')}
         className="w-full"
       >
-        <TabsList className="w-full md:w-auto">
+        <TabsList className="w-full max-sm:grid max-sm:grid-cols-2 md:w-auto">
           <TabsTrigger value="viajes" className="flex items-center justify-center">
             <Car className="mr-2 h-4 w-4" />
             Viajes

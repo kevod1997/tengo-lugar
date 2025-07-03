@@ -4,7 +4,7 @@ import { admin, jwt } from "better-auth/plugins"
 import prisma from "./prisma";
 import { EmailService } from "@/services/email/email-service";
 
-const emailService = new EmailService(process.env.BREVO_API_KEY!);
+const emailService = new EmailService(process.env.RESEND_API_KEY!);
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -24,10 +24,10 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url },) => {
-      emailService.sendEmail(
+      await emailService.sendPasswordResetEmail(
         user.email,
-        'Restablecer contraseña',
-        `Haz click en el siguiente enlace para restablecer tu contraseña: <a href="${url}">${url}</a>`
+        url,
+        user.name
       );
     },
   },
@@ -41,10 +41,10 @@ export const auth = betterAuth({
 
       const verificationUrl = `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? 'http://localhost:3000'}/api/auth/verify-email?token=${encodedToken}&callbackURL=${encodeURIComponent(callbackWithTokenAndUserId)}`;
 
-      await emailService.sendEmail(
+      await emailService.sendEmailVerificationEmail(
         user.email,
-        'Verifica tu email',
-        `Haz click en el siguiente enlace para verificar tu email: <a href="${verificationUrl}">${verificationUrl}</a>`
+        verificationUrl,
+        user.name
       );
     },
   },

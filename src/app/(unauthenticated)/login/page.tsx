@@ -216,7 +216,7 @@ function SignIn() {
 
 						<div className="mt-4 text-center text-sm">
 							<Link
-								href="/registro"
+								href="/crear-cuenta"
 								className="text-primary hover:underline"
 							>
 								¿No tienes cuenta? Regístrate

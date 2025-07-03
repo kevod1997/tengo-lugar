@@ -12,19 +12,16 @@ import { inngest } from "@/lib/inngest";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { requireAuthorization } from "@/utils/helpers/auth-helper";
-import { DocumentVerificationUpdatePayload } from "@/types/sse-types";
-import { publishUserEvent } from "@/lib/sse/sse-publisher";
-import prisma from "@/lib/prisma";
 
 const identityService = new IdentityValidationService();
 const licenceService = new LicenceValidationService();
 const insuranceService = new InsuranceValidationService();
 const cardService = new CarCardValidationService();
 const emailService = new EmailService(
-  process.env.BREVO_API_KEY!
+  process.env.RESEND_API_KEY!
 );
 
-export async function validateDocument(request: DocumentValidationRequest, userEmail: string, userId: string) {
+export async function validateDocument(request: DocumentValidationRequest, userEmail: string) {
 
   const session = await requireAuthorization('admin', 'validate-document.ts', 'validateDocument');
 
@@ -55,78 +52,6 @@ export async function validateDocument(request: DocumentValidationRequest, userE
         status: validateDocumentResult.data?.status,
         failureReason: validateDocumentResult.data?.failureReason || undefined
       });
-      //todov2 probar todo el flujo de validación de documentos y envío de emails
-      try {
-        let sseFrontFileKey: string | null | undefined = undefined;
-        let sseBackFileKey: string | null | undefined = undefined;
-        let sseCarId: string | undefined = undefined;
-        let sseCardId: string | undefined = undefined;
-        // let sseCardType: PrismaCardType | undefined = undefined; // Si es necesario
-
-        switch (request.documentType) {
-          case 'IDENTITY':
-            const idCard = await prisma.identityCard.findUnique({
-              where: { id: request.documentId },
-              select: { frontFileKey: true, backFileKey: true }
-            });
-            if (idCard) {
-              sseFrontFileKey = idCard.frontFileKey;
-              sseBackFileKey = idCard.backFileKey;
-            }
-            break;
-          case 'LICENCE':
-            const licence = await prisma.licence.findUnique({
-              where: { id: request.documentId },
-              select: { frontFileKey: true, backFileKey: true }
-            });
-            if (licence) {
-              sseFrontFileKey = licence.frontFileKey;
-              sseBackFileKey = licence.backFileKey;
-            }
-            break;
-          case 'INSURANCE': // Necesita carId
-            const policy = await prisma.insurancePolicy.findUnique({
-              where: { id: request.documentId },
-              select: { fileKey: true, insuredCar: { select: { cars: { take: 1, select: { id: true } } } } } // Ajusta esta consulta!
-            });
-            if (policy) {
-              sseFrontFileKey = policy.fileKey; // Asumiendo que el seguro usa 'frontFileKey' para su único archivo
-              // sseCarId = policy.insuredCar?.cars[0]?.id; // Ejemplo, ajusta a tu modelo
-            }
-            console.warn("SSE payload para INSURANCE: carId necesita lógica de obtención correcta.");
-            break;
-          case 'CARD': // Necesita carId y cardId (que es request.documentId)
-            const vCard = await prisma.vehicleCard.findUnique({
-              where: { id: request.documentId },
-              select: { fileKey: true, carId: true, cardType: true }
-            });
-            if (vCard) {
-              sseFrontFileKey = vCard.fileKey;
-              sseCarId = vCard.carId;
-              sseCardId = request.documentId; // El documentId es el cardId
-              // sseCardType = vCard.cardType;
-            }
-            break;
-        }
-
-        const ssePayload: DocumentVerificationUpdatePayload = {
-          userId,
-          dataType: request.documentType,
-          documentId: request.documentId,
-          status: validateDocumentResult.data.status,
-          failureReason: validateDocumentResult.data.failureReason || undefined,
-          frontFileKey: sseFrontFileKey,
-          backFileKey: sseBackFileKey,
-          carId: sseCarId,
-          cardId: sseCardId,
-          // cardType: sseCardType,
-        };
-
-        const eventName = 'user_verification_update';
-        await publishUserEvent(userId, eventName, ssePayload);
-      } catch (sseError) {
-        console.error("Error al construir o emitir evento SSE:", sseError);
-      }
 
       // Log successful email
       await logActionWithErrorHandling(

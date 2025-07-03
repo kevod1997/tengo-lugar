@@ -2,20 +2,17 @@ import { create } from 'zustand';
 
 // Definimos todas las posibles operaciones de carga en la aplicación
 export type LoadingOperation = 
-  // Operaciones de simulación de viaje
   | 'calculatingRoute'
   | 'geocodingOrigin'
   | 'geocodingDestination'
   | 'creatingTrip'
   | 'fetchingCars'
   | 'fetchingFuelPrices'
-  // Otros módulos de la aplicación
   | 'uploadingDocument'
   | 'authRedirect'
   | 'authenticatingUser'
   | 'fetchingUserData'
   | 'signingOut'
-  // Permitir keys dinámicas
   | (string & {});
 
 interface LoadingState {
@@ -49,6 +46,7 @@ const defaultMessages: Record<LoadingOperation, string> = {
   fetchingUserData: 'Cargando datos de usuario...',
   searchingTrips: 'Buscando viajes...',
   signingOut: 'Cerrando sesión...',
+   navigatingToTrip: 'Cargando detalles del viaje...',
 };
 
 export const useLoadingStore = create<LoadingState>((set, get) => ({

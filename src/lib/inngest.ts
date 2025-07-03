@@ -6,6 +6,12 @@ export type Events = {
     'document-verification-email': {
         data: SendDocumentVerificationEmailParams
     };
+    'complete-expired-trips': {
+        data: Record<string, never>
+    };
+    'reject-pending-reservations': {
+        data: Record<string, never>
+    };
 };
 
 export const inngest = new Inngest({

@@ -2,7 +2,7 @@ import { inngest } from "@/lib/inngest";
 import { EmailService } from "@/services/email/email-service";
 import { logError } from "@/services/logging/logging-service";
 
-const emailService = new EmailService(process.env.BREVO_API_KEY!);
+const emailService = new EmailService(process.env.RESEND_API_KEY!);
 
 export const sendDocumentVerificationEmail = inngest.createFunction(
   {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import {
@@ -49,6 +49,7 @@ import { useRouter } from 'next/navigation'
 import { getStatusBadgeColor, getStatusText } from '@/utils/helpers/trip/trip-helpers'
 import { UserProfileModal } from '@/components/user-profile-modal/UserProfileModal'
 import { calculateAge } from '@/utils/helpers/calculate-age'
+import { useLoadingStore } from '@/store/loadingStore'
 
 interface TripDetailProps {
   trip: any;
@@ -68,6 +69,12 @@ export default function TripDetail({
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { stopLoading } = useLoadingStore();
+
+  // 👇 Limpiar loading inmediatamente cuando el componente se hidrata
+  useEffect(() => {
+    stopLoading('navigatingToTrip');
+  }, [stopLoading]); 
 
   // Extract role information
   const isDriver = trip.userRole?.isDriver || false;
@@ -166,7 +173,7 @@ export default function TripDetail({
   return (
     <>
       <div className="">
-      {/* <div className="container mx-auto py-6 px-4 lg:px-8 max-w-5xl"> */}
+        {/* <div className="container mx-auto py-6 px-4 lg:px-8 max-w-5xl"> */}
         <Card className="overflow-hidden">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -421,8 +428,7 @@ export default function TripDetail({
             </Tabs>
           </CardContent>
 
-          <CardFooter className="pb-4 flex gap-3">
-            {/* Main action buttons */}
+          {/* <CardFooter className="pb-4 flex gap-3">
             {isDriver && ['PENDING', 'ACTIVE'].includes(trip.status) && (
               <Button
                 className="flex-1"
@@ -450,11 +456,50 @@ export default function TripDetail({
               </Button>
             )}
 
-            {/* Cancel button as a separate styled button */}
             {canCancel && (
               <Button
                 variant="outline"
                 className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                onClick={() => setIsCancelDialogOpen(true)}
+              >
+                Cancelar {isDriver ? 'viaje' : 'reserva'}
+              </Button>
+            )}
+          </CardFooter> */}
+          <CardFooter className="pb-4 flex flex-col md:flex-row gap-3">
+            {/* Main action buttons */}
+            {isDriver && ['PENDING', 'ACTIVE'].includes(trip.status) && (
+              <Button
+                className="w-full md:flex-1"
+                onClick={() => router.push(`/viajes/${trip.id}/pasajeros`)}
+              >
+                Gestionar pasajeros
+              </Button>
+            )}
+
+            {canReserve && (
+              <Button
+                className="w-full md:flex-1"
+                onClick={() => setIsReservationModalOpen(true)}
+              >
+                {getReservationButtonText()}
+              </Button>
+            )}
+
+            {/* {!canReserve && !isDriver && (
+              <Button
+                className="w-full md:flex-1"
+                disabled
+              >
+                {getReservationButtonText()}
+              </Button>
+            )} */}
+
+            {/* Cancel button as a separate styled button */}
+            {canCancel && (
+              <Button
+                variant="outline"
+                className="w-full md:flex-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
                 onClick={() => setIsCancelDialogOpen(true)}
               >
                 Cancelar {isDriver ? 'viaje' : 'reserva'}

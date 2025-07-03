@@ -25,7 +25,7 @@ import { LoggingService } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import Header from "@/components/header/header";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import { ErrorContext } from "better-auth/react";
 
 
@@ -191,11 +191,14 @@ export default function SignUp() {
                                         />
                                     )
                                 })}
-                                <LoadingButton pending={pending}>Registrarse</LoadingButton>
+                                <LoadingButton pending={pending}>
+                                    <UserPlus className="h-4 w-4" />
+                                    Registrarse</LoadingButton>
                             </form>
                         </Form>
                         <div className="mt-4 text-center text-sm ">
                             <Button variant="outline" className="w-full">
+                                <LogIn className="h-4 w-4" />
                                 <Link href="/login">
                                     ¿Ya tienes una cuenta? Inicia sesión
                                 </Link>

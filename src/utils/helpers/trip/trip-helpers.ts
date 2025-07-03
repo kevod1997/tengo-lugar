@@ -22,13 +22,13 @@ export const getStatusText = (status: string) => {
         case 'PENDING_APPROVAL':
         return "Pendiente de Aprobación";
         case 'APPROVED':
-        return "Aprobado";
+        return "Aprobada";
       case 'ACTIVE':
         return "Activo";
       case 'COMPLETED':
-        return "Completado";
+        return "Completada";
       case 'CANCELLED':
-        return "Cancelado";
+        return "Cancelada";
       default:
         return status;
     }

@@ -38,6 +38,7 @@ export async function getUserById(userId?: string) {
             licence: {
               select: {
                 status: true,
+                expiration: true,
                 failureReason: true,
                 frontFileKey: true,
                 backFileKey: true
@@ -55,6 +56,7 @@ export async function getUserById(userId?: string) {
                         currentPolicy: {
                           select: {
                             status: true,
+                            expireDate: true,
                             failureReason: true,
                             fileKey: true
                           }

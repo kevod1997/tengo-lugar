@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useUserStore } from '@/store/user-store'
 import { Button } from "@/components/ui/button"
 import { StepId } from '@/types/registration-types'
@@ -71,11 +71,36 @@ export default function IntegratedProfileContent({
     }
   }, [user?.hasBirthDate])
 
+  const startDriverRegistration = useCallback(() => {
+    if (!user) return;
+    if (user.hasEnabledCar) router.push('/publicar-viaje')
+
+    if (!user.identityStatus || user.identityStatus === 'FAILED') {
+      setRegistrationStep('identityCard');
+    } else if (!user.licenseStatus) {
+      setRegistrationStep('driverLicense');
+    } else if (user.licenseStatus === 'FAILED') {
+      setRegistrationStep('driverLicense');
+    } else if ((user.identityStatus === 'PENDING' || user.identityStatus === 'VERIFIED') &&
+      (user.licenseStatus === 'PENDING' || user.licenseStatus === 'VERIFIED') &&
+      !user.hasRegisteredCar) {
+      setRegistrationStep('carInfo');
+    } else if (user.hasRegisteredCar && !user.allCarsInsured && !user.hasPendingInsurance) {
+      setRegistrationStep('insurance');
+    } else if (user.hasRegisteredCar && !user.hasAllRequiredCards && !user.hasPendingCards) {
+      setRegistrationStep('carCard');
+    } else {
+      setRegistrationStep('identityCard');
+    }
+    setInitialRole('driver');
+    setRegistrationMode('driver');
+  }, [user, router, setRegistrationStep]);
+
   useEffect(() => {
     if (setupMode === 'driver' && hasCompletedProfile) {
       startDriverRegistration();
     }
-  }, [setupMode, hasCompletedProfile]);
+  }, [setupMode, hasCompletedProfile, startDriverRegistration]);
 
   const handleRegistrationComplete = async () => {
     setRegistrationMode(null)
@@ -103,31 +128,6 @@ export default function IntegratedProfileContent({
       router.refresh()
     }
   }
-
-  const startDriverRegistration = () => {
-    if (!user) return;
-    if (user.hasEnabledCar) router.push('/publicar-viaje')
-
-    if (!user.identityStatus || user.identityStatus === 'FAILED') {
-      setRegistrationStep('identityCard');
-    } else if (!user.licenseStatus) {
-      setRegistrationStep('driverLicense');
-    } else if (user.licenseStatus === 'FAILED') {
-      setRegistrationStep('driverLicense');
-    } else if ((user.identityStatus === 'PENDING' || user.identityStatus === 'VERIFIED') &&
-      (user.licenseStatus === 'PENDING' || user.licenseStatus === 'VERIFIED') &&
-      !user.hasRegisteredCar) {
-      setRegistrationStep('carInfo');
-    } else if (user.hasRegisteredCar && !user.allCarsInsured && !user.hasPendingInsurance) {
-      setRegistrationStep('insurance');
-    } else if (user.hasRegisteredCar && !user.hasAllRequiredCards && !user.hasPendingCards) {
-      setRegistrationStep('carCard');
-    } else {
-      setRegistrationStep('identityCard');
-    }
-    setInitialRole('driver');
-    setRegistrationMode('driver');
-  };
 
   const getInitialStepForMode = (): StepId => {
     if (registrationMode === 'identity') return 'identityCard';

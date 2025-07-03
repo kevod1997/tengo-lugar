@@ -48,7 +48,7 @@ export class LoggingService {
     try {
       await createActionLogAction(actionData);
     } catch (error) {
-      await this.handleLoggingError(error, {
+      await LoggingService.handleLoggingError(error, {
         operation: `registrar acción ${actionData.action}`,
         ...context
       });

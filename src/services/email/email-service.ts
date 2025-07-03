@@ -1,13 +1,11 @@
 import { VerificationStatus } from '@prisma/client';
 import { ApiHandler } from '@/lib/api-handler';
 import { ApiResponse } from '@/types/api-types';
-import { getFailedEmailTemplate, getVerifiedEmailTemplate } from '@/utils/email/email-templates';
 import { ServiceError } from '@/lib/exceptions/service-error';
-import { BrevoAPI } from '@/lib/email/brevo';
+import { ResendAPI } from '@/lib/email/resend';
 import { DocumentType } from '@/types/request/image-documents-validation';
-
-// const brevo = require('@getbrevo/brevo');
-import * as brevo from '@getbrevo/brevo';
+import { render } from '@react-email/render';
+import { DocumentVerified, DocumentFailed, PasswordReset, EmailVerification } from '@/emails';
 
 export interface SendDocumentVerificationEmailParams {
   to: string;
@@ -17,10 +15,10 @@ export interface SendDocumentVerificationEmailParams {
 }
 
 export class EmailService {
-  private brevoAPI: BrevoAPI;
+  private resendAPI: ResendAPI;
 
   constructor(apiKey: string) {
-    this.brevoAPI = new BrevoAPI(apiKey);
+    this.resendAPI = new ResendAPI(apiKey);
   }
 
   async sendDocumentVerificationEmail(params: SendDocumentVerificationEmailParams): Promise<ApiResponse<void>> {
@@ -32,21 +30,23 @@ export class EmailService {
 
       if (params.status === VerificationStatus.VERIFIED) {
         subject = `Tu ${documentTypeInSpanish} ha sido verificado`;
-        htmlContent = getVerifiedEmailTemplate(documentTypeInSpanish);
+        htmlContent = await render(DocumentVerified({ documentType: documentTypeInSpanish }));
       } else if (params.status === VerificationStatus.FAILED) {
         subject = `La verificación de tu ${documentTypeInSpanish} ha fallado`;
-        htmlContent = getFailedEmailTemplate(documentTypeInSpanish, params.failureReason);
+        htmlContent = await render(DocumentFailed({ 
+          documentType: documentTypeInSpanish, 
+          failureReason: params.failureReason 
+        }));
       } else {
         throw ServiceError.InvalidEmailTemplate('email-service.ts', 'sendDocumentVerificationEmail');
       }
 
-      const sendSmtpEmail = new brevo.SendSmtpEmail();
-      sendSmtpEmail.subject = subject;
-      sendSmtpEmail.htmlContent = htmlContent;
-      sendSmtpEmail.sender = { name: "Tengo Lugar", email: "kevindefalco@gmail.com" };
-      sendSmtpEmail.to = [{ email: params.to }];
-
-      await this.brevoAPI.sendEmail(sendSmtpEmail).catch((error) => {
+      await this.resendAPI.sendEmail({
+        from: "Tengo Lugar <info@tengolugar.store>",
+        to: [params.to],
+        subject: subject,
+        html: htmlContent,
+      }).catch((error) => {
         throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendDocumentVerificationEmail');
       });
 
@@ -58,14 +58,51 @@ export class EmailService {
 
   async sendEmail(to: string, subject: string, htmlContent: string): Promise<ApiResponse<void>> {
     try {
-      const sendSmtpEmail = new brevo.SendSmtpEmail();
-      sendSmtpEmail.subject = subject;
-      sendSmtpEmail.htmlContent = htmlContent;
-      sendSmtpEmail.sender = { name: "Tengo Lugar", email: "kevindefalco@gmail.com" };
-      sendSmtpEmail.to = [{ email: to }];
-
-      await this.brevoAPI.sendEmail(sendSmtpEmail).catch((error) => {
+      await this.resendAPI.sendEmail({
+        from: "Tengo Lugar <info@tengolugar.store>",
+        to: [to],
+        subject: subject,
+        html: htmlContent,
+      }).catch((error) => {
         throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendEmail');
+      });
+
+      return ApiHandler.handleSuccess(undefined);
+    } catch (error) {
+      return ApiHandler.handleError(error);
+    }
+  }
+
+  async sendPasswordResetEmail(to: string, resetUrl: string, userName?: string): Promise<ApiResponse<void>> {
+    try {
+      const htmlContent = await render(PasswordReset({ resetUrl, userName }));
+      
+      await this.resendAPI.sendEmail({
+        from: "Tengo Lugar <info@tengolugar.store>",
+        to: [to],
+        subject: "Restablecer contraseña - Tengo Lugar",
+        html: htmlContent,
+      }).catch((error) => {
+        throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendPasswordResetEmail');
+      });
+
+      return ApiHandler.handleSuccess(undefined);
+    } catch (error) {
+      return ApiHandler.handleError(error);
+    }
+  }
+
+  async sendEmailVerificationEmail(to: string, verificationUrl: string, userName?: string): Promise<ApiResponse<void>> {
+    try {
+      const htmlContent = await render(EmailVerification({ verificationUrl, userName }));
+      
+      await this.resendAPI.sendEmail({
+        from: "Tengo Lugar <info@tengolugar.store>",
+        to: [to],
+        subject: "Verifica tu email - Tengo Lugar",
+        html: htmlContent,
+      }).catch((error) => {
+        throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendEmailVerificationEmail');
       });
 
       return ApiHandler.handleSuccess(undefined);
@@ -79,7 +116,7 @@ export class EmailService {
       IDENTITY: 'documento de identidad',
       LICENCE: 'licencia de conducir',
       INSURANCE: 'póliza de seguro',
-      CARD: 'tarjeta de circulación',
+      CARD: 'tarjeta',
     };
     return documentTypes[documentType];
   }
