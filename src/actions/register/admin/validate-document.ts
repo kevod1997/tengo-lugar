@@ -12,6 +12,7 @@ import { inngest } from "@/lib/inngest";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { requireAuthorization } from "@/utils/helpers/auth-helper";
+import { RealtimeEventHelpers } from "@/lib/real-time/real-time-publisher";
 
 const identityService = new IdentityValidationService();
 const licenceService = new LicenceValidationService();
@@ -99,6 +100,17 @@ export async function validateDocument(request: DocumentValidationRequest, userE
           fileName: 'validate-document.ts',
           functionName: 'validateDocument'
         }
+      );
+    }
+
+    // Publish real-time event for WebSocket notification (non-blocking)
+    // This should happen after successful validation regardless of email success/failure
+    if (validateDocumentResult.data?.status) {
+      RealtimeEventHelpers.publishDocumentVerification(
+        session.user.id,
+        request.documentType,
+        validateDocumentResult.data.status,
+        validateDocumentResult.data.failureReason || undefined
       );
     }
   }
