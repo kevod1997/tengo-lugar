@@ -3,7 +3,7 @@
 import { SidebarProvider } from '../ui/sidebar'
 import React from 'react'
 import QueryProvider from './QueryProvider'
-import { useAuthSession } from '@/hooks/ui/useAuthSession'
+import { AuthSessionProvider } from './AuthSessionProvider'
 
 interface Props {
     children: React.ReactNode
@@ -12,15 +12,14 @@ interface Props {
 
 export function Providers({ children, initialSession }: Props) {
     const [open, setOpen] = React.useState(false)
-    
-    // ✅ Toda la lógica de auth en el hook
-    useAuthSession(initialSession)
 
     return (
         <QueryProvider>
-            <SidebarProvider open={open} onOpenChange={setOpen}>
-                {children}
-            </SidebarProvider>
+            <AuthSessionProvider initialSession={initialSession}>
+                <SidebarProvider open={open} onOpenChange={setOpen}>
+                    {children}
+                </SidebarProvider>
+            </AuthSessionProvider>
         </QueryProvider>
     )
 }

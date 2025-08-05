@@ -1,57 +1,3 @@
-// // hooks/auth/useAuthSession.ts - SOLO manejo de estado
-// import { useEffect, useRef} from 'react'
-// import { getUserById } from "@/actions"
-// import { useLoadingStore } from "@/store/loadingStore"
-// import { useUserStore } from "@/store/user-store"
-// import { toast } from 'sonner'
-
-// export function useAuthSession(initialSession: any) {
-//     const { user, setUser, clearUser } = useUserStore()
-//     const { startLoading, stopLoading, isLoading } = useLoadingStore()
-//     const isLoadingUserRef = useRef(false)
-//     const sessionExists = !!initialSession?.user?.id
-//     const hasUserInStore = !!user
-//     const isLoggingOut = isLoading('signingOut')
-
-//     useEffect(() => {
-//         if (isLoggingOut) return
-
-//         // ✅ Sesión expirada
-//         if (!sessionExists && hasUserInStore) {
-//             clearUser()
-//             toast.warning('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
-//             return
-//         }
-
-//         // ✅ SOLO cargar si NO hay datos (refresco de página)
-//         if (sessionExists && !hasUserInStore && !isLoadingUserRef.current) {
-//             isLoadingUserRef.current = true
-
-//             getUserById(initialSession.user.id)
-//                 .then(userData => {
-//                     if (userData) {
-//                         setUser(userData)
-//                         // ✅ SIN redirección - auth-redirect ya la hizo
-//                     }
-//                 })
-//                 .catch((error) => {
-//                     console.error('Error cargando usuario:', error)
-//                     toast.error('Error al cargar los datos del usuario')
-//                 })
-//                 .finally(() => {
-//                     isLoadingUserRef.current = false
-//                 })
-//         }
-
-//     }, [sessionExists, hasUserInStore, isLoggingOut, initialSession?.user?.id, clearUser, setUser])
-
-//     return {
-//         isAuthenticated: sessionExists,
-//         hasUserData: hasUserInStore,
-//         isLoadingUser: isLoadingUserRef.current
-//     }
-// }
-
 // hooks/auth/useAuthSession.ts
 import { useEffect, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -61,7 +7,8 @@ import { useUserStore } from "@/store/user-store"
 import { toast } from 'sonner'
 
 export function useAuthSession(initialSession: any) {
-    const { user, setUser, clearUser } = useUserStore()
+    const userStore = useUserStore()
+    const { user, setUser, clearUser } = userStore
     const { startLoading, stopLoading, isLoading } = useLoadingStore()
     const searchParams = useSearchParams()
     const router = useRouter()
@@ -94,7 +41,7 @@ export function useAuthSession(initialSession: any) {
             isLoadingUserRef.current = true
 
             getUserById(initialSession.user.id)
-                .then(userData => {
+                .then(async userData => {
                     if (userData) {
                         setUser(userData)
                     }
@@ -124,6 +71,7 @@ export function useAuthSession(initialSession: any) {
             router.replace(currentUrl.pathname + currentUrl.search, { scroll: false })
         }
 
+
     }, [
         sessionExists, 
         hasUserInStore, 
@@ -136,6 +84,7 @@ export function useAuthSession(initialSession: any) {
         startLoading,
         stopLoading
     ])
+
 
     return {
         isAuthenticated: sessionExists,

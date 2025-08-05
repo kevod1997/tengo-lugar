@@ -41,6 +41,7 @@ model User {
   reviewsGiven      Review[]              @relation("ReviewGiven")
   reviewsReceived   Review[]              @relation("ReviewReceived")
   pushSubscriptions PushSubscription[]
+  notifications     Notification[]
 }
 
 model Session {
@@ -503,6 +504,24 @@ model PushSubscription {
   @@index([userId])
 }
 
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String
+  type        NotificationType
+  title       String           @db.VarChar(200)
+  message     String           @db.Text
+  stateUpdate Json             // JSONB para los partial updates
+  data        Json?            // Metadata adicional opcional
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+  @@index([userId, type])
+  @@index([createdAt])
+}
+
 enum CardType {
   GREEN
   BLUE
@@ -601,4 +620,44 @@ enum MessageStatus {
   DELIVERED
   READ
   FAILED
+}
+
+enum NotificationType {
+  // Verificaciones
+  VERIFICATION_APPROVED
+  VERIFICATION_FAILED
+  LICENSE_VERIFIED
+  LICENSE_FAILED
+  VEHICLE_CARD_VERIFIED
+  VEHICLE_CARD_FAILED
+  INSURANCE_VERIFIED
+  INSURANCE_FAILED
+  
+  // Perfil y cuenta
+  PHONE_VERIFIED
+  PROFILE_UPDATED
+  PASSWORD_CHANGED
+  
+  // Vehículos
+  CAR_ADDED
+  CAR_REMOVED
+  
+  // Viajes
+  TRIP_CREATED
+  TRIP_CANCELLED
+  RESERVATION_RECEIVED
+  RESERVATION_APPROVED
+  RESERVATION_REJECTED
+  RESERVATION_CANCELLED
+  TRIP_COMPLETED
+  
+  // Pagos
+  PAYMENT_RECEIVED
+  PAYMENT_COMPLETED
+  PAYMENT_FAILED
+  
+  // Sistema
+  ACCOUNT_BANNED
+  ACCOUNT_UNBANNED
+  SYSTEM_MAINTENANCE
 }

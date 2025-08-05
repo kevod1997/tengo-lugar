@@ -60,6 +60,7 @@ export default function IntegratedProfileContent({
     isHydratedFn: () => useUserStore.getState().user !== null
   })
 
+
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000)
     return () => clearTimeout(timer)
