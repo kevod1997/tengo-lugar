@@ -19,7 +19,11 @@
       "Bash(git add:*)",
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(npm run prisma:generate:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   },
