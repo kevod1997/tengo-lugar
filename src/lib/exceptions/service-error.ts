@@ -160,4 +160,13 @@ export class ServiceError extends BaseError {
     static ConfigurationError(details: string, fileName: string, functionName: string) {
         return new ServiceError(`Email service configuration error: ${details}`, 'CONFIG_ERROR', fileName, functionName);
     }
+
+    static AuthenticationError(fileName: string, functionName: string) {
+        return new ServiceError(
+            'Error de autenticación',
+            'AUTHENTICATION_ERROR',
+            fileName,
+            functionName
+        );
+    }
 }

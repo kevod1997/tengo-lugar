@@ -241,6 +241,7 @@ return ApiHandler.handleError(error); // Auto-logs and consistent response
 │   ├── register/        # Registration flow
 │   ├── driver/          # Driver-specific actions
 │   ├── chat/            # Chat functionality
+│   ├── websocket/       # WebSocket token management
 │   ├── logs/            # Logging actions
 │   └── admin/           # Administrative functions
 ├── app/                 # Next.js 15 App Router
@@ -360,6 +361,36 @@ export const sendVerificationEmail = inngest.createFunction(
 );
 ```
 
+### WebSocket Notification Service Pattern
+```typescript
+import { websocketNotificationService } from '@/services/websocket/websocket-notification-service';
+import { getCachedAccessToken } from '@/actions/websocket/websocket-token-cache';
+import { getUserId } from '@/actions/websocket/get-user-id';
+
+// Initialize connection
+await websocketNotificationService.connectWithRetry();
+
+// Listen to events
+websocketNotificationService.on('connected', () => {
+  console.log('WebSocket connected');
+});
+
+websocketNotificationService.on('message', (data) => {
+  // Handle incoming notifications
+  console.log('Notification received:', data);
+});
+
+// Send messages
+websocketNotificationService.send({
+  type: 'notification',
+  payload: { message: 'Hello' }
+});
+
+// Server Actions for token management
+const tokenResponse = await getCachedAccessToken();
+const userId = await getUserId();
+```
+
 ---
 
 ## Environment Variables
@@ -400,6 +431,12 @@ INNGEST_SIGNING_KEY=
 NEXT_PUBLIC_CHAT_API_URL=
 NEXT_PUBLIC_CHAT_WEBSOCKET_URL=
 NEXT_PUBLIC_CLIENT_URL=
+
+# WebSocket Notification Service
+WEBSOCKET_SERVER_URL=
+WEBSOCKET_USERNAME=
+WEBSOCKET_PASSWORD=
+NEXT_PUBLIC_WEBSOCKET_SERVER_URL=
 
 # Social Auth
 GOOGLE_CLIENT_ID=
@@ -458,14 +495,81 @@ EMAIL_VERIFICATION_CALLBACK_URL=
 
 ---
 
-## Chat Integration Architecture
+## Real-time Communication Architecture
 
+### Chat Integration
 The platform integrates with an external chat service:
 
 1. **JWT Token Generation**: `/api/auth/token` endpoint provides JWT tokens for external services
 2. **Chat Room Creation**: Each trip automatically creates a chat room
 3. **Real-time Updates**: WebSocket connection for live chat functionality
 4. **Authentication**: JWT tokens include user role and trip context
+
+### WebSocket Notification Service
+Comprehensive real-time notification system with advanced token management:
+
+#### Architecture Components
+- **Client Service**: `WebSocketNotificationService` class for connection management
+- **Server Actions**: Redis-cached token authentication and refresh
+- **Token Management**: Automatic token refresh with safety margins
+- **Connection Resilience**: Exponential backoff reconnection strategy
+
+#### Key Features
+1. **Redis Token Caching**:
+   - Access tokens: 12min cache (3min safety margin from 15min server expiry)
+   - Refresh tokens: 6.5d cache (0.5d safety margin from 7d server expiry)
+   - Automatic cache invalidation on authentication failures
+
+2. **Authentication Flow**:
+   - Server Actions handle WebSocket server authentication
+   - Cached tokens reduce external API calls
+   - Automatic token refresh on connection failure
+   - User session validation through auth helpers
+
+3. **Connection Management**:
+   - Event-driven architecture with typed listeners
+   - Automatic reconnection with exponential backoff
+   - Connection state monitoring and status reporting
+   - Graceful error handling and cleanup
+
+4. **File Structure**:
+   ```
+   src/actions/websocket/
+   ├── authenticate-websocket.ts    # External WebSocket server auth
+   ├── get-user-id.ts              # User session extraction
+   └── websocket-token-cache.ts    # Redis token management
+   
+   src/services/websocket/
+   └── websocket-notification-service.ts  # Client WebSocket manager
+   ```
+
+#### Usage Pattern
+```typescript
+// Singleton service usage
+import { websocketNotificationService } from '@/services/websocket/websocket-notification-service';
+
+// Connect with automatic retry
+await websocketNotificationService.connectWithRetry();
+
+// Event handling
+websocketNotificationService.on('connected', () => {
+  // Connection established
+});
+
+websocketNotificationService.on('message', (notification) => {
+  // Handle real-time notifications
+});
+
+websocketNotificationService.on('error', (error) => {
+  // Handle connection errors
+});
+
+// Send notifications
+websocketNotificationService.send({
+  type: 'trip_update',
+  payload: { tripId, status: 'started' }
+});
+```
 
 ---
 
@@ -492,6 +596,13 @@ The platform integrates with an external chat service:
 - **Chat Room Creation**: Check NEXT_PUBLIC_CHAT_API_URL configuration
 - **Token Generation**: Verify JWT endpoint and cookie forwarding
 - **WebSocket Connection**: Check NEXT_PUBLIC_CHAT_WEBSOCKET_URL
+
+### WebSocket Notification Issues
+- **Connection Failed**: Verify WEBSOCKET_SERVER_URL and NEXT_PUBLIC_WEBSOCKET_SERVER_URL
+- **Authentication Error**: Check WEBSOCKET_USERNAME and WEBSOCKET_PASSWORD
+- **Token Refresh Failed**: Review Redis cache and token expiry settings
+- **Reconnection Loop**: Check exponential backoff settings and max retry attempts
+- **Message Not Received**: Verify event listeners and message parsing
 
 ### Build Issues
 - **TypeScript Error**: Verify types and imports
@@ -562,3 +673,5 @@ import { Button } from '@/components/ui/button';
 10. **Test database operations** with Prisma Studio before deployment
 11. **Email service uses Resend** - use ResendAPI class
 12. **Chat integration requires JWT tokens** - use proper token generation patterns
+13. **WebSocket notifications use singleton service** - import websocketNotificationService from services
+14. **WebSocket tokens cached in Redis** - use Server Actions for token management

@@ -25,7 +25,10 @@
       "Bash(git reset:*)",
       "Bash(git rm:*)"
     ],
-    "deny": []
+    "deny": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\Kevin\\OneDrive\\Escritorio\\Dev"
+    ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
