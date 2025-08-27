@@ -15,6 +15,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { NotificationButton } from '@/components/notification'
+import { useUserStore } from '@/store/user-store'
 
 type BreadcrumbItem = {
   label: string
@@ -35,6 +37,7 @@ export default function Header({
   isSticky = true,
 }: HeaderProps) {
   const router = useRouter()
+  const { user } = useUserStore()
 
   const handleGoBack = () => {
     router.back()
@@ -100,6 +103,11 @@ export default function Header({
                 </BreadcrumbList>
               </Breadcrumb>
             )}
+          </div>
+
+          {/* Right side - Notifications */}
+          <div className="flex items-center gap-2">
+            {user && <NotificationButton />}
           </div>
         </div>
       </header>

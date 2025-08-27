@@ -4,6 +4,7 @@ import { SidebarProvider } from '../ui/sidebar'
 import React from 'react'
 import QueryProvider from './QueryProvider'
 import { AuthSessionProvider } from './AuthSessionProvider'
+import { WebSocketProvider } from './WebSocketProvider'
 
 interface Props {
     children: React.ReactNode
@@ -16,9 +17,11 @@ export function Providers({ children, initialSession }: Props) {
     return (
         <QueryProvider>
             <AuthSessionProvider initialSession={initialSession}>
-                <SidebarProvider open={open} onOpenChange={setOpen}>
-                    {children}
-                </SidebarProvider>
+                <WebSocketProvider>
+                    <SidebarProvider open={open} onOpenChange={setOpen}>
+                        {children}
+                    </SidebarProvider>
+                </WebSocketProvider>
             </AuthSessionProvider>
         </QueryProvider>
     )

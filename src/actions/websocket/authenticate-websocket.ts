@@ -7,6 +7,7 @@ import { ApiResponse } from '@/types/api-types';
 const WEBSOCKET_SERVER_URL = process.env.WEBSOCKET_SERVER_URL || 'http://localhost:8080';
 const WEBSOCKET_USERNAME = process.env.WEBSOCKET_USERNAME || 'demo';
 const WEBSOCKET_PASSWORD = process.env.WEBSOCKET_PASSWORD || 'password';
+const websocketUserAgent = process.env.WEBSOCKET_USER_AGENT || 'TengoLugar-MainApp';
 
 // Types for WebSocket server API
 interface LoginResponse {
@@ -35,6 +36,7 @@ export async function authenticateWebSocket(): Promise<ApiResponse<WebSocketToke
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': websocketUserAgent
       },
       body: JSON.stringify({
         username: WEBSOCKET_USERNAME,
@@ -52,7 +54,7 @@ export async function authenticateWebSocket(): Promise<ApiResponse<WebSocketToke
     }
 
     const data: LoginResponse = await response.json();
-    
+
     if (!data.accessToken || !data.refreshToken) {
       throw ServiceError.ExternalApiError(
         'Invalid authentication response: missing tokens',
@@ -86,6 +88,7 @@ export async function refreshWebSocketToken(refreshToken: string): Promise<ApiRe
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': websocketUserAgent
       },
       body: JSON.stringify({
         refreshToken: refreshToken,
@@ -94,7 +97,7 @@ export async function refreshWebSocketToken(refreshToken: string): Promise<ApiRe
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      
+
       // If refresh fails with 401, client should re-authenticate
       if (response.status === 401) {
         throw ServiceError.AuthenticationError(fileName, functionName);
@@ -108,7 +111,7 @@ export async function refreshWebSocketToken(refreshToken: string): Promise<ApiRe
     }
 
     const data: RefreshTokenResponse = await response.json();
-    
+
     if (!data.accessToken) {
       throw ServiceError.ExternalApiError(
         'Invalid refresh response: missing access token',

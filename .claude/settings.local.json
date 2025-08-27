@@ -23,7 +23,22 @@
       "Bash(git stash:*)",
       "Bash(git checkout:*)",
       "Bash(git reset:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\websocket/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\controllers/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\websocket/**)",
+      "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\types/**)",
+      "Read(/C:\\C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar\\src\\actions/**)",
+      "Read(/C:\\C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar\\src\\services/**)"
     ],
     "deny": [],
     "additionalDirectories": [
