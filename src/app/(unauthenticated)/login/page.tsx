@@ -31,7 +31,7 @@ import Header from "@/components/header/header";
 function SignIn() {
 	const [pendingCredentials, setPendingCredentials] = useState(false);
 	const [pendingGoogle, setPendingGoogle] = useState(false);
-	console.log(pendingGoogle);
+	const [pendingFacebook, setPendingFacebook] = useState(false);
 	const searchParams = useSearchParams();
 	const redirectUrl = searchParams.get('redirect_url');
 
@@ -98,6 +98,28 @@ function SignIn() {
 			}
 		);
 		setPendingGoogle(false);
+	};
+
+	const handleSignInWithFacebook = async () => {
+		await authClient.signIn.social(
+			{
+				provider: "facebook",
+				callbackURL: redirectUrl
+					? `/api/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}`
+					: "/api/auth-redirect",
+			},
+			{
+				onRequest: () => {
+					setPendingFacebook(true);
+				},
+				onError: (ctx: ErrorContext) => {
+					toast.error('Error', {
+						description: ctx.error.message ?? "Algo salió mal.",
+					});
+				},
+			}
+		);
+		setPendingFacebook(false);
 	};
 
 	return (
@@ -193,8 +215,8 @@ function SignIn() {
 
 						<div className="mt-4">
 							<LoadingButton
-								pending={false}
-								onClick={() => toast.info("Esta funcionalidad no está disponible aún")}
+								pending={pendingFacebook}
+								onClick={handleSignInWithFacebook}
 							>
 								<FaFacebook className="w-4 h-4 mr-2" />
 								Continuar con Facebook

@@ -26,11 +26,15 @@ import { TipoAccionUsuario } from "@/types/actions-logs";
 import Header from "@/components/header/header";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
+import { FaFacebook, FaGoogle } from "react-icons/fa";
+import { Separator } from "@/components/ui/separator";
 import { ErrorContext } from "better-auth/react";
 
 
 export default function SignUp() {
     const [pending, setPending] = useState(false);
+    const [pendingGoogle, setPendingGoogle] = useState(false);
+    const [pendingFacebook, setPendingFacebook] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const router = useRouter();
@@ -86,6 +90,46 @@ export default function SignUp() {
             }
         );
         setPending(false);
+    };
+
+    const handleSignUpWithGoogle = async () => {
+        await authClient.signIn.social(
+            {
+                provider: "google",
+                callbackURL: "/api/auth-redirect",
+            },
+            {
+                onRequest: () => {
+                    setPendingGoogle(true);
+                },
+                onError: (ctx: ErrorContext) => {
+                    toast.error('Error', {
+                        description: ctx.error.message ?? "Algo salió mal.",
+                    });
+                },
+            }
+        );
+        setPendingGoogle(false);
+    };
+
+    const handleSignUpWithFacebook = async () => {
+        await authClient.signIn.social(
+            {
+                provider: "facebook",
+                callbackURL: "/api/auth-redirect",
+            },
+            {
+                onRequest: () => {
+                    setPendingFacebook(true);
+                },
+                onError: (ctx: ErrorContext) => {
+                    toast.error('Error', {
+                        description: ctx.error.message ?? "Algo salió mal.",
+                    });
+                },
+            }
+        );
+        setPendingFacebook(false);
     };
 
     return (
@@ -196,6 +240,31 @@ export default function SignUp() {
                                     Registrarse</LoadingButton>
                             </form>
                         </Form>
+
+                        <Separator className="mt-6" />
+
+                        <div className="mt-4">
+                            <LoadingButton
+                                pending={pendingGoogle}
+                                onClick={handleSignUpWithGoogle}
+                            >
+                                <FaGoogle className="w-4 h-4 mr-2" />
+                                Registrarse con Google
+                            </LoadingButton>
+                        </div>
+
+                        <div className="mt-4">
+                            <LoadingButton
+                                pending={pendingFacebook}
+                                onClick={handleSignUpWithFacebook}
+                            >
+                                <FaFacebook className="w-4 h-4 mr-2" />
+                                Registrarse con Facebook
+                            </LoadingButton>
+                        </div>
+
+                        <Separator className="mt-4" />
+
                         <div className="mt-4 text-center text-sm ">
                             <Button variant="outline" className="w-full">
                                 <LogIn className="h-4 w-4" />
