@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useWebSocket } from '@/hooks/websocket/useWebSocket'
 import { useNotifications } from '@/hooks/notifications/useNotifications'
+import { useAuth } from '@/components/providers/AuthSessionProvider'
 import { toast } from 'sonner'
 
 interface NotificationButtonProps {
@@ -21,6 +22,7 @@ interface NotificationButtonProps {
 }
 
 export function NotificationButton({ className = '' }: NotificationButtonProps) {
+  const { isAuthenticated } = useAuth()
   const { isConnected, isConnecting, service } = useWebSocket()
   const { 
     notifications, 
@@ -30,6 +32,11 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
     refetchNotifications
   } = useNotifications()
   const [open, setOpen] = useState(false)
+
+  // Don't render the component if user is not authenticated
+  if (!isAuthenticated) {
+    return null
+  }
 
   const hasUnreadNotifications = unreadCount > 0
 

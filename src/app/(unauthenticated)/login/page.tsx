@@ -85,14 +85,17 @@ function SignIn() {
 				callbackURL: redirectUrl
 					? `/api/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}`
 					: "/api/auth-redirect",
+				errorCallbackURL: "/auth/error",
 			},
 			{
 				onRequest: () => {
 					setPendingGoogle(true);
 				},
 				onError: (ctx: ErrorContext) => {
-					toast.error('Error', {
-						description: ctx.error.message ?? "Algo salió mal.",
+					toast.error('Error de Autenticación', {
+						description: ctx.error.message?.includes('state_not_found') 
+							? "La sesión expiró. Intenta nuevamente."
+							: ctx.error.message ?? "Algo salió mal.",
 					});
 				},
 			}
@@ -107,14 +110,17 @@ function SignIn() {
 				callbackURL: redirectUrl
 					? `/api/auth-redirect?redirect_url=${encodeURIComponent(redirectUrl)}`
 					: "/api/auth-redirect",
+				errorCallbackURL: "/auth/error",
 			},
 			{
 				onRequest: () => {
 					setPendingFacebook(true);
 				},
 				onError: (ctx: ErrorContext) => {
-					toast.error('Error', {
-						description: ctx.error.message ?? "Algo salió mal.",
+					toast.error('Error de Autenticación', {
+						description: ctx.error.message?.includes('state_not_found') 
+							? "La sesión expiró. Intenta nuevamente."
+							: ctx.error.message ?? "Algo salió mal.",
 					});
 				},
 			}

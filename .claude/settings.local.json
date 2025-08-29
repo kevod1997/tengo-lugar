@@ -38,7 +38,11 @@
       "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\websocket/**)",
       "Read(/C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\types/**)",
       "Read(/C:\\C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar\\src\\actions/**)",
-      "Read(/C:\\C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar\\src\\services/**)"
+      "Read(/C:\\C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar\\src\\services/**)",
+      "WebSearch",
+      "WebFetch(domain:developers.facebook.com)",
+      "Bash(npm run lint:*)",
+      "WebFetch(domain:www.better-auth.com)"
     ],
     "deny": [],
     "additionalDirectories": [

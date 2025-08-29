@@ -5,6 +5,7 @@ import TripDetail from './components/TripDetail';
 import Header from '@/components/header/header';
 import { headers } from 'next/headers';
 import NotFound from '@/app/not-found';
+import HeaderV2 from '@/components/header/HeaderV2';
 
 export default async function TripPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({
@@ -28,7 +29,7 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
 
     return (
       <>
-        <Header
+        <HeaderV2
           breadcrumbs={[
             { label: 'Inicio', href: '/' },
             { label: 'Viajes', href: '/viajes' },

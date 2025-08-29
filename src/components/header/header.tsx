@@ -16,7 +16,6 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { NotificationButton } from '@/components/notification'
-import { useUserStore } from '@/store/user-store'
 
 type BreadcrumbItem = {
   label: string
@@ -36,8 +35,8 @@ export default function Header({
   showBackButton = true,
   isSticky = true,
 }: HeaderProps) {
+
   const router = useRouter()
-  const { user } = useUserStore()
 
   const handleGoBack = () => {
     router.back()
@@ -56,12 +55,13 @@ export default function Header({
     <div className={getStickyClasses()}>
       {/* ✅ Mismos márgenes que page-content */}
       <header className={`px-4 py-1 md:py-3 md:px-6 lg:px-8 ${className}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left side controls - fixed width */}
+          <div className="flex items-center gap-2 shrink-0">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             
-            {showBackButton ? (
+            {showBackButton && (
               <>
                 <Button
                   variant="ghost"
@@ -74,24 +74,25 @@ export default function Header({
                 </Button>
                 <Separator orientation="vertical" className="mr-2 h-4" />
               </>
-            ) : (
-              <div className="h-10" />
             )}
-            
-            {breadcrumbs.length > 0 && (
+          </div>
+          
+          {/* Breadcrumbs - flexible width with truncation */}
+          {breadcrumbs.length > 0 && (
+            <div className="flex-1 min-w-0 overflow-hidden">
               <Breadcrumb>
-                <BreadcrumbList>
+                <BreadcrumbList className="!flex-nowrap !break-normal overflow-hidden">
                   {breadcrumbs.map((item, index) => (
                     <React.Fragment key={index}>
-                      {index > 0 && <BreadcrumbSeparator />}
-                      <BreadcrumbItem>
+                      {index > 0 && <BreadcrumbSeparator className="shrink-0" />}
+                      <BreadcrumbItem className="min-w-0 max-w-full">
                         {index === breadcrumbs.length - 1 ? (
-                          <BreadcrumbPage className='text-xl font-semibold'>
+                          <BreadcrumbPage className="text-xl font-semibold truncate block min-w-0">
                             {item.label}
                           </BreadcrumbPage>
                         ) : (
                           <BreadcrumbLink 
-                            className='text-xl hover:font-semibold' 
+                            className="text-xl hover:font-semibold truncate block min-w-0" 
                             href={item.href || '#'}
                           >
                             {item.label}
@@ -102,12 +103,12 @@ export default function Header({
                   ))}
                 </BreadcrumbList>
               </Breadcrumb>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Right side - Notifications */}
-          <div className="flex items-center gap-2">
-            {user && <NotificationButton />}
+          {/* Right side - Notifications - fixed width */}
+          <div className="flex items-center gap-2 shrink-0">
+            <NotificationButton />
           </div>
         </div>
       </header>
