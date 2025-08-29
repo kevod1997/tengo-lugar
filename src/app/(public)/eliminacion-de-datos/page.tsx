@@ -270,13 +270,13 @@ export default function EliminacionDatosPage() {
                     <li>• Dirección de email de la cuenta</li>
                     <li>• Nombre completo registrado</li>
                     <li>• Motivo de la eliminación (opcional)</li>
-                    <li>• Confirmación: "Solicito la eliminación completa de mi cuenta"</li>
+                    <li>• Confirmación: &quot;Solicito la eliminación completa de mi cuenta&quot;</li>
                   </ul>
                 </div>
 
                 <div className="space-y-2 text-muted-foreground">
                   <p><strong>Email de Soporte:</strong> info@tengolugar.store</p>
-                  <p><strong>Asunto sugerido:</strong> "Solicitud de eliminación de datos - [Tu nombre]"</p>
+                  <p><strong>Asunto sugerido:</strong> &quot;Solicitud de eliminación de datos - [Tu nombre]&quot;</p>
                   <p><strong>Tiempo de respuesta:</strong> 2-3 días hábiles</p>
                 </div>
               </CardContent>

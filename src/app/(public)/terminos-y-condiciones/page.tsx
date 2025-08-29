@@ -47,19 +47,19 @@ export default function TerminosCondicionesPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2">"Plataforma"</h4>
+                  <h4 className="font-semibold mb-2">&quot;Plataforma&quot;</h4>
                   <p className="text-muted-foreground">
                     Se refiere al sitio web, aplicación móvil y todos los servicios relacionados de Tengo Lugar.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">"Usuario"</h4>
+                  <h4 className="font-semibold mb-2">&quot;Usuario&quot;</h4>
                   <p className="text-muted-foreground">
                     Cualquier persona que utilice la plataforma, ya sea como conductor o pasajero.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-2">"Viaje"</h4>
+                  <h4 className="font-semibold mb-2">&quot;Viaje&quot;</h4>
                   <p className="text-muted-foreground">
                     El servicio de transporte compartido coordinado a través de nuestra plataforma.
                   </p>
