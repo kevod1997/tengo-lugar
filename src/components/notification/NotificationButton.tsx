@@ -33,11 +33,6 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
   } = useNotifications()
   const [open, setOpen] = useState(false)
 
-  // Don't render the component if user is not authenticated
-  if (!isAuthenticated) {
-    return null
-  }
-
   const hasUnreadNotifications = unreadCount > 0
 
   // Track notifications for WebSocket message handling
@@ -74,6 +69,11 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
       service.off('message', handleMessage)
     }
   }, [service, refetchNotifications, notificationCount])
+
+  // Don't render the component if user is not authenticated
+  if (!isAuthenticated) {
+    return null
+  }
 
   const handleMarkAllAsRead = () => {
     markAllAsRead()
