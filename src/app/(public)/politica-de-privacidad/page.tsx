@@ -55,6 +55,14 @@ export default function PoliticaPrivacidadPage() {
                   </p>
                 </div>
                 <div>
+                  <h4 className="font-semibold mb-2">Información de Redes Sociales</h4>
+                  <p className="text-muted-foreground">
+                    Cuando inicias sesión con Google o Facebook, recopilamos tu nombre, email, 
+                    foto de perfil y ID de usuario público de estas plataformas. No accedemos 
+                    a tu lista de amigos ni publicamos en tu nombre.
+                  </p>
+                </div>
+                <div>
                   <h4 className="font-semibold mb-2">Información de Verificación</h4>
                   <p className="text-muted-foreground">
                     Documento de identidad, licencia de conducir, información del vehículo y documentos
@@ -65,6 +73,13 @@ export default function PoliticaPrivacidadPage() {
                   <h4 className="font-semibold mb-2">Información de Viajes</h4>
                   <p className="text-muted-foreground">
                     Ubicaciones de origen y destino, rutas, horarios, calificaciones y comentarios.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Información de Comunicaciones</h4>
+                  <p className="text-muted-foreground">
+                    Mensajes de chat entre conductores y pasajeros a través de nuestro sistema 
+                    de mensajería integrado, incluyendo metadatos como fechas y horas.
                   </p>
                 </div>
               </CardContent>
@@ -137,7 +152,7 @@ export default function PoliticaPrivacidadPage() {
               <CardHeader>
                 <CardTitle className="text-xl">5. Tus Derechos</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <ul className="space-y-2 text-muted-foreground">
                   <li>• <strong>Acceso:</strong> Solicitar una copia de tu información personal</li>
                   <li>• <strong>Rectificación:</strong> Corregir información inexacta o incompleta</li>
@@ -145,6 +160,13 @@ export default function PoliticaPrivacidadPage() {
                   <li>• <strong>Portabilidad:</strong> Recibir tus datos en formato estructurado</li>
                   <li>• <strong>Oposición:</strong> Oponerte al procesamiento de tus datos</li>
                 </ul>
+                <p className="text-muted-foreground">
+                  Para ejercer cualquiera de estos derechos, puedes visitarnos en{' '}
+                  <Link href="/eliminacion-de-datos" className="text-primary hover:underline">
+                    Eliminación de Datos
+                  </Link>
+                  {' '}o contactarnos directamente.
+                </p>
               </CardContent>
             </Card>
 
@@ -167,11 +189,28 @@ export default function PoliticaPrivacidadPage() {
               <CardHeader>
                 <CardTitle className="text-xl">7. Cookies y Tecnologías Similares</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <p className="text-muted-foreground leading-relaxed">
                   Utilizamos cookies y tecnologías similares para mejorar tu experiencia, recordar tus
-                  preferencias y analizar el uso de nuestra plataforma. Puedes controlar las cookies
-                  a través de la configuración de tu navegador.
+                  preferencias y analizar el uso de nuestra plataforma.
+                </p>
+                <div>
+                  <h4 className="font-semibold mb-2">Cookies de Terceros</h4>
+                  <p className="text-muted-foreground">
+                    Cuando usas el inicio de sesión social, se pueden establecer cookies de Google 
+                    y Facebook para mantener tu sesión autenticada. También utilizamos cookies de 
+                    Google Maps para los servicios de mapas y geolocalización.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Tokens de Sesión</h4>
+                  <p className="text-muted-foreground">
+                    Utilizamos tokens JWT (JSON Web Tokens) para mantener tu sesión activa y 
+                    comunicarnos con servicios externos como el sistema de chat integrado.
+                  </p>
+                </div>
+                <p className="text-muted-foreground">
+                  Puedes controlar las cookies a través de la configuración de tu navegador.
                 </p>
               </CardContent>
             </Card>
