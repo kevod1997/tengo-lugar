@@ -43,27 +43,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: 'https://www.tengolugar.store,https://tengolugar.store',
-          },
-          {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, Cookie',
-          },
-          {
-            key: 'Access-Control-Allow-Credentials',
-            value: 'true',
-          },
-        ],
-      },
     ];
   },
 };
