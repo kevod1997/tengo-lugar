@@ -2,7 +2,6 @@ import { getTripById, canUserReserveTrip } from '@/actions/trip/get-trip-by-id';
 import { auth } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import TripDetail from './components/TripDetail';
-import Header from '@/components/header/header';
 import { headers } from 'next/headers';
 import NotFound from '@/app/not-found';
 import HeaderV2 from '@/components/header/HeaderV2';
