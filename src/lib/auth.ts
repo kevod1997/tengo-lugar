@@ -16,7 +16,8 @@ export const auth = betterAuth({
       console.error("Better Auth Error:", {
         code: error.message,
         status: error.status,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        ctx
       });
     },
     errorURL: "/auth/error"
