@@ -160,8 +160,10 @@ export class WebSocketNotificationService {
       const userId = await getUserId();
 
       const wsUrl = `${WEBSOCKET_SERVER_URL.replace('http', 'ws')}?token=${accessToken}&userId=${userId}`;
+      console.log('[WS CLIENT] WEBSOCKET_SERVER_URL:', WEBSOCKET_SERVER_URL);
       console.log('[WS CLIENT] Connecting to:', WEBSOCKET_SERVER_URL.replace('http', 'ws'));
       console.log('[WS CLIENT] User ID:', userId);
+      console.log('[WS CLIENT] Full WebSocket URL:', wsUrl);
 
       this.websocket = new WebSocket(wsUrl);
 
