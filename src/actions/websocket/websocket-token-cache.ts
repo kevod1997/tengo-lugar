@@ -16,15 +16,20 @@ export interface CachedTokens {
  */
 export async function getCachedAccessToken(): Promise<ApiResponse<{ accessToken: string }>> {
 
+  console.log('[WS CACHE] Checking for cached WebSocket access token...');
+
   try {
     // Check for cached token first
     const cachedToken = await redisService.get<string>('websocket_access_token', false);
     if (cachedToken) {
+      console.log('[WS CACHE] Using cached access token');
       return ApiHandler.handleSuccess(
         { accessToken: cachedToken },
         'Cached WebSocket token retrieved'
       );
     }
+
+    console.log('[WS CACHE] No cached token found, authenticating...');
 
     // If no cached token, authenticate to get new tokens
     const authResult = await authenticateWebSocket();
@@ -33,10 +38,12 @@ export async function getCachedAccessToken(): Promise<ApiResponse<{ accessToken:
     }
 
     // Cache tokens with safety margins (12min for access, 6.5d for refresh)
+    console.log('[WS CACHE] Caching tokens in Redis...');
     await Promise.all([
       redisService.set('websocket_access_token', authResult.data!.accessToken, { ex: 720 }, false), // 12 minutes (3min safety margin)
       redisService.set('websocket_refresh_token', authResult.data!.refreshToken, { ex: 561600 }, false) // 6.5 days (0.5d safety margin)
     ]);
+    console.log('[WS CACHE] Tokens cached successfully');
 
     return ApiHandler.handleSuccess(
       { accessToken: authResult.data!.accessToken },

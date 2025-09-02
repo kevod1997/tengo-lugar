@@ -141,25 +141,32 @@ export class WebSocketNotificationService {
    */
   async connect(): Promise<void> {
     if (this.isConnecting) {
+      console.log('[WS CLIENT] Connection already in progress...');
       return;
     }
 
     if (this.websocket?.readyState === WebSocket.OPEN) {
+      console.log('[WS CLIENT] WebSocket already connected');
       return;
     }
 
+    console.log('[WS CLIENT] Starting WebSocket connection...');
     this.isConnecting = true;
 
     try {
       // Ensure we have valid tokens and user ID
+      console.log('[WS CLIENT] Getting access token...');
       const accessToken = await this.getAccessToken();
       const userId = await getUserId();
 
       const wsUrl = `${WEBSOCKET_SERVER_URL.replace('http', 'ws')}?token=${accessToken}&userId=${userId}`;
+      console.log('[WS CLIENT] Connecting to:', WEBSOCKET_SERVER_URL.replace('http', 'ws'));
+      console.log('[WS CLIENT] User ID:', userId);
 
       this.websocket = new WebSocket(wsUrl);
 
       this.websocket.onopen = () => {
+        console.log('[WS CLIENT] WebSocket connection established successfully');
         this.isConnecting = false;
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
@@ -176,16 +183,19 @@ export class WebSocketNotificationService {
       };
 
       this.websocket.onclose = (event) => {
+        console.log('[WS CLIENT] WebSocket connection closed:', event.code, event.reason);
         this.isConnecting = false;
         this.emit('disconnected', { code: event.code, reason: event.reason });
         
         // Attempt reconnection unless it was a clean close
         if (event.code !== 1000) {
+          console.log('[WS CLIENT] Unexpected close, attempting reconnection...');
           this.handleReconnection();
         }
       };
 
       this.websocket.onerror = (error) => {
+        console.error('[WS CLIENT] WebSocket connection error:', error);
         this.isConnecting = false;
         this.emit('error', { type: 'connection_error', error });
       };

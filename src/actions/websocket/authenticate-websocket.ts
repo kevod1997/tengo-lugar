@@ -31,6 +31,10 @@ export async function authenticateWebSocket(): Promise<ApiResponse<WebSocketToke
   const fileName = 'authenticate-websocket.ts';
   const functionName = 'authenticateWebSocket';
 
+  console.log('[WS AUTH] Attempting WebSocket authentication...');
+  console.log('[WS AUTH] Server URL:', WEBSOCKET_SERVER_URL);
+  console.log('[WS AUTH] Username:', WEBSOCKET_USERNAME?.substring(0, 3) + '***');
+
   try {
     const response = await fetch(`${WEBSOCKET_SERVER_URL}/api/login`, {
       method: 'POST',
@@ -44,8 +48,11 @@ export async function authenticateWebSocket(): Promise<ApiResponse<WebSocketToke
       }),
     });
 
+    console.log('[WS AUTH] Response status:', response.status, response.statusText);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('[WS AUTH] Authentication failed:', response.status, errorData);
       throw ServiceError.ExternalApiError(
         `WebSocket authentication failed: ${errorData.message || response.statusText}`,
         fileName,
@@ -54,6 +61,7 @@ export async function authenticateWebSocket(): Promise<ApiResponse<WebSocketToke
     }
 
     const data: LoginResponse = await response.json();
+    console.log('[WS AUTH] Authentication successful, tokens received');
 
     if (!data.accessToken || !data.refreshToken) {
       throw ServiceError.ExternalApiError(

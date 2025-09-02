@@ -69,12 +69,15 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   useEffect(() => {
     if (isAuthenticated && connectionState === 'disconnected') {
       // Connect when user is authenticated
+      console.log('[WS PROVIDER] User authenticated, connecting to WebSocket...');
       setConnectionState('connecting')
-      websocketNotificationService.connectWithRetry().catch(() => {
+      websocketNotificationService.connectWithRetry().catch((error) => {
+        console.error('[WS PROVIDER] Connection failed:', error);
         setConnectionState('error')
       })
     } else if (!isAuthenticated && isConnected) {
       // Disconnect when user logs out
+      console.log('[WS PROVIDER] User logged out, disconnecting WebSocket...');
       websocketNotificationService.disconnect()
       setConnectionState('disconnected')
     }

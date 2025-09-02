@@ -42,22 +42,13 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
   useEffect(() => {
     const handleMessage = async (data: any) => {
       // Check if this is a notification message from WebSocket server
+      console.log('WebSocket message received:', data)
       if (data.type === 'notification' && data.payload) {
-        const currentCount = notificationCount
+        // Show toast immediately when WebSocket message arrives
+        toast.success(`${data.payload.title}: ${data.payload.message}`)
         
-        // Refetch notifications from database
-        const result = await refetchNotifications()
-        
-        // Check if we have new notifications
-        const newNotifications = result.data || []
-        if (newNotifications.length > currentCount) {
-          const latestNotifications = newNotifications.slice(0, newNotifications.length - currentCount)
-          
-          // Show toast for each new notification
-          latestNotifications.forEach(notification => {
-            toast.success(`${notification.title}: ${notification.message}`)
-          })
-        }
+        // Refetch notifications to update the UI
+        await refetchNotifications()
       }
     }
 

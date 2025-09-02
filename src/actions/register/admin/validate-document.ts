@@ -12,6 +12,7 @@ import { inngest } from "@/lib/inngest";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { requireAuthorization } from "@/utils/helpers/auth-helper";
+import { notifyUser } from "@/actions/notifications";
 
 const identityService = new IdentityValidationService();
 const licenceService = new LicenceValidationService();
@@ -20,6 +21,32 @@ const cardService = new CarCardValidationService();
 const emailService = new EmailService(
   process.env.RESEND_API_KEY!
 );
+
+function translateDocumentType(documentType: string): string {
+  switch (documentType) {
+    case 'IDENTITY':
+      return 'documento de identidad';
+    case 'LICENCE':
+      return 'licencia de conducir';
+    case 'INSURANCE':
+      return 'seguro';
+    case 'CARD':
+      return 'tarjeta del vehículo';
+    default:
+      return 'documento';
+  }
+}
+
+function translateDocumentStatus(status: string): string {
+  switch (status) {
+    case 'VERIFIED':
+      return 'verificado';
+    case 'FAILED':
+      return 'rechazado';
+    default:
+      return status.toLowerCase();
+  }
+}
 
 export async function validateDocument(request: DocumentValidationRequest, userEmail: string) {
 
@@ -103,8 +130,12 @@ export async function validateDocument(request: DocumentValidationRequest, userE
     }
 
     // Publish real-time event for WebSocket notification (non-blocking)
-    // This should happen after successful validation regardless of email success/failure
-  
+    await notifyUser(
+      session.user.id,
+      'Verificación de Documento',
+      `Su ${translateDocumentType(request.documentType)} ha sido ${translateDocumentStatus(validateDocumentResult.data?.status || '')}.`
+    );
+
   }
 
   revalidatePath('/admin/dashboard');

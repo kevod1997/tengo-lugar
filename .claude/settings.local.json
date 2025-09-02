@@ -42,7 +42,9 @@
       "WebSearch",
       "WebFetch(domain:developers.facebook.com)",
       "Bash(npm run lint:*)",
-      "WebFetch(domain:www.better-auth.com)"
+      "WebFetch(domain:www.better-auth.com)",
+      "Read(C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\websocket/**)",
+      "Read(C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\controllers/**)"
     ],
     "deny": [],
     "additionalDirectories": [
