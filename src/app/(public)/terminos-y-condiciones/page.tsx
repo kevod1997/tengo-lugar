@@ -37,6 +37,29 @@ export default function TerminosCondicionesPage() {
             </CardContent>
           </Card>
 
+          {/* Información de la Empresa */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Información de la Empresa</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2">Razón Social</h4>
+                <p className="text-muted-foreground">O M EXPRESS SRL</p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">CUIT</h4>
+                <p className="text-muted-foreground">30-69623064-8</p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Domicilio Legal</h4>
+                <p className="text-muted-foreground">
+                  Corrientes Av 1312, 9, Capital Federal (1043), Capital Federal, Argentina
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Secciones */}
           <div className="space-y-6">
 
