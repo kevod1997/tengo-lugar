@@ -10,6 +10,10 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  trustedOrigins: process.env.TRUSTED_ORIGINS?.split(',') || [
+    "http://localhost:3000",
+    "https://localhost:3000"
+  ],
   onAPIError: {
     throw: false,
     onError: (error: any, ctx) => {
@@ -49,7 +53,7 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, token }) => {
       // Add the token to the callback URL to ensure it's available when redirected
       const encodedToken = encodeURIComponent(token);
-      const callbackWithTokenAndUserId = `${process.env.EMAIL_VERIFICATION_CALLBACK_URL}?token=${encodedToken}?userId=${user.id}`;
+      const callbackWithTokenAndUserId = `${process.env.EMAIL_VERIFICATION_CALLBACK_URL}?token=${encodedToken}&userId=${user.id}`;
 
       const verificationUrl = `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? 'http://localhost:3000'}/api/auth/verify-email?token=${encodedToken}&callbackURL=${encodeURIComponent(callbackWithTokenAndUserId)}`;
 
