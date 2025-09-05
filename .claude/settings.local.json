@@ -44,7 +44,10 @@
       "Bash(npm run lint:*)",
       "WebFetch(domain:www.better-auth.com)",
       "Read(C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\websocket/**)",
-      "Read(C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\controllers/**)"
+      "Read(C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\controllers/**)",
+      "mcp__puppeteer__puppeteer_navigate",
+      "mcp__puppeteer__puppeteer_evaluate",
+      "mcp__puppeteer__puppeteer_screenshot"
     ],
     "deny": [],
     "additionalDirectories": [
