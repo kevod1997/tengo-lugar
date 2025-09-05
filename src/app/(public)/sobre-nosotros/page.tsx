@@ -153,11 +153,11 @@ export default function SobreNosotrosPage() {
                   
                   <div className="space-y-3">
                     <Link 
-                      href="mailto:info.tengolugar@gmail.com"
+                      href="mailto:info@tengolugar.store"
                       className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors"
                     >
                       <Mail className="w-5 h-5" />
-                      <span>info.tengolugar@gmail.com</span>
+                      <span>info@tengolugar.store</span>
                     </Link>
                     <Link 
                       href="tel:2284380031"

@@ -114,11 +114,11 @@ export function Footer() {
             </h4>
             <div className="space-y-3">
               <Link
-                href="mailto:info.tengolugar@gmail.com"
+                href="mailto:info@tengolugar.store"
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 <Mail className="w-4 h-4" />
-                <span>info.tengolugar@gmail.com</span>
+                <span>info@tengolugar.store</span>
               </Link>
               <Link
                 href="tel:2284380031"
