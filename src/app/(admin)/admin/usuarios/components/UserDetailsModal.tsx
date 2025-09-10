@@ -28,7 +28,7 @@ export function UserDetailsModal({ user, onClose, isLoading }: UserDetailsModalP
     try {
       // setValidating(true)
 
-      const result = await validateDocument(validationRequest, user.email)
+      const result = await validateDocument(validationRequest, user.email, user.id)
       handleResponse({ success: result.success, message: result.message })
       if (result.success) {
         onClose()

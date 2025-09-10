@@ -13,6 +13,7 @@ import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { requireAuthorization } from "@/utils/helpers/auth-helper";
 import { notifyUser } from "@/actions/notifications";
+import { eventType } from "@/types/websocket-events";
 
 const identityService = new IdentityValidationService();
 const licenceService = new LicenceValidationService();
@@ -48,9 +49,28 @@ function translateDocumentStatus(status: string): string {
   }
 }
 
-export async function validateDocument(request: DocumentValidationRequest, userEmail: string) {
+function getEventTypeFromDocumentValidation(documentType: string, status: 'VERIFIED' | 'FAILED'): eventType | undefined {
+  const eventMap: Record<string, eventType> = {
+    'IDENTITY_VERIFIED': 'identity_card_verified',
+    'IDENTITY_FAILED': 'identity_card_rejected',
+    'LICENCE_VERIFIED': 'license_verified',
+    'LICENCE_FAILED': 'license_rejected',
+    'INSURANCE_VERIFIED': 'car_insurance_verified',
+    'INSURANCE_FAILED': 'car_insurance_rejected',
+    'CARD_VERIFIED': 'vehicle_card_verified',
+    'CARD_FAILED': 'vehicle_card_rejected'
+  };
+
+  const key = `${documentType}_${status}`;
+  return eventMap[key] || undefined;
+}
+
+export async function validateDocument(request: DocumentValidationRequest, userEmail: string, userId: string) {
 
   const session = await requireAuthorization('admin', 'validate-document.ts', 'validateDocument');
+  if (!session) {
+    throw ServerActionError.AuthorizationFailed('validate-document.ts', 'validateDocument');
+  }
 
   const service =
     request.documentType === 'IDENTITY' ? identityService :
@@ -83,7 +103,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
       // Log successful email
       await logActionWithErrorHandling(
         {
-          userId: session.user.id,
+          userId,
           action: TipoAccionUsuario.VERIFICACION_DOCUMENTO,
           status: 'SUCCESS',
           details: {
@@ -113,7 +133,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
       // Log that we queued the email
       await logActionWithErrorHandling(
         {
-          userId: session.user.id,
+          userId,
           action: TipoAccionUsuario.VERIFICACION_DOCUMENTO,
           status: 'SUCCESS',
           details: {
@@ -130,10 +150,19 @@ export async function validateDocument(request: DocumentValidationRequest, userE
     }
 
     // Publish real-time event for WebSocket notification (non-blocking)
+    const status: 'VERIFIED' | 'FAILED' =
+      validateDocumentResult.data?.status as 'VERIFIED' | 'FAILED';
+
+    const eventType = getEventTypeFromDocumentValidation(
+      request.documentType,
+      status
+    );
+    console.log('Determined eventType:', eventType);
     await notifyUser(
-      session.user.id,
+      userId,
       'Verificación de Documento',
-      `Su ${translateDocumentType(request.documentType)} ha sido ${translateDocumentStatus(validateDocumentResult.data?.status || '')}.`
+      `${translateDocumentType(request.documentType)}: ${translateDocumentStatus(validateDocumentResult.data?.status || '')}.`,
+      eventType ?? undefined
     );
 
   }

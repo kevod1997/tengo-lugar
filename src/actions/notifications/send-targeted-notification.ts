@@ -7,12 +7,13 @@ import { logActionWithErrorHandling } from "@/services/logging/logging-service"
 import { TipoAccionUsuario } from "@/types/actions-logs"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
+import { eventType } from "@/types/websocket-events"
 
 const sendTargetedNotificationSchema = z.object({
   title: z.string().min(1, 'Título requerido').max(200, 'Título muy largo'),
   message: z.string().min(1, 'Mensaje requerido'),
+  eventType: z.string().optional(), // Optional eventType for user store updates
   link: z.string().url().optional().or(z.literal('')),
-  
   // Targeting options (only one should be provided)
   targetUserId: z.string().optional(),
   targetUserIds: z.array(z.string()).optional(),
@@ -30,6 +31,7 @@ const sendTargetedNotificationSchema = z.object({
 export interface TargetedNotificationData {
   title: string
   message: string
+  eventType?: eventType           // Optional eventType for user store updates
   link?: string
   // Targeting options (only one should be used)
   targetUserId?: string           // Send to specific user
@@ -41,6 +43,7 @@ export interface TargetedNotificationData {
 export async function sendTargetedNotification(data: TargetedNotificationData) {
   try {
     // Authentication check
+    //todo ver esto bien por temas de seguridad
     const session = await requireAuthentication('send-targeted-notification.ts', 'sendTargetedNotification')
 
     // Validation with Zod
@@ -59,7 +62,7 @@ export async function sendTargetedNotification(data: TargetedNotificationData) {
     } else if (validatedData.targetRole) {
       // Role-based targeting - get all users with specific role
       let whereCondition: any = {}
-      
+
       if (validatedData.targetRole === 'driver') {
         whereCondition = { driver: { isNot: null } }
       } else if (validatedData.targetRole === 'passenger') {
@@ -111,75 +114,81 @@ export async function sendTargetedNotification(data: TargetedNotificationData) {
       // Prepare metadata payload for WebSocket server
       const wsPayload = {
         type: 'notification_created',
+        eventType: validatedData.eventType,
         data: {
           senderId: session.user.id,
           timestamp: new Date().toISOString(),
-          
-          // Send targeting metadata (not the actual notifications)
-          targeting: {
-            ...(validatedData.targetUserId && { targetUserId: validatedData.targetUserId }),
-            ...(validatedData.targetUserIds && { targetUserIds: validatedData.targetUserIds }),
-            ...(validatedData.broadcast && { broadcast: validatedData.broadcast }),
-            ...(validatedData.targetRole && { targetRole: validatedData.targetRole })
-          }
-        }
-      }
-
-      try {
-        // Send metadata to WebSocket server
-        const response = await fetch(`${webSocketServerUrl}/api/notifications/trigger`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${Buffer.from(`${webSocketUsername}:${webSocketPassword}`).toString('base64')}`,
-            'User-Agent': websocketUserAgent
-          },
-          body: JSON.stringify(wsPayload)
-        })
-        console.log(response)
-        if (!response.ok) {
-          // Log WebSocket error but don't fail the operation
-          console.error(`WebSocket notification failed: ${response.status} ${response.statusText}`)
-        }
-      } catch (wsError) {
-        // Log WebSocket error but don't fail the operation
-        console.error('WebSocket notification failed:', wsError)
-      }
-    }
-
-    // Step 4: Success logging
-    await logActionWithErrorHandling({
-      userId: session.user.id,
-      action: TipoAccionUsuario.ENVIO_NOTIFICACION,
-      status: 'SUCCESS',
-      details: {
-        title: validatedData.title,
-        notificationsCreated: createdNotifications.length,
-        targeting: {
+          notification: {
+            title: validatedData.title,        
+            message: validatedData.message,    
+            ...(validatedData.link && { link: validatedData.link }) 
+      },
+      // Send targeting metadata (not the actual notifications)
+      targeting: {
           ...(validatedData.targetUserId && { targetUserId: validatedData.targetUserId }),
           ...(validatedData.targetUserIds && { targetUserIds: validatedData.targetUserIds }),
           ...(validatedData.broadcast && { broadcast: validatedData.broadcast }),
-          ...(validatedData.targetRole && { targetRole: validatedData.targetRole })
+              ...(validatedData.targetRole && { targetRole: validatedData.targetRole })
+            }
+          }
         }
-      }
-    }, { fileName: 'send-targeted-notification.ts', functionName: 'sendTargetedNotification' })
 
-    return ApiHandler.handleSuccess({
-      notificationsCreated: createdNotifications.length,
-      targetUsers: targetUserIds.length
-    }, `${createdNotifications.length} notificaciones creadas exitosamente`)
-
-
-  } catch (error) {
-    return ApiHandler.handleError(error)
+      try {
+          // Send metadata to WebSocket server
+          const response = await fetch(`${webSocketServerUrl}/api/notifications/trigger`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Basic ${Buffer.from(`${webSocketUsername}:${webSocketPassword}`).toString('base64')}`,
+              'User-Agent': websocketUserAgent
+            },
+            body: JSON.stringify(wsPayload)
+          })
+        console.log(response)
+        if(!response.ok) {
+          // Log WebSocket error but don't fail the operation
+          console.error(`WebSocket notification failed: ${response.status} ${response.statusText}`)
+    }
+  } catch (wsError) {
+    // Log WebSocket error but don't fail the operation
+    console.error('WebSocket notification failed:', wsError)
   }
 }
 
+// Step 4: Success logging
+await logActionWithErrorHandling({
+  userId: session.user.id,
+  action: TipoAccionUsuario.ENVIO_NOTIFICACION,
+  status: 'SUCCESS',
+  details: {
+    title: validatedData.title,
+    notificationsCreated: createdNotifications.length,
+    targeting: {
+      ...(validatedData.targetUserId && { targetUserId: validatedData.targetUserId }),
+      ...(validatedData.targetUserIds && { targetUserIds: validatedData.targetUserIds }),
+      ...(validatedData.broadcast && { broadcast: validatedData.broadcast }),
+      ...(validatedData.targetRole && { targetRole: validatedData.targetRole })
+    }
+  }
+}, { fileName: 'send-targeted-notification.ts', functionName: 'sendTargetedNotification' })
+
+return ApiHandler.handleSuccess({
+  notificationsCreated: createdNotifications.length,
+  targetUsers: targetUserIds.length
+}, `${createdNotifications.length} notificaciones creadas exitosamente`)
+
+
+  } catch (error) {
+  return ApiHandler.handleError(error)
+}
+}
+
 // Helper functions for common notification patterns
-export async function notifyUser(userId: string, title: string, message: string, link?: string) {
+export async function notifyUser(userId: string, title: string, message: string, eventType?: eventType, link?: string) {
   return sendTargetedNotification({
     title,
     message,
+    eventType,
     link,
     targetUserId: userId
   })

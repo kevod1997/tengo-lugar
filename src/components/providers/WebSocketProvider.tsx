@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { websocketNotificationService } from '@/services/websocket/websocket-notification-service'
 import { useUserStore } from '@/store/user-store'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { handleUserStateUpdate } from '@/services/websocket/user-state-handler'
 
 // WebSocket connection states
 type WebSocketConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error' | 'reconnecting'
@@ -22,7 +25,8 @@ interface WebSocketProviderProps {
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const [connectionState, setConnectionState] = useState<WebSocketConnectionState>('disconnected')
-  const { user } = useUserStore()
+  const { user, updateUser } = useUserStore()
+  const queryClient = useQueryClient()
   const isAuthenticated = !!user
 
   const isConnected = connectionState === 'connected'
@@ -51,11 +55,38 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       setConnectionState('reconnecting')
     }
 
+    // 🎯 CENTRALIZED WebSocket message handler
+    const handleMessage = async (data: any) => {
+      console.log('[WS PROVIDER] Message received:', data)
+      
+      // Verify message is for current user
+      if (data.payload?.userId) {
+        return // Ignore messages for other users
+      }
+
+      if (data.type === 'notification' && data.payload) {
+        
+        // 1. Show toast notification (moved from NotificationButton)
+        if (data.payload.title && data.payload.message) {
+          toast.success(`${data.payload.title}: ${data.payload.message}`)
+        }
+        
+        // 2. Invalidate notifications cache (better than direct refetch)
+        queryClient.invalidateQueries({ queryKey: ['notifications'] })
+        
+        // 3. Update user state based on eventType
+        if (data.eventType) {
+          handleUserStateUpdate(data, updateUser)
+        }
+      }
+    }
+
     // Add event listeners
     websocketNotificationService.on('connected', handleConnected)
     websocketNotificationService.on('disconnected', handleDisconnected)
     websocketNotificationService.on('error', handleError)
     websocketNotificationService.on('reconnecting', handleReconnecting)
+    websocketNotificationService.on('message', handleMessage)
 
     // Cleanup event listeners on unmount
     return () => {
@@ -63,8 +94,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       websocketNotificationService.off('disconnected', handleDisconnected)
       websocketNotificationService.off('error', handleError)
       websocketNotificationService.off('reconnecting', handleReconnecting)
+      websocketNotificationService.off('message', handleMessage)
     }
-  }, [])
+  }, [updateUser, queryClient, user])
 
   useEffect(() => {
     if (isAuthenticated && connectionState === 'disconnected') {

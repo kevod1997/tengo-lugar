@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Bell, BellRing } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge'
 import { useWebSocket } from '@/hooks/websocket/useWebSocket'
 import { useNotifications } from '@/hooks/notifications/useNotifications'
 import { useAuth } from '@/components/providers/AuthSessionProvider'
-import { toast } from 'sonner'
 
 interface NotificationButtonProps {
   className?: string
@@ -23,43 +22,16 @@ interface NotificationButtonProps {
 
 export function NotificationButton({ className = '' }: NotificationButtonProps) {
   const { isAuthenticated } = useAuth()
-  const { isConnected, isConnecting, service } = useWebSocket()
-  const { 
-    notifications, 
-    unreadCount, 
-    markAsRead, 
-    markAllAsRead, 
-    refetchNotifications
+  const { isConnected, isConnecting } = useWebSocket()
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead
   } = useNotifications()
   const [open, setOpen] = useState(false)
 
   const hasUnreadNotifications = unreadCount > 0
-
-  // Track notifications for WebSocket message handling
-  const notificationCount = notifications.length
-
-  // Listen for WebSocket notification messages
-  useEffect(() => {
-    const handleMessage = async (data: any) => {
-      // Check if this is a notification message from WebSocket server
-      console.log('WebSocket message received:', data)
-      if (data.type === 'notification' && data.payload) {
-        // Show toast immediately when WebSocket message arrives
-        toast.success(`${data.payload.title}: ${data.payload.message}`)
-        
-        // Refetch notifications to update the UI
-        await refetchNotifications()
-      }
-    }
-
-    // Add WebSocket message listener
-    service.on('message', handleMessage)
-
-    // Cleanup listener on unmount
-    return () => {
-      service.off('message', handleMessage)
-    }
-  }, [service, refetchNotifications, notificationCount])
 
   // Don't render the component if user is not authenticated
   if (!isAuthenticated) {
@@ -71,8 +43,11 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
   }
 
   const handleNotificationClick = (notification: any) => {
+    // Don't execute if notification is already read
+    if (notification.read) return
+
     markAsRead(notification.id)
-    
+
     // Navigate to link if available
     if (notification.link) {
       window.open(notification.link, '_blank')
@@ -85,12 +60,20 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
     return 'text-muted-foreground'
   }
 
+  // Prevent opening dropdown when connecting or when no notifications
+  const canOpenDropdown = isConnected && (notifications.length > 0 || !isConnecting)
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && !canOpenDropdown) return
+    setOpen(newOpen)
+  }
+
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           disabled={!isConnected && !isConnecting}
           className={`relative ${className}`}
           aria-label={`Notificaciones${unreadCount > 0 ? ` (${unreadCount} sin leer)` : ''}`}
@@ -100,11 +83,11 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
           ) : (
             <Bell className={`h-5 w-5 ${getIconColor()}`} />
           )}
-          
+
           {/* Badge de contador de notificaciones */}
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 min-w-5 px-1 flex items-center justify-center rounded-full text-xs"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
@@ -117,7 +100,7 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Notificaciones</span>
         </DropdownMenuLabel>
-        
+
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup className="max-h-64 overflow-y-auto">
@@ -126,11 +109,10 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 cursor-pointer hover:bg-accent hover:text-accent-foreground border-l-2 ${
-                    !notification.read 
-                      ? 'border-l-primary bg-primary/5' 
+                  className={`p-3 cursor-pointer hover:bg-accent hover:text-accent-foreground border-l-2 ${!notification.read
+                      ? 'border-l-primary bg-primary/5'
                       : 'border-l-transparent'
-                  }`}
+                    }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex flex-col gap-1">
@@ -151,12 +133,26 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
             </>
           ) : (
             <div className="p-4 text-center text-muted-foreground">
-              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No hay notificaciones</p>
-              {!isConnected && (
-                <p className="text-xs mt-1">
-                  WebSocket desconectado
-                </p>
+              {isConnecting ? (
+                <>
+                  <div className="flex justify-center mb-2">
+                    <Bell className="h-8 w-8 opacity-50 animate-pulse" />
+                  </div>
+                  <p className="text-sm">Conectando...</p>
+                  <p className="text-xs mt-1 opacity-75">
+                    Estableciendo conexión con el servidor
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No hay notificaciones</p>
+                  {!isConnected && (
+                    <p className="text-xs mt-1">
+                      Error con la conexión. Intenta recargar la página.
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
