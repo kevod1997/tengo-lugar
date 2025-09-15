@@ -31,4 +31,17 @@ export type eventType =
   
   // Terms and Conditions Events
   | 'terms_accepted'
+  
+  // Trip Notification Events
+  | 'trip_status_changed'
+  | 'trip_created'
+  | 'trip_cancelled'
+  
+  // System Notification Events
+  | 'system_maintenance'
+  | 'new_feature'
+  | 'system_announcement'
+  
+  // General Notification Events
+  | 'notification_created'
 

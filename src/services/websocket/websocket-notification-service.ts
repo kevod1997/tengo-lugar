@@ -7,6 +7,7 @@ import { getUserId } from '@/actions/websocket/get-user-id';
 const WEBSOCKET_SERVER_URL = process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8080';
 
 // Types for WebSocket messages
+import { WebSocketNotificationPayload } from '@/types/notification-types';
 
 interface WebSocketMessage {
   type: string;
@@ -324,6 +325,44 @@ export class WebSocketNotificationService {
    */
   isAuthenticatedStatus(): boolean {
     return this.isAuthenticated && !!this.accessToken;
+  }
+
+  /**
+   * Send notification payload to WebSocket server
+   * This method is for server-side use via fetch API
+   */
+  static async sendNotificationPayload(payload: WebSocketNotificationPayload): Promise<boolean> {
+    const webSocketServerUrl = process.env.WEBSOCKET_SERVER_URL;
+    const webSocketUsername = process.env.WEBSOCKET_USERNAME;
+    const webSocketPassword = process.env.WEBSOCKET_PASSWORD;
+    const websocketUserAgent = process.env.WEBSOCKET_USER_AGENT || 'TengoLugar-MainApp';
+
+    if (!webSocketServerUrl || !webSocketUsername || !webSocketPassword) {
+      console.warn('WebSocket configuration missing, skipping WebSocket notification');
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${webSocketServerUrl}/api/notifications/trigger`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${Buffer.from(`${webSocketUsername}:${webSocketPassword}`).toString('base64')}`,
+          'User-Agent': websocketUserAgent
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        console.error(`WebSocket notification failed: ${response.status} ${response.statusText}`);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('WebSocket notification failed:', error);
+      return false;
+    }
   }
 }
 
