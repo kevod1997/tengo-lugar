@@ -157,7 +157,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
       request.documentType,
       status
     );
-    console.log('Determined eventType:', eventType);
+
     await notifyUser(
       userId,
       'Verificación de Documento',

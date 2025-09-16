@@ -1,5 +1,4 @@
 import { WebSocketNotificationPayload } from "@/types/notification-types"
-import { ServiceError } from "@/lib/exceptions/service-error"
 
 /**
  * Server-side WebSocket notification service

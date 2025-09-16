@@ -2,7 +2,7 @@ import { CardType, FileType, FuelType, Gender, VerificationStatus } from "@prism
 
 interface CarInsurance {
   status: VerificationStatus | null;
-  expireDate: Date | null; // Agregado basado en user-formatter
+  expireDate: Date | null;
   failureReason: string | null;
   hasFileKey: boolean;
   url?: string;
@@ -28,12 +28,12 @@ export interface UserCar {
   model: string;
   fuelType: FuelType | null;
   averageFuelConsume: number | null;
-  year: number | null; // Cambiado a nullable basado en user-formatter
+  year: number | null;
   vehicleCard: VehicleCardInfo | null;
   hasGreenCard: boolean;
   hasBlueCard: boolean;
   hasPendingCards: boolean;
-  isFullyEnabled?: boolean; // Opcional ya que está comentado en formatter
+  isFullyEnabled?: boolean;
 }
 
 export interface FormattedUser {
@@ -47,7 +47,7 @@ export interface FormattedUser {
   updatedAt: string;
   identityStatus: VerificationStatus | null;
   licenseStatus: VerificationStatus | null;
-  licenseExpireDate: Date | null; // Corregido - ahora se asigna en formatter
+  licenseExpireDate: Date | null;
   identityFailureReason: string | null;
   licenseFailureReason: string | null;
   hasIdentityCardFrontkey: boolean;

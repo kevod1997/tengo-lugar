@@ -169,4 +169,22 @@ export class ServiceError extends BaseError {
             functionName
         );
     }
+
+    static InternalError(message: string, fileName: string, functionName: string) {
+        return new ServiceError(
+            message,
+            'INTERNAL_ERROR',
+            fileName,
+            functionName
+        );
+    }
+
+    static DatabaseError(message: string, fileName: string, functionName: string) {
+        return new ServiceError(
+            message,
+            'DATABASE_ERROR',
+            fileName,
+            functionName
+        );
+    }
 }

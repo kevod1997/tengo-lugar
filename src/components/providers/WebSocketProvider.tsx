@@ -57,7 +57,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
     // 🎯 CENTRALIZED WebSocket message handler
     const handleMessage = async (data: any) => {
-      console.log('[WS PROVIDER] Message received:', data)
       
       // Verify message is for current user
       if (data.payload?.userId) {
@@ -101,15 +100,13 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   useEffect(() => {
     if (isAuthenticated && connectionState === 'disconnected') {
       // Connect when user is authenticated
-      console.log('[WS PROVIDER] User authenticated, connecting to WebSocket...');
       setConnectionState('connecting')
       websocketNotificationService.connectWithRetry().catch((error) => {
-        console.error('[WS PROVIDER] Connection failed:', error);
+        console.log('WebSocket connection error:', error)
         setConnectionState('error')
       })
     } else if (!isAuthenticated && isConnected) {
       // Disconnect when user logs out
-      console.log('[WS PROVIDER] User logged out, disconnecting WebSocket...');
       websocketNotificationService.disconnect()
       setConnectionState('disconnected')
     }
