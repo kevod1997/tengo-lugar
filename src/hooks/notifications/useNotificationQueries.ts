@@ -131,9 +131,7 @@ export function useNotificationQueries() {
       return { previousNotifications }
     },
     onSuccess: (response) => {
-      if (response.success) {
-        toast.success('Todas las notificaciones marcadas como leídas')
-      } else {
+      if (!response.success) {
         toast.error('Error al marcar todas las notificaciones como leídas')
       }
     },

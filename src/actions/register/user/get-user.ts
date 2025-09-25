@@ -66,8 +66,6 @@ export async function getUserById(userId?: string) {
                     carModel: {
                       select: {
                         model: true,
-                        fuelType: true,
-                        averageFuelConsume: true,
                         brand: {
                           select: {
                             name: true

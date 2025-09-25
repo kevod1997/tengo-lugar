@@ -3,6 +3,9 @@ import { VerificationStatus } from "@prisma/client";
 export interface DocumentValidationResponse {
     documentId: string;
     status: VerificationStatus;
-    verifiedAt?: Date | null;
     failureReason?: string | null;
+    carPlate?: string | null;
+    frontKey?: boolean | null;
+    backKey?: boolean | null;
+    verifiedAt?: Date | null;
   }

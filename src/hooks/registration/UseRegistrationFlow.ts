@@ -169,7 +169,15 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
                 handleResponse({ success: identityCardResult.success, message: identityCardResult.message });
                 if (identityCardResult.success) {
                   setUser(identityCardResult.data!);
-                  moveToNextStep();
+
+                  // Check if this is the last step
+                  const nextStepId = steps[currentStepIndex + 1]?.id;
+                  if (nextStepId) {
+                    moveToNextStep();
+                  } else {
+                    // No more steps, complete registration
+                    onComplete();
+                  }
                 }
               }
               break;
@@ -180,7 +188,15 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
                 handleResponse({ success: uploadResult.success, message: uploadResult.message });
                 if (uploadResult.success) {
                   setUser(uploadResult.data!);
-                  moveToNextStep();
+
+                  // Check if this is the last step
+                  const nextStepId = steps[currentStepIndex + 1]?.id;
+                  if (nextStepId) {
+                    moveToNextStep();
+                  } else {
+                    // No more steps, complete registration
+                    onComplete();
+                  }
                 }
               }
               break;
@@ -191,7 +207,15 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
                 handleResponse({ success: carInfoResult.success, message: carInfoResult.message });
                 if (carInfoResult.success) {
                   setUser(carInfoResult.data!);
-                  moveToNextStep();
+
+                  // Check if this is the last step
+                  const nextStepId = steps[currentStepIndex + 1]?.id;
+                  if (nextStepId) {
+                    moveToNextStep();
+                  } else {
+                    // No more steps, complete registration
+                    onComplete();
+                  }
                 }
               }
               break;
@@ -202,7 +226,15 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
                 handleResponse({ success: insuranceResult.success, message: insuranceResult.message });
                 if (insuranceResult.success) {
                   setUser(insuranceResult.data!);
-                  moveToNextStep();
+
+                  // Check if this is the last step
+                  const nextStepId = steps[currentStepIndex + 1]?.id;
+                  if (nextStepId) {
+                    moveToNextStep();
+                  } else {
+                    // No more steps, complete registration
+                    onComplete();
+                  }
                 }
               }
               break;
@@ -225,13 +257,15 @@ export function useRegistrationFlow(initialStep: StepId, onComplete: () => void,
           setIsLoading(false);
         }
       }, [
-        setIsLoading, 
-        handleResponse, 
-        user?.identityStatus, 
-        user?.licenseStatus, 
-        user?.cars, 
-        setUser, 
-        moveToNextStep, 
+        currentStepIndex,
+        steps,
+        setIsLoading,
+        handleResponse,
+        user?.identityStatus,
+        user?.licenseStatus,
+        user?.cars,
+        setUser,
+        moveToNextStep,
         onComplete
       ]);
 

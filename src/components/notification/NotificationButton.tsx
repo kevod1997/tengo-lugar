@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Bell, BellRing } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,31 +26,74 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
   const {
     notifications,
     unreadCount,
-    markAsRead,
     markAllAsRead
   } = useNotifications()
   const [open, setOpen] = useState(false)
+  const autoMarkTimer = useRef<NodeJS.Timeout | null>(null)
 
   const hasUnreadNotifications = unreadCount > 0
+
+  // Format notification time/date based on when it was created
+  const formatNotificationTime = (createdAt: string | Date) => {
+    const createdAtStr = typeof createdAt === 'string' ? createdAt : createdAt.toISOString()
+    const notificationDate = new Date(createdAtStr)
+    const now = new Date()
+
+    // Check if it's the same day
+    const isSameDay = notificationDate.toDateString() === now.toDateString()
+
+    if (isSameDay) {
+      // Same day: show time
+      return notificationDate.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } else {
+      // Different day: show date (DD/MM)
+      return notificationDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit'
+      })
+    }
+  }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoMarkTimer.current) {
+        clearTimeout(autoMarkTimer.current)
+      }
+    }
+  }, [])
 
   // Don't render the component if user is not authenticated
   if (!isAuthenticated) {
     return null
   }
 
-  const handleMarkAllAsRead = () => {
-    markAllAsRead()
-  }
-
   const handleNotificationClick = (notification: any) => {
-    // Don't execute if notification is already read
-    if (notification.read) return
-
-    markAsRead(notification.id)
-
-    // Navigate to link if available
+    // Only handle click if notification has a link
     if (notification.link) {
-      window.open(notification.link, '_blank')
+      const baseUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://localhost:3000'
+
+      // Check if it's already a complete URL or a relative path
+      const fullUrl = notification.link.startsWith('http')
+        ? notification.link
+        : `${baseUrl}${notification.link}`
+
+      // Determine if it's an internal or external link
+      const isExternalLink = notification.link.startsWith('http') && !notification.link.includes(baseUrl)
+
+      // Navigate accordingly
+      if (isExternalLink) {
+        // External link - open in new window
+        window.open(fullUrl, '_blank')
+      } else {
+        // Internal link - navigate in same window
+        window.open(fullUrl, '_self')
+      }
+
+      setOpen(false) // Close dropdown after navigation
     }
   }
 
@@ -65,7 +108,21 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
 
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen && !canOpenDropdown) return
+
     setOpen(newOpen)
+
+    // Auto-mark all notifications as read after 1 second when opening
+    if (newOpen && hasUnreadNotifications) {
+      autoMarkTimer.current = setTimeout(() => {
+        markAllAsRead()
+      }, 500)
+    }
+
+    // Clear timer if closing before delay
+    if (!newOpen && autoMarkTimer.current) {
+      clearTimeout(autoMarkTimer.current)
+      autoMarkTimer.current = null
+    }
   }
 
   return (
@@ -109,7 +166,7 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 cursor-pointer hover:bg-accent hover:text-accent-foreground border-l-2 ${!notification.read
+                  className={`p-3 ${notification.link ? 'cursor-pointer' : 'cursor-default'} hover:bg-accent hover:text-accent-foreground border-l-2 transition-all duration-500 ease-in-out ${!notification.read
                       ? 'border-l-primary bg-primary/5'
                       : 'border-l-transparent'
                     }`}
@@ -117,11 +174,11 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
                 >
                   <div className="flex flex-col gap-1">
                     <div className="flex justify-between items-start">
-                      <h4 className={`font-medium text-sm ${!notification.read ? 'text-primary' : ''}`}>
+                      <h4 className={`font-medium text-sm transition-colors duration-500 ease-in-out ${!notification.read ? 'text-primary' : ''}`}>
                         {notification.title}
                       </h4>
                       <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                        {new Date(notification.createdAt).toLocaleTimeString()}
+                        {formatNotificationTime(notification.createdAt)}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">
@@ -161,17 +218,19 @@ export function NotificationButton({ className = '' }: NotificationButtonProps) 
         {notifications.length > 0 && (
           <>
             <DropdownMenuSeparator />
-            <div className="p-2 space-y-1">
-              {unreadCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-center text-xs"
-                  onClick={handleMarkAllAsRead}
-                >
-                  Marcar todas como leídas
-                </Button>
-              )}
+            <div className="p-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-center text-xs"
+                onClick={() => {
+                  const baseUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'http://localhost:3000'
+                  window.open(`${baseUrl}/notificaciones`, '_self')
+                  setOpen(false)
+                }}
+              >
+                Ver todas las notificaciones
+              </Button>
             </div>
           </>
         )}

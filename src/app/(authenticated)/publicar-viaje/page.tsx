@@ -1,43 +1,3 @@
-// import { getFuels } from '@/actions/fuel/get-fuels'
-// import RouteCalculator from './components/RouteCalculator'
-// import Header from '@/components/header/header'
-// import { redirect } from 'next/navigation';
-// import { headers } from 'next/headers';
-// import { auth } from '@/lib/auth';
-// import { getDriverEligibility } from '@/actions/driver/driver-eligibility';
-
-// export default async function RouteSimulatorPage() {
-//   const session = await auth.api.getSession({
-//     headers: await headers(),
-//   });
-
-//   if (!session) {
-//     redirect("/login?redirect_url=/publicar-viaje");
-//   }
-//   // Get API key on the server
-//   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
-
-//   // Await the promise and extract the data
-//   const fuelsResponse = await getFuels()
-//   const fuelsData = fuelsResponse?.data || []
-//   const isDriver = await getDriverEligibility(session.user.id)
-
-//   return (
-//     <div className="container mx-auto py-8">
-//       <Header
-//         breadcrumbs={[{ label: 'Inicio', href: '/' }, { label: 'Publicar Viaje' }]}
-//         showBackButton={false}
-//       />
-//       <RouteCalculator
-//         apiKey={apiKey}
-//         initialOrigin=""
-//         initialDestination=""
-//         fuels={fuelsData}
-//       />
-//     </div>
-//   )
-// }
-
 import { getFuels } from '@/actions/fuel/get-fuels'
 import RouteCalculator from './components/RouteCalculator'
 import Header from '@/components/header/header'
@@ -45,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { getDriverEligibility } from '@/actions/driver/driver-eligibility';
+import { getEnabledDriverCars } from '@/actions/driver/get-driver-cars';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -59,11 +20,10 @@ export default async function RouteSimulatorPage() {
     redirect("/login?redirect_url=/publicar-viaje");
   }
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
-  const fuelsResponse = await getFuels()
-  const fuelsData = fuelsResponse?.data || []
+  // 1. Verificar elegibilidad del driver primero
   const driverEligibility = await getDriverEligibility(session.user.id)
 
+  // 2. Early return si no está habilitado - evita llamadas innecesarias
   if (!driverEligibility.isEnabled) {
     return (
       <>
@@ -89,6 +49,17 @@ export default async function RouteSimulatorPage() {
     )
   }
 
+  // 3. Solo si está habilitado, ejecutar las demás llamadas en paralelo
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
+
+  const [fuelsResponse, carsResponse] = await Promise.all([
+    getFuels(),
+    getEnabledDriverCars()
+  ])
+
+  const fuelsData = fuelsResponse?.data || []
+  const enabledCars = carsResponse?.data || []
+
   return (
     <>
       <Header
@@ -101,6 +72,7 @@ export default async function RouteSimulatorPage() {
           initialOrigin=""
           initialDestination=""
           fuels={fuelsData}
+          cars={enabledCars}
         />
       </div>
     </>

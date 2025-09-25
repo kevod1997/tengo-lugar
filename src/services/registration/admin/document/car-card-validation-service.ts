@@ -36,7 +36,12 @@ export class CarCardValidationService extends BaseDocumentValidationService {
             id: true,
             status: true,
             verifiedAt: true,
-            failureReason: true
+            failureReason: true,
+            car: {
+              select: {
+                plate: true
+              }
+            }
           }
         });
 
@@ -44,7 +49,8 @@ export class CarCardValidationService extends BaseDocumentValidationService {
           documentId: updatedDocument.id,
           status: updatedDocument.status,
           verifiedAt: updatedDocument.verifiedAt,
-          failureReason: updatedDocument.failureReason
+          failureReason: updatedDocument.failureReason,
+          carPlate: updatedDocument.car?.plate || null,
         };
       });
     } catch (error) {

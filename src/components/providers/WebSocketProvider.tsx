@@ -75,7 +75,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         
         // 3. Update user state based on eventType
         if (data.eventType) {
-          handleUserStateUpdate(data, updateUser)
+          console.log('WebSocket event received:', data.eventType, data.payload)
+          handleUserStateUpdate(data, updateUser, user)
         }
       }
     }

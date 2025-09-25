@@ -1,116 +1,3 @@
-// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-// import { Button } from "@/components/ui/button"
-// import { Car, CheckCircle } from 'lucide-react'
-// import { DriverRegistrationStatus } from './DriverRegistrationStatus'
-// import { FormattedUser } from "@/types/user-types"
-// import { getDriverRegistrationState } from "@/utils"
-
-// interface DriverTabProps {
-//   user: FormattedUser
-//   startDriverRegistration: () => void
-// }
-
-// interface Step {
-//   title: string;
-//   status: 'completed' | 'pending' | 'failed' | 'not-started';
-//   description: string;
-// }
-
-// export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
-
-//   const getStepStatus = (status: string | null | undefined, hasCompleted: boolean): Step['status'] => {
-//     if (status === 'VERIFIED' || hasCompleted) return 'completed'
-//     if (status === 'PENDING') return 'pending'
-//     if (status === 'FAILED') return 'failed'
-//     return 'not-started'
-//   }
-
-//   const registrationState = getDriverRegistrationState(user);
-
-//   const steps: Step[] = [
-//     {
-//       title: 'Documento de Identidad',
-//       status: getStepStatus(user.identityStatus, false),
-//       description: user.identityStatus === 'VERIFIED' ? 'Verificado' :
-//         user.identityStatus === 'PENDING' ? 'En proceso de verificación' :
-//           user.identityStatus === 'FAILED' ? `Verificación fallida: ${user.identityFailureReason || 'Razón no especificada'}` :
-//             'Pendiente de verificación'
-//     },
-//     {
-//       title: 'Licencia de Conducir',
-//       status: getStepStatus(user.licenseStatus, false),
-//       description: user.licenseStatus === 'VERIFIED' ? 'Verificado' :
-//         user.licenseStatus === 'PENDING' ? 'En proceso de verificación' :
-//           user.licenseStatus === 'FAILED' ? `Verificación fallida: ${user.licenseFailureReason || 'Razón no especificada'}` :
-//             'Pendiente de verificación'
-//     },
-//     {
-//       title: 'Información del Vehículo',
-//       status: getStepStatus(null, user.hasRegisteredCar),
-//       description: user.hasRegisteredCar ? 'Información registrada' : 'Pendiente de registro'
-//     },
-//     {
-//       title: 'Seguro del Vehículo',
-//       status: getStepStatus(user.cars[0]?.insurance.status, user.allCarsInsured),
-//       description: user.allCarsInsured && user.hasRegisteredCar ? 'Verificado' :
-//         user.hasPendingInsurance ? 'En proceso de verificación' :
-//           user.cars[0]?.insurance.status === 'FAILED' ? `Verificación fallida: ${user.cars[0].insurance.failureReason || 'Razón no especificada'}` :
-//             user.cars[0]?.insurance.status === 'PENDING' ? 'Pendiente de verificación' : 'Pendiente de registro'
-//     },
-//     {
-//       title: 'Tarjetas Vehiculares',
-//       status: getStepStatus(user.cars[0]?.vehicleCard?.status, user.hasAllRequiredCards),
-//       description: user.hasAllRequiredCards ? 'Todas las tarjetas verificadas' :
-//         user.hasPendingCards ? 'Tarjetas en proceso de verificación' :
-//           user.cars.some(car => car.vehicleCard?.status === 'FAILED') ?
-//             'Verificación de tarjeta fallida' : 'Pendiente de registro'
-//     }
-//   ]
-
-//   const isRegistrationComplete = steps.every(step => step.status === 'completed')
-
-//   return (
-//     <Card>
-//       <CardHeader>
-//         <CardTitle className="flex items-center gap-2">
-//           <Car className="text-primary" />
-//           Registro de Conductor
-//         </CardTitle>
-//       </CardHeader>
-//       <CardContent>
-//         {isRegistrationComplete ? (
-//           <div className="flex items-center space-x-2">
-//             <CheckCircle className="text-green-500" />
-//             <p>¡Felicidades! Ya estás completamente registrado como conductor. ¡Gracias por ofrecer viajes en Tengo Lugar!</p>
-//           </div>
-//         ) : (
-//           <>
-//             <p className="mb-4">Estado actual de tu registro como conductor:</p>
-//             <DriverRegistrationStatus steps={steps} />
-
-//             {user.termsAccepted && (
-//               <>
-//                 {registrationState.statusMessage && (
-//                   <p className="text-sm text-muted-foreground mt-2">
-//                     {registrationState.statusMessage}
-//                   </p>
-//                 )}
-//                 <Button
-//                   className="w-full mt-4"
-//                   onClick={startDriverRegistration}
-//                   disabled={registrationState.isButtonDisabled}
-//                 >
-//                   {registrationState.buttonText}
-//                 </Button>
-//               </>
-//             )}
-//           </>
-//         )}
-//       </CardContent>
-//     </Card>
-//   )
-// }
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -148,12 +35,10 @@ interface ExpirationInfo {
   daysUntilExpiry: number;
   isExpired: boolean;
   isExpiringSoon: boolean;
-  carId?: string;
   carPlate?: string;
 }
 
 interface VehicleExpirationInfo {
-  carId: string;
   carPlate: string;
   brand: string;
   model: string;
@@ -165,12 +50,12 @@ interface VehicleExpirationInfo {
 export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
   const [expandedVehicles, setExpandedVehicles] = useState<Set<string>>(new Set())
 
-  const toggleVehicleExpansion = (carId: string) => {
+  const toggleVehicleExpansion = (carPlate: string) => {
     const newExpanded = new Set(expandedVehicles)
-    if (newExpanded.has(carId)) {
-      newExpanded.delete(carId)
+    if (newExpanded.has(carPlate)) {
+      newExpanded.delete(carPlate)
     } else {
-      newExpanded.add(carId)
+      newExpanded.add(carPlate)
     }
     setExpandedVehicles(newExpanded)
   }
@@ -179,6 +64,53 @@ export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
     if (status === 'VERIFIED' || hasCompleted) return 'completed'
     if (status === 'PENDING') return 'pending'
     if (status === 'FAILED') return 'failed'
+    return 'not-started'
+  }
+
+  // Helper function to get insurance status and failure message
+  const getInsuranceDisplayMessage = (): string => {
+    if (user.allCarsInsured && user.hasRegisteredCar) {
+      return 'Todos los vehículos asegurados'
+    }
+
+    if (user.hasPendingInsurance) {
+      return 'Seguros en proceso de verificación'
+    }
+
+    // Check for failed insurance in any car
+    const failedCars = user.cars.filter(car => car.insurance.status === 'FAILED')
+    if (failedCars.length > 0) {
+      // If multiple cars have failed insurance, show generic message
+      if (failedCars.length > 1) {
+        return 'Verificación de seguros fallida en múltiples vehículos'
+      }
+
+      // For single car, show specific failure reason
+      const failureReason = failedCars[0].insurance.failureReason
+      return failureReason
+        ? `Verificación de seguro fallida: ${failureReason}`
+        : 'Verificación de seguro fallida'
+    }
+
+    return 'Pendiente de verificación'
+  }
+
+  // Helper function to get insurance step status for multiple cars
+  const getInsuranceStepStatus = (): Step['status'] => {
+    if (user.allCarsInsured && user.hasRegisteredCar) {
+      return 'completed'
+    }
+
+    if (user.hasPendingInsurance) {
+      return 'pending'
+    }
+
+    // Check if any car has failed insurance
+    const hasFailedInsurance = user.cars.some(car => car.insurance.status === 'FAILED')
+    if (hasFailedInsurance) {
+      return 'failed'
+    }
+
     return 'not-started'
   }
 
@@ -219,7 +151,6 @@ export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
           daysUntilExpiry,
           isExpired: daysUntilExpiry < 0,
           isExpiringSoon: daysUntilExpiry <= 30 && daysUntilExpiry >= 0,
-          carId: car.id,
           carPlate: car.plate
         });
       }
@@ -236,7 +167,6 @@ export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
           daysUntilExpiry,
           isExpired: daysUntilExpiry < 0,
           isExpiringSoon: daysUntilExpiry <= 30 && daysUntilExpiry >= 0,
-          carId: car.id,
           carPlate: car.plate
         });
       }
@@ -244,7 +174,6 @@ export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
       const hasIssues = carExpirations.some(exp => exp.isExpired || exp.isExpiringSoon);
 
       vehicleInfos.push({
-        carId: car.id,
         carPlate: car.plate,
         brand: car.brand,
         model: car.model,
@@ -298,11 +227,8 @@ export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
     },
     {
       title: 'Seguro del Vehículo',
-      status: getStepStatus(user.cars[0]?.insurance.status, user.allCarsInsured),
-      description: user.allCarsInsured && user.hasRegisteredCar ? 'Todos los vehículos asegurados' :
-        user.hasPendingInsurance ? 'Seguros en proceso de verificación' :
-          user.cars[0]?.insurance.status === 'FAILED' ? 'Verificación de seguro fallida' :
-            'Pendiente de verificación'
+      status: getInsuranceStepStatus(),
+      description: getInsuranceDisplayMessage()
     },
     {
       title: 'Tarjetas Vehiculares',
@@ -401,11 +327,11 @@ export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
 
                 <div className="space-y-3">
                   {vehicleInfos.map((vehicle) => (
-                    <Card key={vehicle.carId} className={`${vehicle.hasIssues ? 'border-amber-200' : 'border-gray-200'} bg-secondary`}>
+                    <Card key={vehicle.carPlate} className={`${vehicle.hasIssues ? 'border-amber-200' : 'border-gray-200'} bg-secondary`}>
                       <Collapsible>
-                        <CollapsibleTrigger 
+                        <CollapsibleTrigger
                           className="w-full"
-                          onClick={() => toggleVehicleExpansion(vehicle.carId)}
+                          onClick={() => toggleVehicleExpansion(vehicle.carPlate)}
                         >
                           <div className="flex items-center justify-between p-4">
                             <div className="flex items-center gap-3">
@@ -431,8 +357,8 @@ export function DriverTab({ user, startDriverRegistration }: DriverTabProps) {
                               <Badge variant={vehicle.hasIssues ? "destructive" : "default"} className="text-xs">
                                 {vehicle.expirations.length} documento{vehicle.expirations.length !== 1 ? 's' : ''}
                               </Badge>
-                              {expandedVehicles.has(vehicle.carId) ? 
-                                <ChevronUp className="h-4 w-4" /> : 
+                              {expandedVehicles.has(vehicle.carPlate) ?
+                                <ChevronUp className="h-4 w-4" /> :
                                 <ChevronDown className="h-4 w-4" />
                               }
                             </div>

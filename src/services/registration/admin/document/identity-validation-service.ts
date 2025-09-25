@@ -36,7 +36,9 @@ export class IdentityValidationService extends BaseDocumentValidationService {
                         id: true,
                         status: true,
                         verifiedAt: true,
-                        failureReason: true
+                        failureReason: true,
+                        frontFileKey: true,
+                        backFileKey: true,
                     }
                 });
 
@@ -44,7 +46,9 @@ export class IdentityValidationService extends BaseDocumentValidationService {
                     documentId: updatedDocument.id,
                     status: updatedDocument.status,
                     verifiedAt: updatedDocument.verifiedAt,
-                    failureReason: updatedDocument.failureReason
+                    failureReason: updatedDocument.failureReason,
+                    frontKey: !!updatedDocument.frontFileKey,
+                    backKey: !!updatedDocument.backFileKey
                 };
             });
         } catch (error) {

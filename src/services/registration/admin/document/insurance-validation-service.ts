@@ -36,7 +36,17 @@ export class InsuranceValidationService extends BaseDocumentValidationService {
             id: true,
             status: true,
             verifiedAt: true,
-            failureReason: true
+            failureReason: true,
+            insuredCar: {
+              select: {
+                cars: {
+                  select: {
+                    plate: true
+                  },
+                  take: 1  // Get first car (they should have same insurance)
+                }
+              }
+            }
           }
         });
 
@@ -44,7 +54,8 @@ export class InsuranceValidationService extends BaseDocumentValidationService {
           documentId: updatedDocument.id,
           status: updatedDocument.status,
           verifiedAt: updatedDocument.verifiedAt,
-          failureReason: updatedDocument.failureReason
+          failureReason: updatedDocument.failureReason,
+          carPlate: updatedDocument.insuredCar?.cars?.[0]?.plate || null
         };
       });
     } catch (error) {

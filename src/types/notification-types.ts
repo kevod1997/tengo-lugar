@@ -5,6 +5,7 @@ export interface TargetedNotificationData {
   message: string
   eventType?: eventType           // Optional eventType for user store updates
   link?: string
+  additionalData?: any            // Optional additional data to include in the notification
   // Targeting options (only one should be used)
   targetUserId?: string           // Send to specific user
   targetUserIds?: string[]        // Send to multiple specific users
@@ -24,6 +25,7 @@ export interface NotificationPayload {
   message: string
   link?: string
   eventType?: eventType
+  additionalData?: any
   targeting: NotificationTargeting
 }
 
@@ -37,6 +39,8 @@ export interface WebSocketNotificationPayload {
       title: string
       message: string
       link?: string
+      additionalData?: any
+
     }
     targeting: NotificationTargeting
   }

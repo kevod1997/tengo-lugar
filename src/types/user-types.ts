@@ -36,6 +36,30 @@ export interface UserCar {
   isFullyEnabled?: boolean;
 }
 
+// Simplified car type for Zustand store (removes sensitive/unnecessary data)
+export interface UserCarForStore {
+  plate: string;  // Primary identifier (no UUID)
+  brand: string;
+  model: string;
+  year: number | null;
+  insurance: {
+    status: VerificationStatus | null;
+    expireDate: Date | null;
+    failureReason: string | null;
+    hasFileKey: boolean;  // Needed for registration UX
+  };
+  vehicleCard: {
+    cardType: CardType;
+    status: VerificationStatus;
+    failureReason: string | null;
+    expirationDate: Date | null | undefined;
+    hasFileKey: boolean;  // Needed for registration UX
+  } | null;
+  hasGreenCard: boolean;
+  hasBlueCard: boolean;
+  hasPendingCards: boolean;
+}
+
 export interface FormattedUser {
   hasBirthDate: boolean;
   age: number | null;
@@ -55,13 +79,12 @@ export interface FormattedUser {
   hasLicenseCardFrontkey: boolean;
   hasLicenseCardBackKey: boolean;
   termsAccepted: boolean;
-  cars: UserCar[];
+  cars: UserCarForStore[];  
   hasRegisteredCar: boolean;
   allCarsInsured: boolean;
   hasPendingInsurance: boolean;
   hasAllRequiredCards: boolean;
   hasPendingCards: boolean;
-  hasEnabledCar: boolean;
 }
 
 export type FormattedUserForAdminDashboard = {

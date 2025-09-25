@@ -22,7 +22,12 @@ export const vehicleCardSchema = z.object({
     "La fecha de vencimiento debe ser futura"
   ),
 
-  carId: z.string().uuid("El ID del vehículo debe ser un UUID válido"),
+  carPlate: z.string()
+    .regex(
+      /^[A-Za-z]{3}\d{3}$|^[A-Za-z]{2}\d{3}[A-Za-z]{2}$/,
+      'Formato de patente inválido. Debe ser formato viejo (ABC123) o nuevo (AB123CD)'
+    )
+    .transform(val => val.toUpperCase()),
 
   cardFile: fileSchema.refine(
     (file) => file !== undefined,

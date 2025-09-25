@@ -78,8 +78,6 @@ export async function getDriverEligibility(userId: string) {
         }
     });
 
-    console.log("Driver eligibility check for user:", userId, "Result:", driver);
-
     if (!driver) {
         return { isEnabled: false, reason: "No es conductor" };
     }

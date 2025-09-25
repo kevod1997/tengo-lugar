@@ -11,6 +11,7 @@ import { TripData } from '@/types/trip-types'
 import { RouteResponse } from '@/types/route-types'
 import { getGoogleMapsUrl } from '@/utils/helpers/getGoogleMapsUrl'
 import { formatDuration } from '@/utils/format/formatDuration'
+import { UserCar } from '@/types/user-types'
 
 import { useGoogleMapsScript } from '@/hooks/ui/useGoogleMapsScripts'
 import { useLocationInput } from '@/hooks/map/useLocationInput'
@@ -26,11 +27,13 @@ import { useAsyncLoading } from '@/hooks/ui/useAsyncLoading'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { Card } from '@/components/ui/card'
 
+
 interface RouteCalculatorProps {
     initialOrigin?: string
     initialDestination?: string
     apiKey: string
     fuels: any
+    cars: UserCar[]
 }
 
 interface FormValues {
@@ -42,7 +45,8 @@ const RouteCalculator = ({
     initialOrigin = '',
     initialDestination = '',
     apiKey,
-    fuels
+    fuels,
+    cars
 }: RouteCalculatorProps) => {
     const router = useRouter()
     const { isLoaded } = useGoogleMapsScript({ apiKey, libraries: ['places'] })
@@ -290,6 +294,7 @@ const RouteCalculator = ({
               <TravelCostCalculator
                 routeInfo={routeInfo}
                 fuels={fuels}
+                cars={cars}
                 onPriceChange={setCalculatedPrice}
                 onCarChange={setSelectedCar}
               />

@@ -52,7 +52,8 @@ export const sendTargetedNotificationSchema = z.object({
   title: z.string().min(1, 'Título requerido').max(200, 'Título muy largo'),
   message: z.string().min(1, 'Mensaje requerido'),
   eventType: eventTypeSchema.optional(), // Optional eventType for user store updates
-  link: z.string().url().optional().or(z.literal('')),
+  link: z.string().optional().or(z.literal('')),
+  additionalData: z.any().optional(),
   // Targeting options (only one should be provided)
   targetUserId: z.string().optional(),
   targetUserIds: z.array(z.string()).optional(),
@@ -73,7 +74,8 @@ export const basicNotificationSchema = z.object({
   title: z.string().min(1, 'Título requerido').max(200, 'Título muy largo'),
   message: z.string().min(1, 'Mensaje requerido'),
   eventType: eventTypeSchema.optional(),
-  link: z.string().url().optional().or(z.literal(''))
+  link: z.string().optional().or(z.literal('')),
+  additionalData: z.any().optional()
 })
 
 export type SendTargetedNotificationSchema = z.infer<typeof sendTargetedNotificationSchema>

@@ -8,6 +8,8 @@ import Header from '@/components/header/header'
 import { AdminMetricCard } from './components/AdminMetricCard'
 import { AdminNav } from './components/AdminNav'
 
+export const dynamic = 'force-dynamic'
+
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard | Tengo Lugar',

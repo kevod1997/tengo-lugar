@@ -37,7 +37,9 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
                     user: true,
                     cars: {
                         where: {
-                            carId: validatedData.carId
+                            car: {
+                                plate: validatedData.carPlate
+                            }
                         },
                         include: {
                             car: true
@@ -67,7 +69,9 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
             if (validatedData.cardType === 'GREEN') {
                 const existingGreenCard = await tx.vehicleCard.findFirst({
                     where: {
-                        carId: validatedData.carId,
+                        car: {
+                            plate: validatedData.carPlate
+                        },
                         cardType: 'GREEN'
                     }
                 })
@@ -111,7 +115,9 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
             // Verificar si existe una tarjeta fallida para actualizar
             const existingFailedCard = await tx.vehicleCard.findFirst({
                 where: {
-                    carId: validatedData.carId,
+                    car: {
+                        plate: validatedData.carPlate
+                    },
                     cardType: validatedData.cardType,
                     status: 'FAILED'
                 }
@@ -132,7 +138,7 @@ export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
             } else {
                 await tx.vehicleCard.create({
                     data: {
-                        carId: validatedData.carId,
+                        carId: driverCar.car.id,
                         cardType: validatedData.cardType,
                         expirationDate: validatedData.expirationDate,
                         fileKey: uploadResult.frontFileKey,

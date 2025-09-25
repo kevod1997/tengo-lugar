@@ -6,7 +6,12 @@ export const insuranceSchema = z.object({
     required_error: "La compañía de seguros es requerida",
   }).uuid("El ID de la compañía de seguros debe ser un UUID válido"),
 
-  carId: z.string().uuid("El ID del vehículo debe ser un UUID válido"),
+  carPlate: z.string()
+    .regex(
+      /^[A-Za-z]{3}\d{3}$|^[A-Za-z]{2}\d{3}[A-Za-z]{2}$/,
+      'Formato de patente inválido. Debe ser formato viejo (ABC123) o nuevo (AB123CD)'
+    )
+    .transform(val => val.toUpperCase()),
 
   policyNumber: z.union([
     z.string().regex(/^\d+$/, "El número de póliza debe contener solo números"),

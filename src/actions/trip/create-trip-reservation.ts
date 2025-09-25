@@ -9,6 +9,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
+import { notifyUser } from "@/utils/notifications/notification-helpers";
 
 // Schema for validation
 const reservationSchema = z.object({
@@ -180,9 +181,9 @@ export async function createTripReservation(data: {
         userId,
         action: TipoAccionUsuario.CREACION_VIAJE, // O crear un tipo específico para reservas
         status: 'SUCCESS',
-        details: { 
-          tripId: validatedData.tripId, 
-          seatsReserved: validatedData.seatsReserved, 
+        details: {
+          tripId: validatedData.tripId,
+          seatsReserved: validatedData.seatsReserved,
           totalPrice: validatedData.totalPrice,
           reservationStatus: initialStatus
         }
@@ -193,9 +194,26 @@ export async function createTripReservation(data: {
       }
     );
 
+    // Notify the driver about the new reservation
+    const title = initialStatus === 'APPROVED'
+      ? "Nueva reserva confirmada"
+      : "Nueva reserva pendiente";
+
+    const message = initialStatus === 'APPROVED'
+      ? `Un pasajero ha reservado ${validatedData.seatsReserved} asiento(s) en tu viaje`
+      : `Un pasajero quiere reservar ${validatedData.seatsReserved} asiento(s) en tu viaje`;
+
+    await notifyUser(
+      trip.driverCar.driver.userId,
+      title,
+      message,
+      undefined,
+      `/viajes/${validatedData.tripId}/gestionar-viaje`,
+    );
+
     return ApiHandler.handleSuccess(
       { reservationId: reservation.id },
-      initialStatus === 'APPROVED' 
+      initialStatus === 'APPROVED'
         ? 'Reservación aprobada automáticamente. Procede con el pago.'
         : 'Reservación enviada. Espera la aprobación del conductor.'
     );

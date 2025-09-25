@@ -51,7 +51,11 @@ export abstract class BaseDocumentValidationService {
         documentId: updatedDocument.documentId,
         status: updatedDocument.status,
         verifiedAt: updatedDocument.verifiedAt,
-        failureReason: updatedDocument.failureReason
+        failureReason: updatedDocument.failureReason,
+        carPlate: updatedDocument.carPlate,
+        frontKey: updatedDocument.frontKey,
+        backKey: updatedDocument.backKey
+
       }, message);
 
     } catch (error) {

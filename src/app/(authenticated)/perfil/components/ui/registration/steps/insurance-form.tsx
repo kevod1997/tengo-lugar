@@ -45,7 +45,7 @@ export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
         resolver: zodResolver(insuranceSchema),
         defaultValues: {
             ...data.insuranceInfo,
-            carId: data.insuranceInfo?.carId ?? user?.cars[0]?.id, // Default to first car if no carId provided
+            carPlate: data.insuranceInfo?.carPlate ?? user?.cars[0]?.plate, // Default to first car if no carPlate provided
             policyFile: undefined,
         },
         mode: 'onChange'
@@ -61,7 +61,7 @@ export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
     const watchPolicyNumber = watch('policyNumber')
     const watchStartDate = watch('startDate')
     const watchExpireDate = watch('expireDate')
-    const watchCarId = watch('carId')
+    const watchCarPlate = watch('carPlate')
     const hasMoreThanOneCar = (user?.cars?.length ?? 0) > 1
 
     // 4. Funciones del componente
@@ -100,24 +100,24 @@ export default function InsuranceForm({ onSubmit, data }: InsuranceFormProps) {
 
                     {hasMoreThanOneCar && (
                         <div className="space-y-2">
-                            <Label htmlFor="carId">Vehículo</Label>
+                            <Label htmlFor="carPlate">Vehículo</Label>
                             <Select
-                                onValueChange={(value) => setValue('carId', value, { shouldValidate: true })}
-                                defaultValue={watchCarId}
+                                onValueChange={(value) => setValue('carPlate', value, { shouldValidate: true })}
+                                defaultValue={watchCarPlate}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona el vehículo" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {user?.cars.map(car => (
-                                        <SelectItem key={car.id} value={car.id}>
+                                        <SelectItem key={car.plate} value={car.plate}>
                                             {car.brand} {car.model} - {car.plate}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.carId && (
-                                <p className="text-sm text-destructive">{errors.carId.message}</p>
+                            {errors.carPlate && (
+                                <p className="text-sm text-destructive">{errors.carPlate.message}</p>
                             )}
                         </div>
                     )}

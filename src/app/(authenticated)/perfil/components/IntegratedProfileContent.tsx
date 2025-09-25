@@ -74,7 +74,6 @@ export default function IntegratedProfileContent({
 
   const startDriverRegistration = useCallback(() => {
     if (!user) return;
-    if (user.hasEnabledCar) router.push('/publicar-viaje')
 
     if (!user.identityStatus || user.identityStatus === 'FAILED') {
       setRegistrationStep('identityCard');
@@ -95,7 +94,7 @@ export default function IntegratedProfileContent({
     }
     setInitialRole('driver');
     setRegistrationMode('driver');
-  }, [user, router, setRegistrationStep]);
+  }, [user, setRegistrationStep]);
 
   useEffect(() => {
     if (setupMode === 'driver' && hasCompletedProfile) {

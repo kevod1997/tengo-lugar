@@ -90,6 +90,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
 
   const validateDocumentResult = await service.validateDocument(request);
 
+
   if (validateDocumentResult.success && validateDocumentResult.data) {
     try {
       // Try to send the email directly first
@@ -99,6 +100,8 @@ export async function validateDocument(request: DocumentValidationRequest, userE
         status: validateDocumentResult.data?.status,
         failureReason: validateDocumentResult.data?.failureReason || undefined
       });
+
+
 
       // Log successful email
       await logActionWithErrorHandling(
@@ -157,16 +160,26 @@ export async function validateDocument(request: DocumentValidationRequest, userE
       request.documentType,
       status
     );
+    // const link = undefined
+    const additionalData = {
+      carPlate: validateDocumentResult.data.carPlate,
+      status: validateDocumentResult.data.status,
+        failureReason: validateDocumentResult.data.failureReason,
+        frontKey: validateDocumentResult.data.frontKey,
+        backKey: validateDocumentResult.data.backKey
+      }
+  
+  await notifyUser(
+    userId,
+    'Verificación de Documento',
+    `${translateDocumentType(request.documentType)}: ${translateDocumentStatus(validateDocumentResult.data?.status || '')}.`,
+    eventType ?? undefined,
+    undefined,
+    additionalData ?? undefined
+  );
 
-    await notifyUser(
-      userId,
-      'Verificación de Documento',
-      `${translateDocumentType(request.documentType)}: ${translateDocumentStatus(validateDocumentResult.data?.status || '')}.`,
-      eventType ?? undefined
-    );
+}
 
-  }
-
-  revalidatePath('/admin/dashboard');
-  return validateDocumentResult;
+revalidatePath('/admin/dashboard');
+return validateDocumentResult;
 }

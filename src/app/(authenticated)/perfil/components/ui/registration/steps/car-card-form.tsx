@@ -32,13 +32,13 @@ export default function CarCardForm({ onSubmit, data }: CarCardFormProps) {
         resolver: zodResolver(vehicleCardSchema),
         defaultValues: {
             ...data,
-            carId: data?.carId || user?.cars[0]?.id, // Default to first car if no carId provided
+            carPlate: data?.carPlate || user?.cars[0]?.plate, // Default to first car if no carPlate provided
             cardFile: undefined,
         },
         mode: 'onChange'
     })
 
-    const watchCarId = watch('carId')
+    const watchCarPlate = watch('carPlate')
     const watchCardType = watch('cardType')
     const watchExpirationDate = watch('expirationDate')
     const watchCardFile = watch('cardFile')
@@ -48,7 +48,7 @@ export default function CarCardForm({ onSubmit, data }: CarCardFormProps) {
         return isValid && watchCardType && watchExpirationDate && watchCardFile
     }
 
-    const selectedCar = user?.cars.find(car => car.id === watchCarId)
+    const selectedCar = user?.cars.find(car => car.plate === watchCarPlate)
 
     const isCardTypeAvailable = (type: CardType) => {
         if (!selectedCar) return true
@@ -77,24 +77,24 @@ export default function CarCardForm({ onSubmit, data }: CarCardFormProps) {
 
                     {hasMoreThanOneCar  && (
                         <div className="space-y-2">
-                            <Label htmlFor="carId">Vehículo</Label>
+                            <Label htmlFor="carPlate">Vehículo</Label>
                             <Select
-                                onValueChange={(value) => setValue('carId', value, { shouldValidate: true })}
-                                defaultValue={watchCarId}
+                                onValueChange={(value) => setValue('carPlate', value, { shouldValidate: true })}
+                                defaultValue={watchCarPlate}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona el vehículo" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {user?.cars.map(car => (
-                                        <SelectItem key={car.id} value={car.id}>
+                                        <SelectItem key={car.plate} value={car.plate}>
                                             {car.brand} {car.model} - {car.plate}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.carId && (
-                                <p className="text-sm text-destructive">{errors.carId.message}</p>
+                            {errors.carPlate && (
+                                <p className="text-sm text-destructive">{errors.carPlate.message}</p>
                             )}
                         </div>
                     )}

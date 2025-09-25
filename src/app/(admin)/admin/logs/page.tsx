@@ -3,6 +3,8 @@ import Header from '@/components/header/header'
 import { ErrorLogTable } from './components/error-log-table'
 import { fetchErrorLogs } from '@/actions/logs/error-logs'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ErrorLogsPage({
     searchParams,
 }: {

@@ -48,7 +48,9 @@ export async function submitInsuranceInfo(userId: string, insuranceInfo: Insuran
             const driverCar = await tx.driverCar.findFirst({
                 where: {
                     driverId: driver.id,
-                    carId: validatedData.carId
+                    car: {
+                        plate: validatedData.carPlate
+                    }
                 },
                 include: {
                     car: {

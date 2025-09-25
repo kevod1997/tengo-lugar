@@ -98,7 +98,8 @@ export class NotificationService {
         notification: {
           title: data.title,
           message: data.message,
-          ...(data.link && { link: data.link })
+          ...(data.link && { link: data.link }),
+          ...(data.additionalData && { additionalData: data.additionalData })
         },
         targeting
       }

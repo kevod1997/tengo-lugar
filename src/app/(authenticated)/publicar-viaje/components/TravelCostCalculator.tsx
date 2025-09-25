@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Slider } from '@/components/ui/slider'
-import { useUserStore } from '@/store/user-store'
+import { UserCar } from '@/types/user-types'
 
 interface RouteInfo {
     routes: {
@@ -25,9 +25,12 @@ interface Fuel {
     name: string;
     price: number;
 }
+
+
 interface TravelCostCalculatorProps {
     routeInfo: RouteInfo;
     fuels: Fuel[];
+    cars: UserCar[];
     onPriceChange?: (calculatedPrice: {
         price: number;
         priceGuide: number;
@@ -35,8 +38,7 @@ interface TravelCostCalculatorProps {
     onCarChange?: (carId: string) => void;
 }
 
-const TravelCostCalculator = ({ routeInfo, fuels, onPriceChange, onCarChange }: TravelCostCalculatorProps) => {
-    const { user } = useUserStore() // Access user data from your Zustand store
+const TravelCostCalculator = ({ routeInfo, fuels, cars, onPriceChange, onCarChange }: TravelCostCalculatorProps) => {
     const [selectedCar, setSelectedCar] = useState('')
     const [selectedFuelType, setSelectedFuelType] = useState('')
     const [fuelCost, setFuelCost] = useState(0)
@@ -56,15 +58,15 @@ const TravelCostCalculator = ({ routeInfo, fuels, onPriceChange, onCarChange }: 
 
     useEffect(() => {
         // Set default selected car if available
-        if (user?.cars && user.cars.length > 0) {
-            setSelectedCar(user.cars[0].id)
+        if (cars && cars.length > 0) {
+            setSelectedCar(cars[0].id)
         }
-    }, [user])
+    }, [cars])
 
     useEffect(() => {
         // Update fuel options when car is selected
         if (selectedCar) {
-            const car = user?.cars?.find(car => car.id === selectedCar)
+            const car = cars?.find(car => car.id === selectedCar)
             if (car?.fuelType) {
                 // Filter fuels based on the car's fuel type
                 const filteredFuels = fuels.filter(fuel =>
@@ -77,7 +79,7 @@ const TravelCostCalculator = ({ routeInfo, fuels, onPriceChange, onCarChange }: 
                 }
             }
         }
-    }, [selectedCar, fuels, user])
+    }, [selectedCar, fuels, cars])
 
     useEffect(() => {
         if (costPerPassenger > 0) {
@@ -95,7 +97,7 @@ const TravelCostCalculator = ({ routeInfo, fuels, onPriceChange, onCarChange }: 
     useEffect(() => {
         if (!routeInfo || !selectedCar || !selectedFuelType) return
 
-        const car = user?.cars?.find(car => car.id === selectedCar)
+        const car = cars?.find(car => car.id === selectedCar)
         const fuel = fuels.find(fuel => fuel.id === selectedFuelType)
 
         if (!car || !fuel) return
@@ -124,10 +126,10 @@ const TravelCostCalculator = ({ routeInfo, fuels, onPriceChange, onCarChange }: 
 
         // Calculate cost per passenger
         setCostPerPassenger(calculatedTotalCost / passengerCount)
-    }, [routeInfo, selectedCar, selectedFuelType, fuels, user])
+    }, [routeInfo, selectedCar, selectedFuelType, fuels, cars])
 
 
-    if (!routeInfo || !routeInfo.routes || !user?.cars?.length) {
+    if (!routeInfo || !routeInfo.routes || !cars?.length) {
         return null
     }
 
@@ -144,7 +146,7 @@ const TravelCostCalculator = ({ routeInfo, fuels, onPriceChange, onCarChange }: 
                             <SelectValue placeholder="Selecciona un vehículo" />
                         </SelectTrigger>
                         <SelectContent>
-                            {user?.cars?.map(car => (
+                            {cars?.filter(car => car.isFullyEnabled).map(car => (
                                 <SelectItem key={car.id} value={car.id}>
                                     {car.brand} {car.model} ({car.year}) - {car.plate}
                                 </SelectItem>
