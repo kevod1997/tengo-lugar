@@ -165,7 +165,10 @@ const RouteCalculator = ({
           destinationCoords: destination.coordinates!,
           
           // Información de ruta
-          googleMapsUrl: getGoogleMapsUrl(origin.value, destination.value),
+          googleMapsUrl: getGoogleMapsUrl(
+            `${origin.coordinates!.latitude},${origin.coordinates!.longitude}`,
+            `${destination.coordinates!.latitude},${destination.coordinates!.longitude}`
+          ),
           date: tripDate, // Esta es la fecha sin hora
           departureTime: combinedDateTime, // Esta es la fecha CON hora
           price: calculatedPrice.price,
@@ -285,6 +288,8 @@ const RouteCalculator = ({
                 departureTime={watch('departureTime')}
                 originInfo={origin.locationInfo}
                 destinationInfo={destination.locationInfo}
+                originCoordinates={origin.coordinates}
+                destinationCoordinates={destination.coordinates}
               />
 
               {fuels.length === 0 && (

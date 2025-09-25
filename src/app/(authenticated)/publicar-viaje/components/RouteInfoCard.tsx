@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { getGoogleMapsUrl } from '@/utils/helpers/getGoogleMapsUrl'
 import { RouteResponse } from '@/types/route-types'
-import { LocationInfo } from '@/types/route-types'
+import { LocationInfo, Coordinates } from '@/types/route-types'
 
 interface RouteInfoCardProps {
   routeInfo: RouteResponse
@@ -16,6 +16,8 @@ interface RouteInfoCardProps {
   departureTime?: string
   originInfo: LocationInfo
   destinationInfo: LocationInfo
+  originCoordinates?: Coordinates | null
+  destinationCoordinates?: Coordinates | null
 }
 
 const RouteInfoCard = ({
@@ -25,7 +27,9 @@ const RouteInfoCard = ({
   tripDate,
   departureTime,
   originInfo,
-  destinationInfo
+  destinationInfo,
+  originCoordinates,
+  destinationCoordinates
 }: RouteInfoCardProps) => {
   if (!routeInfo.routes || routeInfo.routes.length === 0) return null;
   
@@ -98,8 +102,15 @@ const RouteInfoCard = ({
         </div>
       </CardContent>
       <CardFooter>
-        <Link 
-          href={getGoogleMapsUrl(origin, destination)}
+        <Link
+          href={getGoogleMapsUrl(
+            originCoordinates
+              ? `${originCoordinates.latitude},${originCoordinates.longitude}`
+              : origin,
+            destinationCoordinates
+              ? `${destinationCoordinates.latitude},${destinationCoordinates.longitude}`
+              : destination
+          )}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"

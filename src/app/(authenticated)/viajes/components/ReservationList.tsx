@@ -19,7 +19,7 @@ import {
   Info
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatDate, formatDatetoLocaleDateString, formatTime } from "@/utils/format/formatDate";
+import { formatDatetoLocaleDateString, formatDateLong, formatTime } from "@/utils/format/formatDate";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -128,7 +128,7 @@ export default function ReservationsList({
                   
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{formatDate(reservation.trip.departureTime)}</span>
+                    <span>{formatDateLong(reservation.trip.departureTime)}</span>
                   </div>
                   
                   <div className="flex items-center gap-2 text-sm">

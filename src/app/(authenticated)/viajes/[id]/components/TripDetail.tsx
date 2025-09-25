@@ -124,7 +124,9 @@ export default function TripDetail({
   }
 
   // Check if trip can be cancelled
-  const canCancel = ['PENDING', 'ACTIVE'].includes(trip.status) && (isDriver || isPassenger);
+  const canCancel = ['PENDING', 'ACTIVE'].includes(trip.status) && (isDriver || isPassenger) &&
+    // If user is a passenger, check if their reservation is not already cancelled
+    (isDriver || (isPassenger && passengerInfo && !['CANCELLED_BY_DRIVER', 'CANCELLED_BY_PASSENGER'].includes(passengerInfo.reservationStatus)));
 
   // Calculate seats available
   const confirmedPassengers = trip.passengers.filter(
@@ -418,10 +420,13 @@ export default function TripDetail({
                       <p className="text-sm text-slate-500">Combustible</p>
                       <p className="font-medium">{carFuelType ? fuelTypeMap[carFuelType] || carFuelType : 'N/A'}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Patente</p>
-                      <p className="font-medium">{trip.driverCar.car.plate}</p>
-                    </div>
+                    {(isDriver || (isPassenger && passengerInfo &&
+                      ['APPROVED', 'CONFIRMED'].includes(passengerInfo.reservationStatus))) && (
+                      <div>
+                        <p className="text-sm text-slate-500">Patente</p>
+                        <p className="font-medium">{trip.driverCar.car.plate}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </TabsContent>
