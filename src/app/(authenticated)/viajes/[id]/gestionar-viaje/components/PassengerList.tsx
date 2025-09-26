@@ -19,11 +19,22 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
   User,
-  MessageSquare, 
-  Check, 
-  X, 
+  MessageSquare,
+  Check,
+  X,
   AlertCircle,
   Calendar,
   Clock
@@ -40,6 +51,7 @@ type PassengersListProps = {
 export default function PassengersList({ trip }: PassengersListProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [passengerToCancel, setPassengerToCancel] = useState<{id: string, name: string} | null>(null)
   
   // Sort and filter passengers
   const pendingPassengers = trip.passengers.filter(
@@ -60,7 +72,12 @@ export default function PassengersList({ trip }: PassengersListProps) {
   )
   
   const seatsAvailable = trip.availableSeats - totalSeatsReserved
-  
+
+  // Helper function to get only the first name
+  const getFirstName = (fullName: string): string => {
+    return fullName.split(' ')[0]
+  }
+
   // Handle passenger status updates
   const handlePassengerAction = async (passengerId: string, action: 'approve' | 'reject') => {
     setIsSubmitting(true)
@@ -181,7 +198,7 @@ export default function PassengersList({ trip }: PassengersListProps) {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <CardTitle className="text-base">{passenger.passenger.user.name}</CardTitle>
+                          <CardTitle className="text-base">{getFirstName(passenger.passenger.user.name)}</CardTitle>
                           <CardDescription className="text-xs">
                             Asientos: {passenger.seatsReserved}
                           </CardDescription>
@@ -211,16 +228,37 @@ export default function PassengersList({ trip }: PassengersListProps) {
                   </CardContent>
                   
                   <CardFooter className="flex justify-between pt-2">
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      onClick={() => handlePassengerAction(passenger.id, 'reject')}
-                      disabled={isSubmitting}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Rechazar
-                    </Button>
-                    <Button 
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled={isSubmitting}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Rechazar
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Rechazar solicitud?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            ¿Estás seguro de que deseas rechazar la solicitud de {getFirstName(passenger.passenger.user.name)}?
+                            Esta acción no se puede deshacer y el pasajero será notificado.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handlePassengerAction(passenger.id, 'reject')}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Confirmar rechazo
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    <Button
                       size="sm"
                       onClick={() => handlePassengerAction(passenger.id, 'approve')}
                       disabled={isSubmitting || seatsAvailable < passenger.seatsReserved}
@@ -255,7 +293,7 @@ export default function PassengersList({ trip }: PassengersListProps) {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <CardTitle className="text-base">{passenger.passenger.user.name}</CardTitle>
+                          <CardTitle className="text-base">{getFirstName(passenger.passenger.user.name)}</CardTitle>
                           <CardDescription className="text-xs">
                             Asientos: {passenger.seatsReserved}
                           </CardDescription>
@@ -282,15 +320,36 @@ export default function PassengersList({ trip }: PassengersListProps) {
                   </CardContent>
                   
                   <CardFooter className="flex justify-end pt-2">
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      onClick={() => handlePassengerAction(passenger.id, 'reject')}
-                      disabled={isSubmitting}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Cancelar reservación
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled={isSubmitting}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Cancelar reservación
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Cancelar reservación?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            ¿Estás seguro de que deseas cancelar la reservación de {getFirstName(passenger.passenger.user.name)}?
+                            Esta acción no se puede deshacer y el pasajero será notificado.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handlePassengerAction(passenger.id, 'reject')}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Confirmar cancelación
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </CardFooter>
                 </Card>
               ))}
@@ -318,7 +377,7 @@ export default function PassengersList({ trip }: PassengersListProps) {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <CardTitle className="text-base">{passenger.passenger.user.name}</CardTitle>
+                          <CardTitle className="text-base">{getFirstName(passenger.passenger.user.name)}</CardTitle>
                           <CardDescription className="text-xs">
                             Asientos: {passenger.seatsReserved}
                           </CardDescription>

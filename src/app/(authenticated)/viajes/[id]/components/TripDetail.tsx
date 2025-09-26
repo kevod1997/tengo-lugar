@@ -278,28 +278,6 @@ export default function TripDetail({
                   <ArrowRightIcon className="h-4 w-4 ml-1" />
                 </Link>
 
-                {/* Show driver avatar and name if user is not the driver */}
-                {/* {!isDriver && (
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      {profileImageKey ? (
-                        <Image
-                          src={profileImageKey}
-                          alt={driverFirstName}
-                          width={32}
-                          height={32}
-                        />
-                      ) : (
-                        <UserIcon className="h-4 w-4" />
-                      )}
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{driverFirstName}</p>
-                      <p className="text-xs text-muted-foreground">Conductor</p>
-                    </div>
-                  </div>
-                )}
-                 */}
                 {!isDriver && (
                   <UserProfileModal
                     userId={trip.driverCar.driver.userId}
@@ -432,45 +410,6 @@ export default function TripDetail({
               </TabsContent>
             </Tabs>
           </CardContent>
-
-          {/* <CardFooter className="pb-4 flex gap-3">
-            {isDriver && ['PENDING', 'ACTIVE'].includes(trip.status) && (
-              <Button
-                className="flex-1"
-                onClick={() => router.push(`/viajes/${trip.id}/pasajeros`)}
-              >
-                Gestionar pasajeros
-              </Button>
-            )}
-
-            {canReserve && (
-              <Button
-                className="flex-1"
-                onClick={() => setIsReservationModalOpen(true)}
-              >
-                {getReservationButtonText()}
-              </Button>
-            )}
-
-            {!canReserve && !isDriver && (
-              <Button
-                className="flex-1"
-                disabled
-              >
-                {getReservationButtonText()}
-              </Button>
-            )}
-
-            {canCancel && (
-              <Button
-                variant="outline"
-                className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                onClick={() => setIsCancelDialogOpen(true)}
-              >
-                Cancelar {isDriver ? 'viaje' : 'reserva'}
-              </Button>
-            )}
-          </CardFooter> */}
           <CardFooter className="pb-4 flex flex-col md:flex-row gap-3">
             {/* Main action buttons */}
             {isDriver && ['PENDING', 'ACTIVE'].includes(trip.status) && (
@@ -490,16 +429,7 @@ export default function TripDetail({
                 {getReservationButtonText()}
               </Button>
             )}
-
-            {/* {!canReserve && !isDriver && (
-              <Button
-                className="w-full md:flex-1"
-                disabled
-              >
-                {getReservationButtonText()}
-              </Button>
-            )} */}
-
+      
             {/* Cancel button as a separate styled button */}
             {canCancel && (
               <Button

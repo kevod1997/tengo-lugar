@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
+import { notifyUser, notifyMultipleUsers } from "@/utils/notifications/notification-helpers";
 
 export async function cancelTrip(tripId: string, isDriver: boolean) {
   try {
@@ -24,15 +25,31 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
     // Get the trip first to verify permissions
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        originCity: true,
+        destinationCity: true,
         driverCar: {
           include: {
-            driver: true
+            driver: {
+              select: {
+                id: true,
+                userId: true
+              }
+            }
           }
         },
         passengers: {
-          include: {
-            passenger: true
+          select: {
+            id: true,
+            reservationStatus: true,
+            passenger: {
+              select: {
+                id: true,
+                userId: true
+              }
+            }
           }
         }
       }
@@ -93,6 +110,21 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
           functionName: 'cancelTrip'
         }
       );
+
+      // Notify all affected passengers about trip cancellation
+      const affectedPassengerIds = trip.passengers
+        .filter(p => ['PENDING_APPROVAL', 'APPROVED', 'CONFIRMED'].includes(p.reservationStatus))
+        .map(p => p.passenger.userId);
+
+      if (affectedPassengerIds.length > 0) {
+        await notifyMultipleUsers(
+          affectedPassengerIds,
+          "Viaje cancelado",
+          `El viaje de ${trip.originCity} a ${trip.destinationCity} ha sido cancelado por el conductor.`,
+          undefined,
+          `/viajes`
+        );
+      }
     } else if (isPassenger && passengerTripId) {
       // If passenger is canceling, only update their reservation status
       await prisma.tripPassenger.update({
@@ -117,6 +149,15 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
           fileName: 'cancel-trip.ts',
           functionName: 'cancelTrip'
         }
+      );
+
+      // Notify driver about passenger cancellation
+      await notifyUser(
+        trip.driverCar.driver.userId,
+        "Reserva cancelada",
+        `Un pasajero canceló su reserva para el viaje de ${trip.originCity} a ${trip.destinationCity}.`,
+        undefined,
+        `/viajes/${tripId}/gestionar-viaje`
       );
     }
 

@@ -160,7 +160,6 @@ export async function rejectExpiredPendingReservations() {
         }
       }
     });
-    console.log('Expired Reservations:', expiredReservations);
 
     if (expiredReservations.length === 0) {
       return ApiHandler.handleSuccess(
@@ -177,7 +176,6 @@ export async function rejectExpiredPendingReservations() {
 
     // Process rejections
     const result = await rejectPendingReservationsAction(reservationIds, true);
-    console.log('Rejection Result:', result);
 
     // Only log if processing was successful
     if (result.success) {
