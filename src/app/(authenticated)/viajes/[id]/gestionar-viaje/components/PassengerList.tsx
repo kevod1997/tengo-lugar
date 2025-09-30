@@ -51,8 +51,7 @@ type PassengersListProps = {
 export default function PassengersList({ trip }: PassengersListProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [passengerToCancel, setPassengerToCancel] = useState<{id: string, name: string} | null>(null)
-  
+
   // Sort and filter passengers
   const pendingPassengers = trip.passengers.filter(
     (p: any) => p.reservationStatus === 'PENDING_APPROVAL'

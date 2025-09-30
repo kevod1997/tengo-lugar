@@ -30,7 +30,6 @@ postgres_backup/
 
 # production
 /build
-/docs
 
 # misc
 .DS_Store
