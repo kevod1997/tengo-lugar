@@ -102,11 +102,13 @@ export async function managePassenger(data: {
     }
     
     // Update passenger status
-    const newStatus = validatedData.action === 'approve' ? 'APPROVED' : 'CANCELLED_BY_DRIVER';
+    const newStatus = validatedData.action === 'approve' ? 'APPROVED' : 'REJECTED';
     
     await prisma.tripPassenger.update({
       where: { id: validatedData.passengerTripId },
-      data: { reservationStatus: newStatus }
+      data: { reservationStatus: newStatus,
+        approvedAt: validatedData.action === 'approve' ? new Date() : null
+      }
     });
     
     // If rejecting passenger that was previously approved, update remainingSeats and trip fullness

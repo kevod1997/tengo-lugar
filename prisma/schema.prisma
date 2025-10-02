@@ -326,6 +326,7 @@ model Trip {
   // Route information
   googleMapsUrl   String? // URL to Google Maps route
   date            DateTime
+  originalDepartureTime DateTime? // Original scheduled departure time
   departureTime   DateTime
   price           Int
   distance        Float?
@@ -355,10 +356,11 @@ model Trip {
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
 
-  driverCar  DriverCar       @relation(fields: [driverCarId], references: [id])
-  passengers TripPassenger[]
-  reviews    Review[]
-  category   TripCategory?   @relation(fields: [categoryId], references: [id])
+  driverCar     DriverCar       @relation(fields: [driverCarId], references: [id])
+  passengers    TripPassenger[]
+  reviews       Review[]
+  category      TripCategory?   @relation(fields: [categoryId], references: [id])
+  cancellations Cancellation[]
 
   @@index([driverCarId])
   @@index([date, status])
@@ -373,12 +375,14 @@ model TripPassenger {
   seatsReserved      Int               @default(1)
   totalPrice         Float
   reservationMessage String?
+  approvedAt         DateTime? 
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
-  trip      Trip      @relation(fields: [tripId], references: [id])
-  passenger Passenger @relation(fields: [passengerId], references: [id])
-  payment   Payment?
+  trip         Trip          @relation(fields: [tripId], references: [id])
+  passenger    Passenger     @relation(fields: [passengerId], references: [id])
+  payment      Payment?
+  cancellation Cancellation?
 
   @@unique([tripId, passengerId])
   @@index([tripId])
@@ -412,6 +416,7 @@ model Payment {
   amount          Float
   currency        String        @default("ARS")
   status          PaymentStatus @default(PENDING)
+  paymentMethod   PaymentMethod
   notes           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -419,9 +424,11 @@ model Payment {
 
   tripPassenger TripPassenger @relation(fields: [tripPassengerId], references: [id])
   bankTransfer  BankTransfer?
+  refund        Refund?
 
   @@index([status])
   @@index([createdAt])
+  @@index([paymentMethod, status])
 }
 
 model BankTransfer {
@@ -435,6 +442,47 @@ model BankTransfer {
   failureReason String?
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+}
+
+model Refund {
+  id                 String       @id @default(cuid())
+  paymentId          String       @unique
+  refundAmount       Float // Monto reembolsado al pasajero
+  driverCompensation Float        @default(0) // Compensación al conductor
+  serviceFeeRetained Float // Tarifa de servicio retenida por Tengo Lugar
+  refundStatus       RefundStatus // PROCESSING, COMPLETED, FAILED
+  refundType         RefundType // FULL_REFUND, PARTIAL_75, PARTIAL_50, NO_REFUND
+  processedAt        DateTime? // Cuándo se procesó el reembolso
+  completedAt        DateTime? // Cuándo se completó
+  failureReason      String? // Si falló, por qué
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  @@index([refundStatus])
+  @@index([paymentId])
+}
+
+model Cancellation {
+  id                   String       @id @default(cuid())
+  // IMPORTANTE: Solo UNO de estos dos campos debe tener valor
+  // - Si cancelledBy === PASSENGER → usar tripPassengerId
+  // - Si cancelledBy === DRIVER → usar tripId
+  tripPassengerId      String?      @unique
+  tripId               String?
+  cancelledBy          CancelledBy // PASSENGER, DRIVER
+  reason               String // Texto libre - motivo de cancelación
+  hoursBeforeDeparture Float // Horas de anticipación
+  refundPercentage     Float // % de reembolso aplicado (solo cuando cancelledBy === PASSENGER)
+  cancelledAt          DateTime     @default(now())
+
+  tripPassenger TripPassenger? @relation(fields: [tripPassengerId], references: [id])
+  trip          Trip?          @relation(fields: [tripId], references: [id])
+
+  @@index([cancelledBy])
+  @@index([tripPassengerId])
+  @@index([tripId])
 }
 
 model TripCategory {
@@ -558,15 +606,19 @@ enum TripStatus {
 }
 
 enum ReservationStatus {
-  PENDING_APPROVAL // Waiting for driver approval
+  PENDING_APPROVAL // Esperando aprobación del conductor
   WAITLISTED // Trip full but passenger is on waiting list
-  APPROVED // Driver approved, pending payment
-  APRROVED_PENDING_PAYMENT // Driver approved, payment pending
-  REJECTED // Driver rejected the request
-  CONFIRMED // Confirmed (approved and paid)
-  CANCELLED_BY_DRIVER // Cancelled by driver
-  CANCELLED_BY_PASSENGER // Cancelled by passenger
-  COMPLETED // Trip completed
+  APPROVED // Aprobado, pendiente de pago
+  REJECTED // Rechazado por conductor
+  CONFIRMED // Pagado y confirmado - LISTO PARA VIAJAR
+  CANCELLED_EARLY // Cancelado con >24h (reembolso completo)
+  CANCELLED_MEDIUM // Cancelado 12-24h (reembolso 75%)
+  CANCELLED_LATE // Cancelado <12h (reembolso 50%)
+  CANCELLED_BY_DRIVER_EARLY // Cancelado por conductor >48h (sin penalidad)
+  CANCELLED_BY_DRIVER_LATE // Cancelado por conductor <48h (con penalidad)
+  NO_SHOW // No se presentó (sin reembolso)
+  COMPLETED // Viaje completado exitosamente
+  EXPIRED // Reserva expirada (no pagada a tiempo)
 }
 
 enum PaymentStatus {
@@ -620,3 +672,25 @@ enum MessageStatus {
   FAILED
 }
 
+enum RefundStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RefundType {
+  NO_REFUND
+  FULL_REFUND
+  PARTIAL_REFUND_75
+  PARTIAL_REFUND_50
+}
+
+enum CancelledBy {
+  PASSENGER
+  DRIVER
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  MERCADO_PAGO
+}
