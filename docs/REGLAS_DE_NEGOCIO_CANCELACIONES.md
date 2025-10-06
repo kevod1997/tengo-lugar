@@ -173,7 +173,7 @@ Solo se reembolsa el **precio del viaje** según las reglas especificadas más a
 
 - El conductor modifica horario o preferencias del viaje
 - La modificación se puede realizar hasta 36 horas antes de la salida, luego de eso ya no puede
-- Solo aplica si tiene pasajeros en estado `CONFIRMED` (pagado)
+- La regla anterior solo aplica si tiene pasajeros en estado `CONFIRMED` (pagado)
 
 **Consecuencias:**
 
@@ -227,25 +227,25 @@ Solo se reembolsa el **precio del viaje** según las reglas especificadas más a
 
 **Objetivo**: Proteger a los pasajeros aprobados de cancelaciones arbitrarias del conductor, mientras se mantiene flexibilidad inicial limitada.
 
-**Regla Fundamental**: El conductor NO puede bajar pasajeros en estado `APPROVED` excepto dentro de ventanas de tiempo específicas desde la aprobación.
+**Regla Fundamental**: El conductor NO puede bajar pasajeros en estado `APPROVED` durante las ventanas de tiempo de protección. Después de estas ventanas, SÍ puede removerlos del viaje.
 
-**Ventanas de Tiempo Permitidas:**
+**Ventanas de Tiempo de Protección (No puede bajar al pasajero):**
 
 #### Escenario A: Viaje con Más de 24 Horas de Anticipación
 
 **Condiciones:**
 - Faltan más de 24 horas hasta la salida del viaje
 
-**Ventana permitida:**
-- ✅ **8 horas** desde que aprobó al pasajero
-- ❌ Después de 8 horas: Acción bloqueada
+**Ventana de Protección:**
+- ❌ **Primeras 8 horas** desde que aprobó al pasajero: NO puede bajar al pasajero
+- ✅ **Después de 8 horas**: SÍ puede bajar al pasajero
 
 **Ejemplo:**
 ```
 Viaje programado: Sábado 15:00
 Conductor aprueba pasajero: Lunes 10:00
-Ventana de cancelación: Hasta lunes 18:00 (8h después)
-Después del lunes 18:00: ❌ BLOQUEADO
+Protección: Lunes 10:00 hasta lunes 18:00 (8h) → ❌ BLOQUEADO
+Después del lunes 18:00: ✅ PUEDE bajar al pasajero
 ```
 
 #### Escenario B: Viaje entre 12 y 24 Horas de Anticipación
@@ -253,34 +253,36 @@ Después del lunes 18:00: ❌ BLOQUEADO
 **Condiciones:**
 - Faltan menos de 24 horas pero más de 12 horas hasta la salida
 
-**Ventana permitida:**
-- ✅ **4 horas** desde que aprobó al pasajero
-- ❌ Después de 4 horas: Acción bloqueada
+**Ventana de Protección:**
+- ❌ **Primeras 4 horas** desde que aprobó al pasajero: NO puede bajar al pasajero
+- ✅ **Después de 4 horas**: SÍ puede bajar al pasajero
 
 **Ejemplo:**
 ```
 Viaje programado: Sábado 10:00
 Conductor aprueba pasajero: Viernes 14:00 (20h antes)
-Ventana de cancelación: Hasta viernes 18:00 (4h después)
-Después del viernes 18:00: ❌ BLOQUEADO
+Protección: Viernes 14:00 hasta viernes 18:00 (4h) → ❌ BLOQUEADO
+Después del viernes 18:00: ✅ PUEDE bajar al pasajero
 ```
 
-#### Escenario C: Viaje con Menos de 12 Horas de Anticipación
+#### Escenario C: Viaje entre 3 y 12 Horas de Anticipación
 
 **Condiciones:**
-- Faltan menos de 12 horas hasta la salida
+- Faltan menos de 12 horas pero más de 3 horas hasta la salida
 
-**Ventana permitida:**
-- ✅ **2 horas** desde que aprobó al pasajero
-- ❌ Después de 2 horas: Acción bloqueada
+**Ventana de Protección:**
+- ❌ **Primeras 2 horas** desde que aprobó al pasajero: NO puede bajar al pasajero
+- ✅ **Después de 2 horas**: SÍ puede bajar al pasajero
 
 **Ejemplo:**
 ```
 Viaje programado: Sábado 10:00
 Conductor aprueba pasajero: Sábado 00:00 (10h antes)
-Ventana de cancelación: Hasta sábado 02:00 (2h después)
-Después del sábado 02:00: ❌ BLOQUEADO
+Protección: Sábado 00:00 hasta sábado 02:00 (2h) → ❌ BLOQUEADO
+Después del sábado 02:00: ✅ PUEDE bajar al pasajero
 ```
+
+**Nota Importante:** Si faltan menos de 3 horas para la salida, el conductor ya no puede aprobar nuevos pasajeros (ver sección 2.7).
 
 **Lógica de Validación:**
 
@@ -293,14 +295,17 @@ function canDriverRemoveApprovedPassenger(
   const hoursSinceApproval = (now.getTime() - approvedAt.getTime()) / (1000 * 60 * 60);
   const hoursUntilDeparture = (tripDepartureTime.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-  // Escenario C: Si faltan menos de 12h → ventana de 2h
-  if (hoursUntilDeparture < 12) return hoursSinceApproval <= 2;
+  // Si faltan menos de 3h → No se puede aprobar ni modificar (ver sección 2.7)
+  if (hoursUntilDeparture < 3) return false;
 
-  // Escenario B: Si faltan menos de 24h → ventana de 4h
-  if (hoursUntilDeparture < 24) return hoursSinceApproval <= 4;
+  // Escenario C: Si faltan menos de 12h → NO puede bajar durante primeras 2h
+  if (hoursUntilDeparture < 12) return hoursSinceApproval > 2;
 
-  // Escenario A: Por defecto → ventana de 8h
-  return hoursSinceApproval <= 8;
+  // Escenario B: Si faltan menos de 24h → NO puede bajar durante primeras 4h
+  if (hoursUntilDeparture < 24) return hoursSinceApproval > 4;
+
+  // Escenario A: Por defecto (>24h) → NO puede bajar durante primeras 8h
+  return hoursSinceApproval > 8;
 }
 ```
 
@@ -320,6 +325,146 @@ function canDriverRemoveApprovedPassenger(
 - Error del sistema en la aprobación automática
 
 **Nota Importante**: Esta protección aplica SOLO a pasajeros en estado `APPROVED` (aprobados pero no pagados). Los pasajeros en `CONFIRMED` (pagados) tienen protección total y NO pueden ser removidos bajo ninguna circunstancia excepto a través de soporte.
+
+---
+
+### 2.7 Restricciones de Tiempo para Gestión de Reservas
+
+**Objetivo**: Garantizar tiempo suficiente para verificación manual de pagos y evitar problemas operacionales en los momentos previos a la salida del viaje.
+
+#### 2.7.1 Regla de Bloqueo (3 Horas Antes de Salida)
+
+**Condiciones:**
+- Faltan menos de 3 horas para la hora de salida del viaje
+
+**Restricciones aplicadas:**
+- ❌ **Pasajeros**: NO pueden solicitar nuevas reservas
+- ❌ **Conductores**: NO pueden aprobar solicitudes pendientes
+- ❌ **Sistema**: Bloquea todas las acciones de modificación de pasajeros
+
+**Mensaje mostrado:**
+```
+⏰ No se pueden realizar nuevas reservas con menos de 3 horas de anticipación.
+
+El viaje sale en [X] horas y [Y] minutos. Por favor, busca otro viaje o contacta al conductor directamente.
+```
+
+**Razón de esta regla:**
+- Garantizar tiempo mínimo para que pasajeros realicen el pago
+- Evitar solicitudes de último momento que no tengan tiempo de procesarse
+- Proteger al conductor de cambios súbitos en la ocupación del vehículo
+
+#### 2.7.2 Regla de Auto-Expiración (2 Horas Antes de Salida)
+
+**Condiciones:**
+- Faltan menos de 2 horas para la hora de salida del viaje
+- Sistema ejecuta revisión automática cada hora
+
+**Acciones automáticas del sistema:**
+
+1. **Identificar reservas no pagadas:**
+   - Estado `PENDING_APPROVAL` (pendiente de aprobación)
+   - Estado `APPROVED` (aprobado pero no pagado)
+
+2. **Expirar reservas automáticamente:**
+   - `PENDING_APPROVAL` → `EXPIRED`
+   - `APPROVED` → `EXPIRED`
+   - Solo permanecen: `CONFIRMED` (pagadas)
+
+3. **Liberar asientos:**
+   - `Trip.remainingSeats` += asientos de reservas expiradas
+   - Asientos quedan disponibles para nuevos pasajeros (si aún no se alcanzaron las 3h)
+
+4. **Notificaciones automáticas:**
+   - 📧 Email al pasajero afectado
+   - 🔔 Notificación push si tiene la app
+   - 💬 WhatsApp con explicación del motivo
+   - 📱 Notificación al conductor sobre liberación de asientos
+
+**Mensaje a pasajeros afectados:**
+```
+❌ Tu reserva ha expirado
+
+Viaje: [Origen] → [Destino]
+Fecha: [DD/MM/YYYY HH:mm]
+Conductor: [Nombre]
+
+Tu reserva expiró automáticamente porque no se completó el pago antes de las 2 horas previas a la salida.
+
+Razones posibles:
+- No enviaste el comprobante de pago
+- El comprobante está en verificación
+
+Si realizaste el pago, contacta a soporte de inmediato.
+```
+
+**Mensaje al conductor:**
+```
+🔓 Asientos liberados en tu viaje
+
+Viaje: [Origen] → [Destino]
+Fecha: [DD/MM/YYYY HH:mm]
+
+Se liberaron [X] asientos por expiración automática de reservas no pagadas.
+
+Asientos disponibles ahora: [Y]
+```
+
+#### 2.7.3 Timeline Visual de Restricciones
+
+**Ejemplo: Viaje programado para las 10:00 AM**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                    │                    │                    │
+                    │                    │                    │
+                07:00 AM             08:00 AM            10:00 AM
+              (3h antes)           (2h antes)          (SALIDA)
+                    │                    │                    │
+                    ▼                    ▼                    ▼
+              ┌─────────────────────────────────────────────────┐
+              │   ZONA BLOQUEADA         ZONA CRÍTICA          │
+              ├─────────────────────────────────────────────────┤
+              │                                                 │
+              │  ❌ No nuevas solicitudes  ⏰ Auto-expiración   │
+              │  ❌ No aprobar             ejecuta:             │
+              │                            - PENDING → EXPIRED  │
+              │                            - APPROVED → EXPIRED │
+              │                            📧 Notificaciones    │
+              │                            🔓 Asientos liberados│
+              │                                                 │
+              └─────────────────────────────────────────────────┘
+```
+
+#### 2.7.4 Excepciones y Casos Especiales
+
+**No aplica expiración automática si:**
+- ✅ Reserva está en estado `CONFIRMED` (pagada) → Nunca expira
+- ✅ Comprobante está en verificación (`PROCESSING`) → Se mantiene pendiente
+- ✅ Conductor cancela el viaje completo → Proceso de cancelación normal
+
+**Pasajeros con comprobante en verificación:**
+- Si el comprobante se envió pero está en proceso de verificación manual
+- Sistema NO expira la reserva automáticamente
+- Admin tiene visibilidad de que faltan pocas horas para la salida
+- Admin debe priorizar la verificación o rechazar con justificación clara
+
+#### 2.7.5 Implementación Técnica
+
+**Sistema de auto-expiración:**
+- Cron job con Inngest ejecutándose cada hora
+- Busca viajes que salen en las próximas 2 horas
+- Identifica reservas `PENDING_APPROVAL` y `APPROVED`
+- Ejecuta expiración en transacción Prisma
+- Envía notificaciones en segundo plano
+
+**Validaciones en tiempo real:**
+- Server Actions validan tiempo antes de aprobar
+- Middleware verifica estado al acceder al viaje
+- UI muestra cuenta regresiva hasta las 3h de corte
+
+---
 
 ### 2.6 Penalidades por Cancelaciones Frecuentes (Solo para viajes con pasajeros pagos)
 

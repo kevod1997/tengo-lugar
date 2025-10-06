@@ -42,6 +42,8 @@ model User {
   reviewsReceived   Review[]              @relation("ReviewReceived")
   pushSubscriptions PushSubscription[]
   notifications     Notification[]
+  supportTickets    SupportTicket[]
+  assignedTickets   SupportTicket[]       @relation("AssignedTickets")
 }
 
 model Session {
@@ -142,8 +144,16 @@ model Driver {
   enabledAt            DateTime?
   disabledReason       String?
   lastEligibilityCheck DateTime    @default(now())
+
+  // Información bancaria para pagos
+  bankAlias            String?
+  bankCbuOrCvu         String?     // CBU o CVU (22 dígitos)
+  bankInfoVerified     Boolean     @default(false)
+  bankInfoVerifiedAt   DateTime?
+
   licence              Licence?
   cars                 DriverCar[]
+  payouts              DriverPayout[]
   user                 User        @relation(fields: [userId], references: [id])
 }
 
@@ -361,6 +371,7 @@ model Trip {
   reviews       Review[]
   category      TripCategory?   @relation(fields: [categoryId], references: [id])
   cancellations Cancellation[]
+  driverPayout  DriverPayout?
 
   @@index([driverCarId])
   @@index([date, status])
@@ -568,6 +579,75 @@ model Notification {
   @@index([userId, read])
 }
 
+model SupportTicket {
+  id           String        @id @default(uuid())
+  ticketNumber String        @unique
+  userId       String
+
+  category     TicketCategory
+  subject      String
+  description  String        @db.Text
+  status       TicketStatus  @default(OPEN)
+
+  assignedToAdminId String?
+  resolution        String?   @db.Text
+
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  user          User  @relation(fields: [userId], references: [id])
+  assignedAdmin User? @relation("AssignedTickets", fields: [assignedToAdminId], references: [id])
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+}
+
+model DriverPayout {
+  id           String        @id @default(uuid())
+  tripId       String        @unique
+  driverId     String
+
+  // Montos
+  totalEarned  Float         // Total ganado por el viaje (sin descontar fee)
+  serviceFee   Float         // Fee de Tengo Lugar
+  payoutAmount Float         // Total a pagar al conductor (totalEarned - serviceFee)
+  currency     String        @default("ARS")
+
+  // Estado
+  status       PayoutStatus  @default(PENDING)
+  payoutMethod PaymentMethod @default(BANK_TRANSFER)
+
+  // Notas y auditoría
+  notes        String?
+  processedBy  String?       // Admin que procesó el pago
+
+  // Timestamps
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  processedAt  DateTime?     // Cuándo se procesó la transferencia
+  completedAt  DateTime?     // Cuándo se completó
+
+  trip          Trip           @relation(fields: [tripId], references: [id])
+  driver        Driver         @relation(fields: [driverId], references: [id])
+  transferProof TransferProof?
+
+  @@index([driverId, status])
+  @@index([status, createdAt])
+  @@index([tripId])
+}
+
+model TransferProof {
+  id             String   @id @default(uuid())
+  driverPayoutId String   @unique
+  proofFileKey   String   // S3 key del comprobante
+  transferDate   DateTime // Fecha de la transferencia
+  transferredBy  String   // ID del admin que realizó la transferencia
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  driverPayout DriverPayout @relation(fields: [driverPayoutId], references: [id], onDelete: Cascade)
+}
+
 enum CardType {
   GREEN
   BLUE
@@ -693,4 +773,24 @@ enum CancelledBy {
 enum PaymentMethod {
   BANK_TRANSFER
   MERCADO_PAGO
+}
+
+enum PayoutStatus {
+  PENDING       // Esperando procesamiento
+  PROCESSING    // En proceso de transferencia
+  COMPLETED     // Transferencia completada
+  FAILED        // Transferencia fallida
+  ON_HOLD       // En espera (verificación pendiente)
+}
+
+enum TicketCategory {
+  PAYMENT_ISSUE
+  TRIP_ISSUE
+  ACCOUNT_ISSUE
+  OTHER
+}
+
+enum TicketStatus {
+  OPEN
+  RESOLVED
 }

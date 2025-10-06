@@ -39,42 +39,14 @@ PENDING_APPROVAL → APPROVED → CONFIRMED → COMPLETED
 
 **\* Protección de Estado APPROVED:**
 - El pasajero en estado `APPROVED` tiene **protección limitada** contra cancelación arbitraria del conductor
-- El conductor solo puede bajar al pasajero dentro de **ventanas de tiempo específicas** desde la aprobación:
+- El conductor no puede bajar al pasajero dentro de **ventanas de tiempo específicas** desde la aprobación:
   - **Viaje >24h**: 8 horas desde aprobación
   - **Viaje 12-24h**: 4 horas desde aprobación
-  - **Viaje <12h**: 2 horas desde aprobación
-- Fuera de estas ventanas, el pasajero está protegido y solo puede ser removido por soporte con justificación válida
-- Ver [REGLAS_DE_NEGOCIO_CANCELACIONES.md - Sección 2.5.1](./REGLAS_DE_NEGOCIO_CANCELACIONES.md) para detalles completos
-
-### 1.2 Ventana de Tiempo para Pagar
-
-**Condiciones:**
-
-- El pasajero tiene **48 horas** desde la aprobación para realizar el pago
-- Si el viaje es en menos de 48 horas, debe pagar antes de **24 horas** previas a la salida
-- Pasadas estas ventanas, la reserva expira automáticamente
-
-**Ejemplo 1 - Viaje lejano:**
-- Viaje programado: 15 de enero a las 10:00
-- Aprobación: 1 de enero a las 14:00
-- Límite de pago: 3 de enero a las 14:00 (48 horas después)
-
-**Ejemplo 2 - Viaje cercano:**
-- Viaje programado: 5 de enero a las 10:00
-- Aprobación: 4 de enero a las 18:00 (menos de 48h al viaje)
-- Límite de pago: 4 de enero a las 10:00 (24h antes de la salida)
-
-### 1.3 Expiración Automática
-
-**Condiciones:**
-- La reserva no fue pagada dentro de la ventana de tiempo establecida
-- Sistema automáticamente cambia el estado a `EXPIRED`
-
-**Consecuencias:**
-- ❌ **Pasajero**: Pierde el lugar reservado
-- ✅ **Asientos**: Se liberan automáticamente para otros pasajeros
-- 🔔 **Notificaciones**: Se envía notificación al pasajero y conductor
-- ♻️ **Re-reserva**: El pasajero puede volver a solicitar si hay lugares disponibles
+  - **Viaje 3-12h**: 2 horas desde aprobación
+- Fuera de estas ventanas, el pasajero no está protegido y puede ser removido
+- **IMPORTANTE**: Si faltan menos de 3 horas para la salida, no se pueden aprobar nuevos pasajeros
+- **AUTO-EXPIRACIÓN**: Si faltan menos de 2 horas para la salida, las reservas `APPROVED` expiran automáticamente
+- Ver [REGLAS_DE_NEGOCIO_CANCELACIONES.md - Sección 2.5.1 y 2.7](./REGLAS_DE_NEGOCIO_CANCELACIONES.md) para detalles completos
 
 ---
 
@@ -101,23 +73,7 @@ Alias: tengo.lugar.pagos
 
 1. **Realizar la transferencia** desde una cuenta bancaria
 2. **Capturar el comprobante** (screenshot o PDF del banco)
-3. **Enviar al WhatsApp de Tengo Lugar**: [NÚMERO A COMPLETAR]
-4. **Incluir en el mensaje**:
-   - Número de reserva (ID del `TripPassenger`)
-   - Nombre completo del pasajero
-   - Origen → Destino del viaje
-   - Fecha del viaje
-
-**Formato del mensaje de WhatsApp:**
-```
-Hola! Adjunto comprobante de pago
-
-Reserva: [ID]
-Nombre: [Nombre del pasajero]
-Viaje: [Origen] → [Destino]
-Fecha: [DD/MM/YYYY]
-Monto: $[Total]
-```
+3. **Enviar al WhatsApp de Tengo Lugar mediante Link generado**: [NÚMERO A COMPLETAR]
 
 ### 2.3 Requisitos del Comprobante
 
@@ -128,25 +84,27 @@ Monto: $[Total]
 
 **Información visible requerida:**
 - Nombre del titular de la cuenta origen
-- Fecha y hora de la transferencia
 - Monto transferido (debe coincidir con el total)
-- Banco origen y destino
 - Número de operación/transacción
-- CBU/CVU de destino (debe coincidir con cuenta de Tengo Lugar)
 
 ### 2.4 Verificación del Número de WhatsApp
 
 **Requisito crítico:**
 - El comprobante **DEBE** enviarse desde el **número de teléfono registrado** del pasajero
-- El número debe estar verificado en la plataforma
-- Sistema valida que `User.phoneNumber` coincida con el remitente de WhatsApp
 
-**Validaciones:**
-```typescript
-- User.phoneNumberVerified === true
-- WhatsApp remitente === User.phoneNumber
-- Si no coincide → Rechazo automático
-```
+### 2.5 Sistema de Verificación Automática (Complementario)
+
+**Nota**: Existe un sistema complementario de verificación automática que procesa notificaciones de transferencias de Mercado Pago mediante una API externa.
+
+**Características:**
+- Recibe notificaciones de transferencias bancarias
+- Aplica fuzzy matching entre nombre del remitente y nombre del pasajero
+- Valida montos con tolerancia de ±$0.01
+- Actualiza automáticamente estados de la tabla Payments si encuentra coincidencia
+
+**⚠️ IMPORTANTE**: Este sistema **NO reemplaza** el envío obligatorio del comprobante vía WhatsApp. Los pasajeros **DEBEN** seguir enviando el comprobante como se especifica en la Sección 2.2. El sistema automático es únicamente un mecanismo de **agilización y respaldo**.
+
+Ver documentación técnica completa en: `COMPLETAR`
 
 ---
 
@@ -265,11 +223,6 @@ BankTransfer !== null && BankTransfer.verifiedAt !== null
 
 ### 4.3 Tiempo de Procesamiento
 
-**SLA de verificación:**
-- **Horario hábil** (Lun-Vie 9:00-18:00): Máximo 4 horas
-- **Fuera de horario**: Máximo 24 horas
-- **Fines de semana**: Máximo 48 horas
-
 **Notificaciones automáticas:**
 - ✉️ Al recibir comprobante: "Recibimos tu comprobante, lo estamos verificando"
 - ✅ Al aprobar: "¡Pago confirmado! Tu reserva está garantizada"
@@ -303,33 +256,16 @@ TripPassenger {
 
 ## 5. Manejo de Errores y Rechazos
 
-### 5.1 Motivos de Rechazo de Comprobante
-
-**Errores comunes:**
-
-| Motivo | Código | Descripción | Solución |
-|--------|--------|-------------|----------|
-| Monto incorrecto | `AMOUNT_MISMATCH` | El monto no coincide con el total | Transferir diferencia o solicitar reembolso |
-| CBU incorrecto | `INVALID_CBU` | Transferido a CBU equivocado | Realizar nueva transferencia |
-| Comprobante ilegible | `UNREADABLE_PROOF` | No se puede leer la información | Enviar imagen más clara |
-| Comprobante editado | `TAMPERED_PROOF` | Detectada edición del comprobante | Enviar comprobante original |
-| Número incorrecto | `PHONE_MISMATCH` | WhatsApp no coincide con registro | Enviar desde número registrado |
-| Transferencia no encontrada | `TRANSFER_NOT_FOUND` | No se acreditó en cuenta | Esperar acreditación o contactar banco |
-
-### 5.2 Proceso de Corrección
+### 5.1 Rechazo de Comprobante
 
 **Si el comprobante es rechazado:**
 
 1. **Notificación inmediata** al pasajero vía:
    - WhatsApp
-   - Notificación push
    - Email
+   - Notificacion
 2. **Explicación clara** del motivo de rechazo
 3. **Instrucciones** para corregir el error
-4. **Nueva ventana de tiempo**:
-   - Si es monto incorrecto: 24 horas para completar
-   - Si es comprobante: 6 horas para reenviar
-   - Si es transferencia no acreditada: 48 horas para confirmar
 
 **Ejemplo de mensaje de rechazo:**
 ```
@@ -341,27 +277,10 @@ Monto requerido: $5,500
 Diferencia: $500
 
 Por favor, transferí los $500 restantes y
-enviá el nuevo comprobante dentro de las
-próximas 24 horas.
+enviá el nuevo comprobante a la brevedad.
 
 Gracias!
 ```
-
-### 5.3 Casos Especiales
-
-**Transferencia excedente:**
-- Si el pasajero transfiere de más: Retener como crédito para futuros viajes
-- Notificar el saldo a favor
-
-**Transferencia insuficiente:**
-- Retener como pago parcial
-- Solicitar diferencia dentro de 24 horas
-- Si no completa: Reembolsar automáticamente
-
-**Transferencia duplicada:**
-- Verificar en sistema
-- Si ya estaba confirmado: Reembolsar segunda transferencia
-- Notificar inmediatamente
 
 ---
 
@@ -381,45 +300,6 @@ Gracias!
 | `APPROVED` | ✅ Sí | ❌ No (no pagó) | - |
 | `CONFIRMED` | ✅ Sí | ✅ Sí (según tiempo) | Ver doc CANCELACIONES.md |
 | `EXPIRED` | ❌ No | ❌ No | - |
-
-### 6.2 Expiración vs Cancelación
-
-**Diferencias clave:**
-
-**Expiración (APPROVED → EXPIRED):**
-- Sistema automático por no pagar
-- NO hay reembolso (nunca hubo pago)
-- Asientos se liberan automáticamente
-- Sin penalidad para el pasajero
-
-**Cancelación (APPROVED → CANCELLED):**
-- Acción manual del pasajero antes de pagar
-- NO hay reembolso (nunca hubo pago)
-- Asientos se liberan inmediatamente
-- Sin penalidad para el pasajero
-
-**Cancelación con pago (CONFIRMED → CANCELLED_*):**
-- Acción manual del pasajero después de pagar
-- **SÍ hay reembolso** según políticas de tiempo
-- Aplica retención de tarifa de servicio
-- Ver documento `REGLAS_DE_NEGOCIO_CANCELACIONES.md`
-
-### 6.3 Tabla Resumen de Transiciones
-
-```
-╔═══════════════════╦══════════════════════╦═══════════════════╗
-║ Estado Origen     ║ Acción               ║ Estado Destino    ║
-╠═══════════════════╬══════════════════════╬═══════════════════╣
-║ APPROVED          ║ Pagar                ║ CONFIRMED         ║
-║ APPROVED          ║ No pagar (timeout)   ║ EXPIRED           ║
-║ APPROVED          ║ Cancelar manual      ║ CANCELLED (sin $) ║
-║ CONFIRMED         ║ Cancelar >24h        ║ CANCELLED_EARLY   ║
-║ CONFIRMED         ║ Cancelar 12-24h      ║ CANCELLED_MEDIUM  ║
-║ CONFIRMED         ║ Cancelar <12h        ║ CANCELLED_LATE    ║
-║ CONFIRMED         ║ No show              ║ NO_SHOW           ║
-║ CONFIRMED         ║ Completar viaje      ║ COMPLETED         ║
-╚═══════════════════╩══════════════════════╩═══════════════════╝
-```
 
 ---
 
@@ -553,127 +433,9 @@ await prisma.$transaction([
 
 ---
 
-## 8. Notificaciones del Sistema
+## 8. Consideraciones de Seguridad
 
-### 8.1 Notificaciones al Pasajero
-
-**Momento 1 - Aprobación recibida:**
-```
-✅ ¡Tu reserva fue aprobada!
-
-Ahora debés realizar el pago para confirmar tu lugar.
-
-Total a pagar: $5,500
-Tenés 48 horas para pagar.
-
-[Ver datos bancarios]
-[Cómo pagar]
-```
-
-**Momento 2 - Recordatorio (24h antes de expirar):**
-```
-⏰ Recordatorio de pago
-
-Tu reserva expira en 24 horas.
-Total: $5,500
-
-Transferí y enviá el comprobante por WhatsApp
-a: [NÚMERO]
-
-[Ver datos bancarios]
-```
-
-**Momento 3 - Comprobante recibido:**
-```
-📄 Comprobante recibido
-
-Estamos verificando tu pago.
-Te notificaremos cuando esté confirmado.
-
-Tiempo estimado: 4 horas hábiles
-```
-
-**Momento 4 - Pago confirmado:**
-```
-🎉 ¡Pago confirmado!
-
-Tu reserva está garantizada.
-Ya podés ver los detalles del viaje.
-
-[Ver mi viaje]
-[Chat con el conductor]
-```
-
-**Momento 5 - Pago rechazado:**
-```
-❌ Comprobante rechazado
-
-Motivo: [RAZÓN]
-
-[Detalles]
-[Reenviar comprobante]
-```
-
-**Momento 6 - Reserva expirada:**
-```
-⏱️ Reserva expirada
-
-Tu reserva expiró por falta de pago.
-Podés volver a reservar si hay lugares disponibles.
-
-[Buscar viajes]
-```
-
-### 8.2 Notificaciones al Conductor
-
-**Momento 1 - Pasajero aprobado:**
-```
-✅ Pasajero aprobado
-
-Esperando confirmación de pago.
-Te notificaremos cuando pague.
-
-Reserva: [Nombre] - [Origen → Destino]
-```
-
-**Momento 2 - Pago confirmado:**
-```
-💰 Pago confirmado
-
-El pasajero [Nombre] confirmó su pago.
-Reserva garantizada.
-
-[Ver pasajeros confirmados]
-```
-
-**Momento 3 - Reserva expirada:**
-```
-⏱️ Reserva expirada
-
-La reserva de [Nombre] expiró por falta de pago.
-Los asientos volvieron a estar disponibles.
-
-Asientos liberados: [N]
-```
-
-### 8.3 Notificaciones al Admin
-
-**Panel de verificación:**
-```
-📋 Comprobantes pendientes de verificación
-
-- Reserva #123: Juan Pérez - $5,500 (hace 1h)
-- Reserva #124: María González - $3,300 (hace 3h)
-- Reserva #125: Carlos López - $8,400 (hace 5h)
-
-[Verificar pagos]
-```
-
----
-
-## 9. Consideraciones de Seguridad
-
-### 9.1 Validaciones Críticas
+### 8.1 Validaciones Críticas
 
 **Antes de cambiar a CONFIRMED:**
 
@@ -686,7 +448,7 @@ Asientos liberados: [N]
 ✅ Trip.remainingSeats >= TripPassenger.seatsReserved
 ```
 
-### 9.2 Prevención de Fraudes
+### 8.2 Prevención de Fraudes
 
 **Medidas implementadas:**
 
@@ -711,7 +473,7 @@ Asientos liberados: [N]
    - Una vez cargado, no se puede editar
    - Cualquier corrección requiere nuevo comprobante
 
-### 9.3 Protección de Datos Bancarios
+### 8.3 Protección de Datos Bancarios
 
 **Manejo de información sensible:**
 
@@ -723,261 +485,817 @@ Asientos liberados: [N]
 
 ---
 
-## 10. Métricas y KPIs
+## 9. Restricciones Operacionales de Tiempo
 
-### 10.1 Métricas de Conversión
+### 9.1 Objetivo
 
-**Seguimiento de funnel:**
+Garantizar tiempo suficiente para:
+- Verificación manual de pagos por parte del equipo administrativo
+- Procesamiento de comprobantes bancarios
+- Evitar reservas de último momento que no puedan completarse
+
+**Horario de verificación manual disponible**: 9:00 AM - 11:00 PM
+
+### 9.2 Regla de Bloqueo (3 Horas Antes de Salida)
+
+**Condiciones:**
+- Faltan menos de 3 horas para la hora de salida del viaje
+
+**Restricciones aplicadas:**
+
+| Actor | Acción Bloqueada | Estado Afectado |
+|-------|------------------|-----------------|
+| **Pasajeros** | Solicitar nuevas reservas | `PENDING_APPROVAL` |
+| **Conductores** | Aprobar solicitudes pendientes | `PENDING_APPROVAL` → `APPROVED` |
+| **Sistema** | Modificación de pasajeros | Todos |
+
+**Mensaje mostrado a pasajeros:**
+```
+⏰ No se pueden realizar nuevas reservas con menos de 3 horas de anticipación.
+
+El viaje sale en [X] horas y [Y] minutos.
+Por favor, busca otro viaje o contacta al conductor directamente.
+```
+
+**Mensaje mostrado a conductores:**
+```
+⏰ No puedes aprobar solicitudes con menos de 3 horas de anticipación.
+
+El viaje sale muy pronto y no hay tiempo suficiente para que el pasajero complete el pago y su verificación.
+```
+
+**Razón de negocio:**
+- Tiempo mínimo para que el pasajero realice transferencia bancaria
+- Tiempo para enviar comprobante vía WhatsApp
+- Tiempo para verificación manual del admin
+- Evitar cambios súbitos de ocupación cerca de la salida
+
+### 9.3 Regla de Auto-Expiración (2 Horas Antes de Salida)
+
+**Objetivo**: Limpiar automáticamente reservas no pagadas que ya no tienen tiempo viable para completarse.
+
+**Condiciones:**
+- Faltan menos de 2 horas para la hora de salida del viaje
+- Sistema ejecuta revisión automática cada hora (Cron job con Inngest)
+
+**Estados afectados:**
+
+| Estado Actual | Estado Resultante | Razón |
+|---------------|-------------------|-------|
+| `PENDING_APPROVAL` | `EXPIRED` | No fue aprobado a tiempo |
+| `APPROVED` | `EXPIRED` | No completó el pago a tiempo |
+| `CONFIRMED` | Sin cambios | Pago ya verificado - **NUNCA EXPIRA** |
+
+**Proceso de auto-expiración:**
+
+1. **Identificación:**
+   ```sql
+   SELECT * FROM TripPassenger
+   WHERE reservationStatus IN ('PENDING_APPROVAL', 'APPROVED')
+   AND trip.departureTime < NOW() + INTERVAL '2 hours'
+   ```
+
+2. **Actualización en transacción:**
+   ```typescript
+   await prisma.$transaction([
+     // 1. Actualizar estado a EXPIRED
+     prisma.tripPassenger.updateMany({
+       where: { id: { in: expiredIds } },
+       data: { reservationStatus: 'EXPIRED' }
+     }),
+
+     // 2. Liberar asientos en el viaje
+     prisma.trip.update({
+       where: { id: tripId },
+       data: {
+         remainingSeats: { increment: totalSeatsToRelease }
+       }
+     })
+   ]);
+   ```
+
+3. **Notificaciones enviadas:**
+   - 📧 Email al pasajero explicando expiración
+   - 🔔 Notificación push (si tiene app instalada)
+   - 💬 WhatsApp con detalles del viaje
+   - 📱 Notificación al conductor sobre asientos liberados
+
+**Mensaje al pasajero (email/notificación):**
+```
+❌ Tu reserva ha expirado
+
+Viaje: [Origen] → [Destino]
+Fecha: [DD/MM/YYYY HH:mm]
+Conductor: [Nombre del Conductor]
+
+Tu reserva expiró automáticamente porque no se completó el pago
+antes de las 2 horas previas a la salida del viaje.
+
+Razones posibles:
+• No enviaste el comprobante de pago
+• El comprobante está aún en verificación
+• El conductor no aprobó tu solicitud a tiempo
+
+¿Realizaste el pago?
+Si enviaste el comprobante, contacta a soporte de inmediato
+para revisar tu caso.
+
+Soporte: soporte@tengolugar.com
+WhatsApp: [NÚMERO]
+```
+
+**Mensaje al conductor:**
+```
+🔓 Asientos liberados en tu viaje
+
+Viaje: [Origen] → [Destino]
+Fecha: [DD/MM/YYYY HH:mm]
+
+Se liberaron [X] asientos por expiración automática de
+reservas no pagadas.
+
+Asientos disponibles ahora: [Y]
+
+Nota: Estos asientos ya NO están disponibles para nuevas
+reservas porque faltan menos de 3 horas para la salida.
+```
+
+### 9.4 Excepciones a la Auto-Expiración
+
+**No expiran automáticamente:**
+
+✅ **Reservas CONFIRMED (pagadas)**
+- Pago ya verificado
+- Lugar garantizado en el viaje
+- Nunca expiran por tiempo
+
+✅ **Comprobantes en verificación (Payment.status = PROCESSING)**
+- Pasajero ya envió comprobante
+- Está pendiente revisión del admin
+- Sistema mantiene la reserva `APPROVED`
+- Admin tiene visibilidad de urgencia (faltan <2h)
+- Admin debe priorizar verificación o rechazar con justificación
+
+✅ **Viaje cancelado por conductor**
+- Si conductor cancela viaje completo
+- Proceso de cancelación normal aplica
+- No se ejecuta auto-expiración
+
+**Caso especial - Comprobante en verificación:**
+
+Si un pasajero envió comprobante pero está aún en revisión manual:
+
+```typescript
+// Sistema verifica antes de expirar
+const hasProofInReview = await prisma.payment.findUnique({
+  where: { tripPassengerId: passenger.id },
+  select: {
+    status: true,
+    bankTransfer: { select: { proofFileKey: true } }
+  }
+});
+
+if (hasProofInReview.status === 'PROCESSING' &&
+    hasProofInReview.bankTransfer?.proofFileKey) {
+  // NO EXPIRAR - Mantener APPROVED
+  // Notificar a admin sobre urgencia
+  await notifyAdminUrgentVerification(tripPassenger.id);
+}
+```
+
+### 9.5 Timeline Visual Completo
+
+**Ejemplo: Viaje sale a las 10:00 AM**
 
 ```
-100% - Reservas aprobadas (APPROVED)
-  ↓
- 85% - Comprobantes enviados
-  ↓
- 80% - Pagos verificados exitosamente (CONFIRMED)
-  ↓
- 15% - Reservas expiradas sin pagar
-  ↓
-  5% - Comprobantes rechazados
+TIMELINE DE RESTRICCIONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                          │                    │                    │
+         ZONA NORMAL      │   ZONA BLOQUEADA   │   ZONA CRÍTICA    │
+                          │                    │                    │
+                       07:00 AM             08:00 AM            10:00 AM
+                      (3h antes)           (2h antes)          (SALIDA)
+                          │                    │                    │
+                          ▼                    ▼                    ▼
+
+─────────────────────────┼────────────────────┼────────────────────┼────
+                         │                    │                    │
+✅ Pasajeros pueden      │ ❌ No nuevas       │ ⏰ Auto-expiración │
+   solicitar reservas    │    solicitudes     │    ejecuta:        │
+                         │                    │                    │
+✅ Conductores pueden    │ ❌ No aprobar      │  • PENDING → EXPIRED
+   aprobar solicitudes   │    solicitudes     │  • APPROVED → EXPIRED
+                         │                    │                    │
+✅ Pasajeros pueden      │ ✅ Pasajeros       │  📧 Notificaciones │
+   enviar comprobantes   │    pueden enviar   │     enviadas       │
+                         │    comprobantes    │                    │
+✅ Admin puede           │ ✅ Admin puede     │  🔓 Asientos       │
+   verificar pagos       │    verificar       │     liberados      │
+                         │    urgente         │                    │
+─────────────────────────┴────────────────────┴────────────────────┴────
+
+Nota: Las reservas CONFIRMED (pagadas) NUNCA expiran y permanecen
+activas en todas las zonas.
 ```
 
-### 10.2 Indicadores de Salud del Sistema
+### 9.6 Implementación Técnica
 
-**KPIs a monitorear:**
+**Cron Job con Inngest (Cada hora):**
 
-| Métrica | Target | Crítico si |
-|---------|--------|------------|
-| Tiempo medio de verificación | < 4h | > 24h |
-| Tasa de aprobación de comprobantes | > 90% | < 70% |
-| Tasa de conversión APPROVED→CONFIRMED | > 80% | < 60% |
-| Reservas expiradas | < 15% | > 30% |
-| Pagos pendientes de verificación | < 10 | > 50 |
+```typescript
+// functions/inngest/expire-unapproved-reservations.ts
+export const expireUnapprovedReservations = inngest.createFunction(
+  { id: "expire-unapproved-reservations" },
+  { cron: "0 * * * *" }, // Cada hora en punto
+  async ({ step }) => {
+    const now = new Date();
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
-### 10.3 Reportes Recomendados
+    // 1. Buscar viajes que salen en <2h
+    const trips = await step.run("find-trips", async () => {
+      return await prisma.trip.findMany({
+        where: {
+          departureTime: {
+            gte: now,
+            lte: twoHoursFromNow
+          },
+          status: { in: ['PENDING', 'ACTIVE'] }
+        },
+        include: {
+          passengers: {
+            where: {
+              reservationStatus: { in: ['PENDING_APPROVAL', 'APPROVED'] }
+            }
+          }
+        }
+      });
+    });
 
-**Dashboard diario:**
-- Pagos pendientes de verificación
-- Reservas próximas a expirar (< 6h)
-- Comprobantes rechazados hoy
-- Conversión APPROVED → CONFIRMED
+    // 2. Expirar reservas (excepto las que tienen pago en verificación)
+    // 3. Enviar notificaciones
+    // 4. Registrar en logs
+  }
+);
+```
 
-**Dashboard mensual:**
-- Total recaudado
-- Promedio de tiempo de verificación
-- Motivos de rechazo más comunes
-- Tendencia de conversión
+**Validación en Server Actions:**
+
+```typescript
+// src/actions/trip/approve-passenger.ts
+export async function approvePassenger(tripId: string, passengerId: string) {
+  const trip = await prisma.trip.findUnique({ where: { id: tripId } });
+  const hoursUntilDeparture =
+    (trip.departureTime.getTime() - Date.now()) / (1000 * 60 * 60);
+
+  if (hoursUntilDeparture < 3) {
+    throw ServerActionError.ValidationFailed(
+      'approve-passenger.ts',
+      'approvePassenger',
+      'No se pueden aprobar pasajeros con menos de 3 horas de anticipación'
+    );
+  }
+
+  // Continuar con aprobación...
+}
+```
+
+### 9.7 Monitoreo y Alertas
+
+**Dashboard de Admin:**
+- Lista de pagos pendientes de verificación
+- Indicador de urgencia (tiempo hasta salida)
+- Priorización automática: viajes con <4h primero
+
+**Alertas automáticas:**
+- Email a admin cuando hay pagos `PROCESSING` con <3h hasta salida
+- Slack/Discord notification para equipo de soporte
+- Reporte diario de reservas expiradas
 
 ---
 
-## 11. Casos de Uso Completos
+## 10. Pagos a Conductores Post-Viaje
 
-### Caso 1: Flujo Exitoso Normal
+### 10.1 Información Bancaria del Conductor
 
-**Situación**: Juan reserva un viaje con aprobación automática y paga correctamente.
+**Prerequisito para recibir pagos:**
+- Los conductores **DEBEN** registrar su información bancaria antes de poder recibir pagos
+- Sin información bancaria verificada, los pagos quedarán en estado `ON_HOLD`
 
-**Timeline:**
+**Datos requeridos:**
+
 ```
-Día 1 - 10:00
-- Juan hace reserva → PENDING_APPROVAL
-- Viaje tiene autoApproveReservations = true
-- Sistema aprueba automáticamente → APPROVED
-- Payment creado con status = PENDING
-- Juan recibe notificación con datos bancarios
-
-Día 1 - 11:30
-- Juan realiza transferencia de $5,500
-- Juan envía comprobante por WhatsApp desde su número registrado
-
-Día 1 - 14:00
-- Admin recibe y revisa comprobante
-- Verifica: monto correcto, CBU correcto, comprobante legible
-- BankTransfer creado con comprobante
-- Payment.status → PROCESSING
-
-Día 1 - 14:05
-- Admin confirma verificación
-- BankTransfer.verifiedAt = now
-- Payment.status → COMPLETED
-- TripPassenger.reservationStatus → CONFIRMED
-- Juan recibe notificación: "¡Pago confirmado!"
-- Conductor recibe notificación: "Pasajero confirmado"
-
-Resultado: ✅ Reserva confirmada exitosamente
+Alias de banco/Mercado Pago: ejemplo.alias.mp
+CBU o CVU: 0000000000000000000000 (22 dígitos)
 ```
 
-### Caso 2: Comprobante Rechazado - Monto Incorrecto
+**IMPORTANTE: Validaciones críticas**
 
-**Situación**: María transfiere un monto menor al requerido.
+1. **La cuenta DEBE estar a nombre del conductor:**
+   - El titular de la cuenta bancaria debe coincidir con el nombre registrado del conductor
+   - Admin verifica esta información antes de aprobar
 
-**Timeline:**
+2. **Formato válido:**
+   - Alias: 6-50 caracteres alfanuméricos con puntos
+   - CBU/CVU: Exactamente 22 dígitos numéricos
+   - Validación con algoritmo Luhn (verificación de dígito)
+
+3. **Verificación administrativa:**
+   - Admin revisa y aprueba la información bancaria
+   - Solo después de aprobación el conductor puede recibir pagos
+   - Si cambia la información, requiere nueva verificación
+
+**Estados de verificación:**
+
+| Estado | Descripción | Puede recibir pagos |
+|--------|-------------|---------------------|
+| No registrado | Conductor no cargó datos bancarios | ❌ No |
+| Pendiente verificación | Datos cargados, esperando admin | ❌ No |
+| Verificado | Admin aprobó información bancaria | ✅ Sí |
+| Rechazado | Información incorrecta o inválida | ❌ No |
+
+---
+
+### 10.2 Cálculo del Pago al Conductor
+
+**Fórmula básica:**
+
 ```
-Día 1 - 09:00
-- María reserva, conductor aprueba → APPROVED
-- Total requerido: $5,500
-- Payment creado
-
-Día 1 - 10:00
-- María transfiere solo $5,000 (olvidó la tarifa de servicio)
-- María envía comprobante por WhatsApp
-
-Día 1 - 12:00
-- Admin revisa comprobante
-- Detecta: monto incorrecto ($5,000 vs $5,500)
-- Payment.status → FAILED
-- BankTransfer.failureReason = "AMOUNT_MISMATCH: Faltan $500"
-- María recibe notificación detallada
-
-Día 1 - 13:00
-- María transfiere los $500 faltantes
-- María envía nuevo comprobante
-
-Día 1 - 15:00
-- Admin verifica segundo comprobante
-- Suma total: $5,000 + $500 = $5,500 ✅
-- Payment.status → COMPLETED
-- TripPassenger → CONFIRMED
-
-Resultado: ✅ Reserva confirmada después de corrección
-```
-
-### Caso 3: Expiración por No Pago
-
-**Situación**: Carlos no paga dentro del plazo establecido.
-
-**Timeline:**
-```
-Lunes 10:00
-- Carlos reserva, conductor aprueba → APPROVED
-- Plazo límite: Miércoles 10:00 (48 horas)
-- Payment creado
-
-Martes 10:00
-- Sistema envía recordatorio (24h restantes)
-- Carlos no responde
-
-Miércoles 09:00
-- Sistema envía última notificación (1h restante)
-- Carlos no responde
-
-Miércoles 10:00
-- Sistema automático ejecuta:
-  - TripPassenger.reservationStatus → EXPIRED
-  - Payment.status → FAILED
-  - Payment.notes = "Expiró por falta de pago"
-  - Trip.remainingSeats += Carlos.seatsReserved
-  - Carlos recibe notificación: "Reserva expirada"
-  - Conductor recibe notificación: "Asientos liberados"
-
-Resultado: ❌ Reserva expirada, asientos liberados
+Total recibido = Σ Payments COMPLETED de pasajeros CONFIRMED
+Tarifa de servicio = Según FeePolicy del viaje
+Pago al conductor = Total recibido - Tarifa de servicio
 ```
 
-### Caso 4: WhatsApp desde Número Incorrecto
+**Desglose detallado:**
 
-**Situación**: Ana envía comprobante desde un WhatsApp que no coincide con su registro.
+```typescript
+// Paso 1: Sumar pagos completados
+const paymentsCompleted = await prisma.payment.findMany({
+  where: {
+    tripPassenger: {
+      tripId: trip.id,
+      reservationStatus: 'CONFIRMED'
+    },
+    status: 'COMPLETED'
+  }
+});
 
-**Timeline:**
+const totalReceived = paymentsCompleted.reduce(
+  (sum, payment) => sum + payment.amount,
+  0
+);
+
+// Paso 2: Calcular tarifas de servicio
+const serviceFee = calculateServiceFee(trip, paymentsCompleted);
+
+// Paso 3: Calcular pago neto al conductor
+const payoutAmount = totalReceived - serviceFee;
 ```
-Día 1 - 10:00
-- Ana reserva y es aprobada → APPROVED
-- Ana.phoneNumber = "+5491123456789"
 
-Día 1 - 11:00
-- Ana realiza transferencia correcta
-- Ana envía comprobante desde WhatsApp: "+5491198765432" ❌
-  (número diferente al registrado)
+**Ejemplo 1 - Viaje sin cancelaciones:**
 
-Día 1 - 13:00
-- Admin recibe comprobante
-- Sistema valida: número no coincide con registro
-- Admin rechaza automáticamente
-- BankTransfer.failureReason = "PHONE_MISMATCH"
-- Ana recibe notificación:
-  "Comprobante debe enviarse desde +5491123456789"
+```
+Configuración del viaje:
+- Precio por asiento: $5,000
+- Fee de servicio: 10% (porcentaje)
+- 3 pasajeros confirmados
 
-Día 1 - 14:00
-- Ana reenvía desde su número registrado ✅
-- Admin verifica y aprueba
-- Reserva confirmada
+Cálculo:
+Pasajero 1: $5,000 (viaje) + $500 (fee) = $5,500
+Pasajero 2: $5,000 (viaje) + $500 (fee) = $5,500
+Pasajero 3: $5,000 (viaje) + $500 (fee) = $5,500
+─────────────────────────────────────────────────
+Total recibido: $16,500
+Tarifa de servicio: $1,500 ($500 × 3)
+═════════════════════════════════════════════════
+PAGO AL CONDUCTOR: $15,000
+```
 
-Resultado: ✅ Confirmado después de corrección
+**Ejemplo 2 - Viaje con cancelación y reembolso:**
+
+```
+Configuración del viaje:
+- Precio por asiento: $4,000
+- Fee de servicio: $300 fijo por pasajero
+- 3 pasajeros inicialmente confirmados
+- 1 pasajero canceló (12h antes) → Reembolso 75%
+
+Pagos recibidos:
+Pasajero 1: $4,300 (viaje + fee) ✓ COMPLETED
+Pasajero 2: $4,300 (viaje + fee) ✓ COMPLETED
+Pasajero 3: $4,300 (viaje + fee) ✓ REFUNDED
+─────────────────────────────────────────────────
+Total recibido: $12,900 (2 pasajeros)
+Refund al pasajero 3: $3,225 (75% de $4,300)
+Retención por cancelación: $1,075 (25% de $4,300)
+
+Distribución del monto retenido ($1,075):
+- Fee de servicio pasajero 3: $300
+- Compensación al conductor: $775
+
+Cálculo final:
+Total neto recibido: $12,900
+Tarifas de servicio: $600 ($300 × 2)
+Compensación por cancelación: +$775
+═════════════════════════════════════════════════
+PAGO AL CONDUCTOR: $13,075
+```
+
+**Ejemplo 3 - Fee por asiento:**
+
+```
+Configuración del viaje:
+- Precio por asiento: $3,500
+- Fee de servicio: $200 por asiento
+- 4 pasajeros confirmados
+
+Pagos recibidos:
+4 pasajeros × ($3,500 + $200) = $14,800
+─────────────────────────────────────────────────
+Total recibido: $14,800
+Tarifa de servicio: $800 ($200 × 4)
+═════════════════════════════════════════════════
+PAGO AL CONDUCTOR: $14,000
 ```
 
 ---
 
-## 12. Preguntas Frecuentes (FAQ)
+### 10.3 Flujo de Pago Post-Viaje
 
-### Para Pasajeros
+**Timeline completo del proceso:**
 
-**P: ¿Cuánto tiempo tengo para pagar?**
-R: 48 horas desde la aprobación, o hasta 24 horas antes de la salida si el viaje es cercano.
+```
+┌────────────────────────────────────────────────────────┐
+│ PASO 1: Viaje Completado                              │
+│ Trip.status = COMPLETED                                │
+│ Trigger: Manual por conductor o automático            │
+└────────────────────────────────────────────────────────┘
+                      ↓
+┌────────────────────────────────────────────────────────┐
+│ PASO 2: Sistema Crea DriverPayout                     │
+│ - Calcula totalEarned, serviceFee, payoutAmount       │
+│ - Estado: PENDING                                      │
+│ - Timestamp: createdAt                                 │
+└────────────────────────────────────────────────────────┘
+                      ↓
+┌────────────────────────────────────────────────────────┐
+│ PASO 3: Validación Prerequisitos                      │
+│ ✓ Driver.bankInfoVerified === true                    │
+│ ✓ payoutAmount > 0                                     │
+│ ✓ No pagos duplicados para el mismo trip              │
+└────────────────────────────────────────────────────────┘
+                      ↓
+┌────────────────────────────────────────────────────────┐
+│ PASO 4: Admin Procesa Transferencia                   │
+│ - Revisa información bancaria del conductor           │
+│ - Realiza transferencia bancaria                      │
+│ - Estado: PROCESSING                                   │
+│ - processedBy: admin user ID                           │
+│ - processedAt: timestamp                               │
+└────────────────────────────────────────────────────────┘
+                      ↓
+┌────────────────────────────────────────────────────────┐
+│ PASO 5: Admin Carga Comprobante                       │
+│ - Sube comprobante de transferencia a S3              │
+│ - Crea TransferProof con datos:                       │
+│   • proofFileKey (S3 key)                              │
+│   • transferDate (fecha de transferencia)             │
+│   • transferredBy (admin ID)                           │
+│   • notes (opcional)                                   │
+└────────────────────────────────────────────────────────┘
+                      ↓
+┌────────────────────────────────────────────────────────┐
+│ PASO 6: Pago Completado                               │
+│ - Estado: COMPLETED                                    │
+│ - completedAt: timestamp                               │
+│ - Notificaciones enviadas al conductor                │
+└────────────────────────────────────────────────────────┘
+```
 
-**P: ¿Qué pasa si me equivoco en el monto?**
-R: Enviá la diferencia y el nuevo comprobante. El admin verificará ambos.
+**Notificaciones enviadas al conductor:**
 
-**P: ¿Puedo pagar en efectivo?**
-R: No, solo aceptamos transferencia bancaria con comprobante.
+1. **Al crear DriverPayout (PENDING):**
+```
+✅ ¡Viaje completado!
 
-**P: ¿Por qué debo enviar el comprobante por WhatsApp?**
-R: Para validar que el pago proviene de tu número de teléfono registrado.
+Tu viaje [Origen] → [Destino] se ha completado exitosamente.
 
-**P: ¿Cuánto tardan en verificar mi pago?**
-R: En horario hábil, máximo 4 horas. Fuera de horario, hasta 24 horas.
+Detalles del pago:
+💰 Total ganado: $15,000
+📅 Pago procesado en: 48-72 horas
 
-**P: Mi reserva expiró, ¿puedo recuperarla?**
-R: No automáticamente. Deberás hacer una nueva reserva si hay lugares disponibles.
+Estado: Pendiente de procesamiento
+```
 
-### Para Conductores
+2. **Al procesar transferencia (PROCESSING):**
+```
+⏳ Pago en proceso
 
-**P: ¿Cuándo recibo el dinero del viaje?**
-R: Después de completar el viaje exitosamente, según nuestro proceso de pagos a conductores.
+Estamos procesando tu pago de $15,000.
 
-**P: ¿Qué pasa si un pasajero no paga?**
-R: La reserva expira automáticamente y los asientos quedan disponibles.
+Detalles del viaje:
+🚗 [Origen] → [Destino]
+📅 Fecha: [DD/MM/YYYY]
 
-**P: ¿Puedo rechazar a un pasajero que ya pagó?**
-R: No, una vez confirmado el pago, el lugar está garantizado. Solo soporte puede cancelar con justificación válida.
+El dinero llegará a tu cuenta en las próximas horas.
+```
 
-### Para Admins
+3. **Al completar pago (COMPLETED):**
+```
+💵 ¡Pago realizado!
 
-**P: ¿Qué hago si el comprobante es ilegible?**
-R: Rechazar con motivo "UNREADABLE_PROOF" y solicitar uno más claro.
+Transferimos $15,000 a tu cuenta.
 
-**P: ¿Cómo verifico que la transferencia se acreditó?**
-R: Revisar el extracto bancario de la cuenta de Tengo Lugar.
+Detalles:
+🏦 CBU/CVU: ...XXXX (últimos 4 dígitos)
+📅 Fecha de transferencia: [DD/MM/YYYY HH:mm]
+🚗 Viaje: [Origen] → [Destino]
 
-**P: ¿Qué hago con transferencias duplicadas?**
-R: Verificar en sistema si ya estaba confirmado. Si sí, procesar reembolso de la segunda transferencia.
+Revisá tu cuenta bancaria.
+¿Problemas? Contactá a soporte.
+```
 
 ---
 
-## 13. Roadmap Futuro
+### 10.4 Estados y Timeline del Pago
 
-### Fase 2: Mejoras al Sistema Actual
+**Estados del DriverPayout:**
 
-- [ ] Integración con API bancaria para validación automática
-- [ ] OCR para extraer datos del comprobante automáticamente
-- [ ] Dashboard de verificación con filtros y búsqueda
-- [ ] Reportes automáticos de pagos pendientes
-- [ ] Sistema de alertas para admins (pagos urgentes)
+| Estado | Descripción | Acción requerida | Tiempo típico |
+|--------|-------------|------------------|---------------|
+| `PENDING` | Viaje completado, pago pendiente | Admin debe procesar | 0-24h post-viaje |
+| `PROCESSING` | Admin procesando transferencia | Admin debe cargar comprobante | 1-48h |
+| `COMPLETED` | Transferencia completada | Ninguna | - |
+| `FAILED` | Transferencia falló | Admin debe reintentar | Según fallo |
+| `ON_HOLD` | En espera por verificación o disputa | Resolver bloqueo | Variable |
 
-### Fase 3: Métodos de Pago Adicionales
+**Política de tiempo de pago:**
 
-- [ ] Mercado Pago
-- [ ] Modo/Naranja X
-- [ ] Tarjetas de crédito/débito
-- [ ] Billeteras virtuales (Ualá, Brubank, etc.)
-- [ ] QR de pago
-
-### Fase 4: Automatización
-
-- [ ] Verificación automática con webhook bancario
-- [ ] IA para validar comprobantes
-- [ ] Sistema de scoring para aprobar pagos automáticamente
-- [ ] Integración con sistemas antifraude
+- ✅ **Objetivo**: Pagar dentro de **12-24 horas** post-viaje
+- ⚠️ **Máximo aceptable**: 2 dias habiles
 
 ---
 
-**Documento creado:** [FECHA]
-**Última actualización:** [FECHA]
-**Versión:** 1.0
-**Mantenido por:** Equipo de Producto - Tengo Lugar
+### 10.5 Manejo de Casos Especiales
+
+#### 10.5.1 Conductor sin Información Bancaria Verificada
+
+**Escenario:**
+- Viaje completado pero conductor no tiene `Driver.bankInfoVerified = true`
+
+**Flujo:**
+1. Sistema crea DriverPayout con estado `ON_HOLD`
+2. Se envía notificación al conductor:
+```
+⚠️ Pago retenido - Acción requerida
+
+Tu viaje se completó pero no podemos procesarte el pago.
+
+Motivo: Información bancaria no verificada
+
+Acción requerida:
+1. Ingresá a tu perfil
+2. Completá información bancaria (Alias + CBU/CVU)
+3. Esperá verificación del admin (24-48h)
+
+Monto retenido: $15,000
+```
+3. Admin verifica información bancaria
+4. Una vez verificado, estado cambia de `ON_HOLD` → `PENDING`
+5. Flujo normal continúa
+
+#### 10.5.2 Viaje con Disputas o Reclamos
+
+**Escenario:**
+- Pasajeros reportaron problemas con el viaje
+- Hay una disputa abierta
+
+**Flujo:**
+1. Admin marca DriverPayout como `ON_HOLD`
+2. Se agrega nota explicativa en `DriverPayout.notes`:
+```
+"Pago retenido por disputa abierta con pasajero [Nombre].
+Esperando resolución. Ticket #12345"
+```
+3. Se notifica al conductor:
+```
+⏸️ Pago retenido temporalmente
+
+Hay un reclamo relacionado con tu viaje que debe resolverse.
+
+Detalles:
+🚗 Viaje: [Origen] → [Destino]
+📅 Fecha: [DD/MM/YYYY]
+💰 Monto: $15,000
+
+Un admin te contactará en breve para resolver la situación.
+```
+4. Una vez resuelta la disputa:
+   - Si a favor del conductor: `ON_HOLD` → `PENDING` (flujo normal)
+   - Si requiere ajuste de monto: Admin modifica `payoutAmount`
+   - Si se cancela el pago: Estado permanece `ON_HOLD` con resolución en notas
+
+#### 10.5.3 Transferencia Fallida
+
+**Escenario:**
+- Admin intenta transferir pero falla (CBU inválido, cuenta cerrada, etc.)
+
+**Flujo:**
+1. Admin marca estado como `FAILED`
+2. Se registra motivo en `DriverPayout.notes`:
+```
+"Transferencia fallida: CBU inválido o cuenta cerrada.
+Fecha intento: [DD/MM/YYYY HH:mm]
+Error banco: [código error]"
+```
+3. Se notifica al conductor:
+```
+❌ Error en transferencia
+
+No pudimos transferir tu pago de $15,000.
+
+Motivo: Información bancaria inválida
+
+Acción requerida:
+1. Verificá tus datos bancarios
+2. Actualizá tu CBU/CVU si es necesario
+3. Esperá que admin reintente la transferencia
+
+Si tus datos son correctos, contactá a tu banco.
+```
+4. Conductor actualiza información bancaria
+5. Admin reintenta: `FAILED` → `PROCESSING`
+
+#### 10.5.4 Viaje con Múltiples Cancelaciones
+
+**Escenario:**
+- 3 pasajeros confirmados
+- 2 cancelaron con diferentes políticas de reembolso
+
+**Cálculo detallado:**
+
+```typescript
+// Ejemplo:
+Pasajero 1: COMPLETED → $5,500 (ingreso completo)
+Pasajero 2: CANCELLED_EARLY (>24h) → $5,500 reembolsado 100%
+Pasajero 3: CANCELLED_MEDIUM (12-24h) → $4,125 reembolsado (75%)
+
+Total recibido: $5,500 + $0 + $1,375 = $6,875
+Fee de servicio:
+  - Pasajero 1: $500
+  - Pasajero 2: $0 (reembolsado completo, incluye fee)
+  - Pasajero 3: $125 (25% de $500 retenido)
+Total fee: $625
+
+Compensación conductor:
+  - Por pasajero 3: $1,250 (25% de $5,000 precio viaje)
+
+Cálculo final:
+Total recibido: $6,875
+Fee de servicio: -$625
+Compensación: +$1,250
+═══════════════════════════════════════════════
+PAGO AL CONDUCTOR: $7,500
+```
+
+---
+
+### 10.6 Seguridad y Validaciones
+
+#### 10.7.1 Validación de CBU/CVU con Algoritmo Luhn
+
+**Implementación del algoritmo Luhn:**
+
+```typescript
+/**
+ * Valida un CBU o CVU usando el algoritmo Luhn
+ * @param cbuCvu - String de 22 dígitos
+ * @returns true si es válido, false si no
+ */
+export function validateCbuCvu(cbuCvu: string): boolean {
+  // 1. Validar formato básico
+  if (!/^\d{22}$/.test(cbuCvu)) {
+    return false;
+  }
+
+  // 2. Separar dígitos
+  const digits = cbuCvu.split('').map(Number);
+
+  // 3. Aplicar algoritmo Luhn en los primeros 21 dígitos
+  let sum = 0;
+  for (let i = 0; i < 21; i++) {
+    let digit = digits[i];
+
+    // Duplicar cada segundo dígito desde la derecha
+    if ((21 - i) % 2 === 0) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+
+    sum += digit;
+  }
+
+  // 4. Calcular dígito verificador
+  const checkDigit = (10 - (sum % 10)) % 10;
+
+  // 5. Comparar con el último dígito del CBU/CVU
+  return checkDigit === digits[21];
+}
+```
+
+**Ejemplos de validación:**
+
+```typescript
+validateCbuCvu('0000003100010000000001') // true - válido
+validateCbuCvu('1234567890123456789012') // false - checksum inválido
+validateCbuCvu('123456789012345678901')  // false - solo 21 dígitos
+validateCbuCvu('12345678901234567890AB') // false - contiene letras
+```
+
+#### 10.7.5 Protección de Comprobantes Bancarios
+
+**Almacenamiento seguro en S3:**
+
+```typescript
+// Subir comprobante con restricciones
+const s3Key = `driver-payouts/${driverPayoutId}/transfer-proof-${Date.now()}.pdf`;
+
+await uploadToS3({
+  key: s3Key,
+  body: file,
+  contentType: file.type,
+  metadata: {
+    driverPayoutId,
+    uploadedBy: adminId,
+    uploadedAt: new Date().toISOString()
+  }
+});
+
+// Generar URL pre-firmada con expiración corta
+const presignedUrl = await getSignedUrl(s3Client, new GetObjectCommand({
+  Bucket: process.env.AWS_S3_BUCKET_NAME,
+  Key: s3Key,
+}), {
+  expiresIn: 300, // 5 minutos
+});
+```
+
+**Acceso restringido:**
+
+- ✅ Solo usuarios con role `admin` pueden ver comprobantes
+- ✅ URLs pre-firmadas con expiración de 5 minutos
+- ✅ Logs de acceso en S3 activados
+- ✅ Encriptación en reposo (S3 server-side encryption)
+
+#### 10.7.6 Validaciones Pre-Pago
+
+**Checklist antes de crear DriverPayout:**
+
+```typescript
+async function validatePayoutCreation(tripId: string, driverId: string) {
+  // ✓ 1. Viaje está completado
+  const trip = await prisma.trip.findUnique({ where: { id: tripId } });
+  if (trip?.status !== 'COMPLETED') {
+    throw new Error('El viaje debe estar completado');
+  }
+
+  // ✓ 2. Driver tiene info bancaria verificada
+  const driver = await prisma.driver.findUnique({
+    where: { id: driverId },
+    select: { bankInfoVerified: true, bankCbuOrCvu: true }
+  });
+  if (!driver?.bankInfoVerified || !driver.bankCbuOrCvu) {
+    throw new Error('Conductor sin información bancaria verificada');
+  }
+
+  // ✓ 3. Existen pagos completados de pasajeros
+  const completedPayments = await prisma.payment.count({
+    where: {
+      tripPassenger: {
+        tripId,
+        reservationStatus: 'CONFIRMED'
+      },
+      status: 'COMPLETED'
+    }
+  });
+  if (completedPayments === 0) {
+    throw new Error('No hay pagos completados de pasajeros');
+  }
+
+  // ✓ 4. No existe pago duplicado
+  const existingPayout = await prisma.driverPayout.findUnique({
+    where: { tripId }
+  });
+  if (existingPayout) {
+    throw new Error('Ya existe un pago para este viaje');
+  }
+
+  // ✓ 5. Monto calculado es positivo
+  const { payoutAmount } = await calculateDriverPayout(tripId);
+  if (payoutAmount <= 0) {
+    throw new Error('El monto a pagar debe ser positivo');
+  }
+}
+```

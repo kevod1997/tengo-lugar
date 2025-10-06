@@ -165,6 +165,7 @@ export async function createTrip(tripData: TripData) {
                     date: validatedData.date,
                     serviceFee: 10,
                     departureTime: validatedData.departureTime,
+                    originalDepartureTime: validatedData.departureTime,
                     price: Math.round(validatedData.price),
                     priceGuide: Math.round(validatedData.priceGuide),
                     distance: validatedData.distance,
