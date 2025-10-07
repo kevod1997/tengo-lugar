@@ -94,7 +94,9 @@ export async function getAllTickets(filters?: GetAllTicketsFilters) {
 export async function getTicketDetailAdmin(ticketId: string) {
   try {
     // 1. Autorización
-    const session = await requireAuthorization('admin', 'get-all-tickets.ts', 'getTicketDetailAdmin');
+    await requireAuthorization('admin', 'get-all-tickets.ts', 'getTicketDetailAdmin');
+
+
 
     // 2. Obtener ticket completo
     const ticket = await prisma.supportTicket.findUnique({
