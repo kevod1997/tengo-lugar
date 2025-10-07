@@ -29,7 +29,7 @@ interface Account {
 
 // Tipo para la respuesta de listAccounts
 interface AccountsResponse {
-  data: Account[];
+  data: Account[] | null;
   error: null | any;
 }
 
