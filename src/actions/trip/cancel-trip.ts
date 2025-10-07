@@ -4,25 +4,19 @@
 import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { requireAuthentication } from "@/utils/helpers/auth-helper";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { notifyUser, notifyMultipleUsers } from "@/utils/notifications/notification-helpers";
+import { processPassengerCancellation, processDriverCancellation } from "@/utils/helpers/cancellation-helper";
 
-export async function cancelTrip(tripId: string, isDriver: boolean) {
+export async function cancelTrip(tripId: string, isDriver: boolean, reason: string = "Cancelación") {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      throw ServerActionError.AuthenticationFailed('cancel-trip.ts', 'cancelTrip');
-    }
-
+    // 1. Autenticación
+    const session = await requireAuthentication('cancel-trip.ts', 'cancelTrip');
     const userId = session.user.id;
 
-    // Get the trip first to verify permissions
+    // 2. Obtener información del viaje
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
       select: {
@@ -30,6 +24,7 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
         status: true,
         originCity: true,
         destinationCity: true,
+        departureTime: true,
         driverCar: {
           include: {
             driver: {
@@ -59,7 +54,7 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
       throw ServerActionError.NotFound('cancel-trip.ts', 'cancelTrip', 'Viaje no encontrado');
     }
 
-    // Verify that the user is either the driver or a passenger of this trip
+    // 3. Verificar autorización
     let authorized = false;
     let isPassenger = false;
     let passengerTripId: string | null = null;
@@ -79,31 +74,25 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
       throw ServerActionError.AuthorizationFailed('cancel-trip.ts', 'cancelTrip');
     }
 
-    // Handle cancellation based on who is canceling
+    // 4. Procesar cancelación según quien cancela
     if (isDriver) {
-      // If driver is canceling, update the trip status and all passenger reservations
-      await prisma.$transaction([
-        prisma.trip.update({
-          where: { id: tripId },
-          data: { status: 'CANCELLED' }
-        }),
-        prisma.tripPassenger.updateMany({
-          where: { 
-            tripId,
-            reservationStatus: { 
-              in: ['PENDING_APPROVAL', 'APPROVED', 'CONFIRMED'] 
-            }
-          },
-          data: { reservationStatus: 'CANCELLED_BY_DRIVER' }
-        })
-      ]);
+      // Cancelación por conductor
+      const result = await prisma.$transaction(async (tx) => {
+        return await processDriverCancellation(tripId, reason, tx);
+      });
 
+      // Log de acción
       await logActionWithErrorHandling(
         {
           userId,
           action: TipoAccionUsuario.CANCELACION_VIAJE,
           status: 'SUCCESS',
-          details: { tripId, cancelledBy: 'driver' }
+          details: {
+            tripId,
+            cancelledBy: 'driver',
+            hoursBeforeDeparture: result.cancellationDetails.hoursBeforeDeparture,
+            affectedPassengers: result.affectedPassengers
+          }
         },
         {
           fileName: 'cancel-trip.ts',
@@ -111,7 +100,7 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
         }
       );
 
-      // Notify all affected passengers about trip cancellation
+      // Notificar pasajeros afectados
       const affectedPassengerIds = trip.passengers
         .filter(p => ['PENDING_APPROVAL', 'APPROVED', 'CONFIRMED'].includes(p.reservationStatus))
         .map(p => p.passenger.userId);
@@ -120,30 +109,38 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
         await notifyMultipleUsers(
           affectedPassengerIds,
           "Viaje cancelado",
-          `El viaje de ${trip.originCity} a ${trip.destinationCity} ha sido cancelado por el conductor.`,
+          `El viaje de ${trip.originCity} a ${trip.destinationCity} ha sido cancelado por el conductor. ${result.affectedPassengers > 0 ? 'Se procesarán los reembolsos correspondientes.' : ''}`,
           undefined,
           `/viajes`
         );
       }
+
+      return ApiHandler.handleSuccess(
+        { success: true, affectedPassengers: result.affectedPassengers },
+        'Viaje cancelado exitosamente. Se notificó a todos los pasajeros.'
+      );
+
     } else if (isPassenger && passengerTripId) {
-      // If passenger is canceling, only update their reservation status
-      await prisma.tripPassenger.update({
-        where: { id: passengerTripId },
-        data: { reservationStatus: 'CANCELLED_BY_PASSENGER' }
+      // Cancelación por pasajero - usar la misma lógica que cancel-reservation
+      const result = await prisma.$transaction(async (tx) => {
+        return await processPassengerCancellation(passengerTripId, reason, tx);
       });
 
-      // Check if this affects trip fullness
-      await prisma.trip.update({
-        where: { id: tripId },
-        data: { isFull: false }
-      });
-
+      // Log de acción
       await logActionWithErrorHandling(
         {
           userId,
           action: TipoAccionUsuario.CANCELACION_VIAJE,
           status: 'SUCCESS',
-          details: { tripId, passengerTripId, cancelledBy: 'passenger' }
+          details: {
+            tripId,
+            passengerTripId,
+            cancelledBy: 'passenger',
+            refundProcessed: result.refundProcessed,
+            newStatus: result.cancellationDetails.newStatus,
+            hoursBeforeDeparture: result.cancellationDetails.hoursBeforeDeparture,
+            refundPercentage: result.cancellationDetails.refundPercentage
+          }
         },
         {
           fileName: 'cancel-trip.ts',
@@ -151,7 +148,7 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
         }
       );
 
-      // Notify driver about passenger cancellation
+      // Notificar al conductor
       await notifyUser(
         trip.driverCar.driver.userId,
         "Reserva cancelada",
@@ -159,14 +156,27 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
         undefined,
         `/viajes/${tripId}/gestionar-viaje`
       );
+
+      const message = result.refundProcessed
+        ? `Reservación cancelada. Se procesará un reembolso del ${result.cancellationDetails.refundPercentage}% del precio del viaje.`
+        : 'Tu reservación ha sido cancelada';
+
+      return ApiHandler.handleSuccess(
+        {
+          success: true,
+          refundPercentage: result.cancellationDetails.refundPercentage,
+          refundProcessed: result.refundProcessed
+        },
+        message
+      );
     }
 
-    return ApiHandler.handleSuccess(
-      { success: true },
-      isDriver 
-        ? 'Viaje cancelado exitosamente' 
-        : 'Tu reservación ha sido cancelada'
+    throw ServerActionError.ValidationFailed(
+      'cancel-trip.ts',
+      'cancelTrip',
+      'No se pudo procesar la cancelación'
     );
+
   } catch (error) {
     await logActionWithErrorHandling(
       {
@@ -180,7 +190,7 @@ export async function cancelTrip(tripId: string, isDriver: boolean) {
         functionName: 'cancelTrip'
       }
     );
-    
-    throw error;
+
+    return ApiHandler.handleError(error);
   }
 }

@@ -2,28 +2,20 @@
 'use server'
 
 import prisma from "@/lib/prisma";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { requireAuthentication } from "@/utils/helpers/auth-helper";
 
 export async function getUserReservations() {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      throw ServerActionError.AuthenticationFailed('get-user-reservations.ts', 'getUserReservations');
-    }
-
+    // 1. Autenticación
+    const session = await requireAuthentication('get-user-reservations.ts', 'getUserReservations');
     const userId = session.user.id;
-    
-    // Get the user's passenger record
+
+    // 2. Obtener registro de pasajero
     const passenger = await prisma.passenger.findUnique({
       where: { userId },
       select: { id: true }
     });
-    
+
     if (!passenger) {
       // No reservations since user is not a passenger yet
       return {
@@ -32,8 +24,8 @@ export async function getUserReservations() {
         cancelledReservations: []
       };
     }
-    
-    // Include options for the trip to get complete info
+
+    // 3. Opciones de include para datos completos
     const includeOptions = {
       trip: {
         include: {
@@ -61,15 +53,21 @@ export async function getUserReservations() {
             }
           }
         }
+      },
+      payment: {
+        select: {
+          status: true,
+          amount: true
+        }
       }
     };
-    
-    // Get active reservations (pending, approved, confirmed)
+
+    // 4. Reservas activas (pendientes, aprobadas, confirmadas)
     const activeReservations = await prisma.tripPassenger.findMany({
       where: {
         passengerId: passenger.id,
         reservationStatus: {
-          in: ['PENDING_APPROVAL', 'APPROVED', 'CONFIRMED']
+          in: ['PENDING_APPROVAL', 'APPROVED', 'CONFIRMED', 'WAITLISTED']
         },
         trip: {
           status: {
@@ -84,11 +82,12 @@ export async function getUserReservations() {
       },
       include: includeOptions
     });
-    
-    // Get completed reservations
+
+    // 5. Reservas completadas
     const completedReservations = await prisma.tripPassenger.findMany({
       where: {
         passengerId: passenger.id,
+        reservationStatus: 'COMPLETED',
         trip: {
           status: 'COMPLETED'
         }
@@ -100,15 +99,24 @@ export async function getUserReservations() {
       },
       include: includeOptions
     });
-    
-    // Get cancelled reservations
+
+    // 6. Reservas canceladas (incluye todos los estados de cancelación)
     const cancelledReservations = await prisma.tripPassenger.findMany({
       where: {
         passengerId: passenger.id,
         OR: [
           {
             reservationStatus: {
-              in: ['CANCELLED_BY_DRIVER', 'CANCELLED_BY_PASSENGER']
+              in: [
+                'CANCELLED_EARLY',
+                'CANCELLED_MEDIUM',
+                'CANCELLED_LATE',
+                'CANCELLED_BY_DRIVER_EARLY',
+                'CANCELLED_BY_DRIVER_LATE',
+                'NO_SHOW',
+                'EXPIRED',
+                'REJECTED'
+              ]
             }
           },
           {
@@ -125,7 +133,7 @@ export async function getUserReservations() {
       },
       include: includeOptions
     });
-    
+
     return {
       activeReservations,
       completedReservations,

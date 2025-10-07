@@ -2,22 +2,15 @@
 
 import prisma from "@/lib/prisma";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { requireAuthentication } from "@/utils/helpers/auth-helper";
 
 export async function getUserTrips() {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      throw ServerActionError.AuthenticationFailed('get-user-trips.ts', 'getUserTrips');
-    }
-
+    // 1. Autenticación
+    const session = await requireAuthentication('get-user-trips.ts', 'getUserTrips');
     const userId = session.user.id;
 
-    // Fetch user's driver and passenger information
+    // 2. Obtener información del usuario
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -30,7 +23,7 @@ export async function getUserTrips() {
       throw ServerActionError.UserNotFound('get-user-trips.ts', 'getUserTrips');
     }
 
-    // Fetch active trips as a driver
+    // 3. Viajes activos como conductor
     const activeDriverTrips = user.driver ? await prisma.trip.findMany({
       where: {
         driverCar: {
@@ -61,13 +54,19 @@ export async function getUserTrips() {
               include: {
                 user: true
               }
+            },
+            payment: {
+              select: {
+                status: true,
+                amount: true
+              }
             }
           }
         }
       }
     }) : [];
 
-    // Fetch completed trips as a driver
+    // 4. Viajes completados/cancelados como conductor
     const completedDriverTrips = user.driver ? await prisma.trip.findMany({
       where: {
         driverCar: {
@@ -98,18 +97,24 @@ export async function getUserTrips() {
               include: {
                 user: true
               }
+            },
+            payment: {
+              select: {
+                status: true,
+                amount: true
+              }
             }
           }
         }
       }
     }) : [];
 
-    // Fetch active trips as a passenger
+    // 5. Viajes activos como pasajero (solo aprobados y confirmados)
     const activePassengerTrips = user.passenger ? await prisma.tripPassenger.findMany({
       where: {
         passengerId: user.passenger.id,
-        reservationStatus: { 
-          in: ['APPROVED', 'CONFIRMED'] 
+        reservationStatus: {
+          in: ['PENDING_APPROVAL', 'APPROVED', 'CONFIRMED', 'WAITLISTED']
         },
         trip: {
           status: { in: ['PENDING', 'ACTIVE'] }
@@ -142,20 +147,47 @@ export async function getUserTrips() {
               }
             }
           }
+        },
+        payment: {
+          select: {
+            status: true,
+            amount: true
+          }
         }
       }
     }) : [];
 
-    // Fetch completed trips as a passenger
+    // 6. Viajes completados/cancelados como pasajero
     const completedPassengerTrips = user.passenger ? await prisma.tripPassenger.findMany({
       where: {
         passengerId: user.passenger.id,
-        reservationStatus: { 
-          in: ['CONFIRMED', 'COMPLETED', 'CANCELLED_BY_DRIVER', 'CANCELLED_BY_PASSENGER']
-        },
-        trip: {
-          status: { in: ['COMPLETED', 'CANCELLED'] }
-        }
+        OR: [
+          {
+            reservationStatus: 'COMPLETED',
+            trip: {
+              status: 'COMPLETED'
+            }
+          },
+          {
+            reservationStatus: {
+              in: [
+                'CANCELLED_EARLY',
+                'CANCELLED_MEDIUM',
+                'CANCELLED_LATE',
+                'CANCELLED_BY_DRIVER_EARLY',
+                'CANCELLED_BY_DRIVER_LATE',
+                'NO_SHOW',
+                'EXPIRED',
+                'REJECTED'
+              ]
+            }
+          },
+          {
+            trip: {
+              status: 'CANCELLED'
+            }
+          }
+        ]
       },
       orderBy: {
         trip: {
@@ -183,6 +215,12 @@ export async function getUserTrips() {
                 }
               }
             }
+          }
+        },
+        payment: {
+          select: {
+            status: true,
+            amount: true
           }
         }
       }
