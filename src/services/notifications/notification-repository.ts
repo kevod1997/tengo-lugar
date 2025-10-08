@@ -13,7 +13,7 @@ export class NotificationRepository {
       } else if (role === 'passenger') {
         whereCondition = { passenger: { isNot: null } }
       } else if (role === 'admin') {
-        whereCondition = { role: 'ADMIN' }
+        whereCondition = { role: 'admin' }
       }
 
       const usersWithRole = await prisma.user.findMany({

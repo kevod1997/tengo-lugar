@@ -72,7 +72,7 @@ export function Footer() {
                 Sobre nosotros
               </Link>
               <Link
-                href="/centro-de-ayuda"
+                href="/soporte"
                 className="block text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Centro de ayuda
