@@ -3,25 +3,33 @@
 import { requireAuthorization } from "@/utils/helpers/auth-helper";
 import { ApiHandler } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
-import { TicketStatus, TicketCategory } from "@prisma/client";
+import { TicketStatus, TicketCategory, Prisma } from "@prisma/client";
 
 interface GetAllTicketsFilters {
   status?: TicketStatus;
   category?: TicketCategory;
   assignedToMe?: boolean;
+  search?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 /**
  * Obtiene todos los tickets de soporte (solo admins)
- * Con filtros opcionales
+ * Con filtros opcionales y paginación
  */
 export async function getAllTickets(filters?: GetAllTicketsFilters) {
   try {
     // 1. Autorización (solo admins)
     const session = await requireAuthorization('admin', 'get-all-tickets.ts', 'getAllTickets');
 
-    // 2. Construir filtros
-    const where: any = {};
+    // 2. Valores por defecto de paginación
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 10;
+    const skip = (page - 1) * pageSize;
+
+    // 3. Construir filtros
+    const where: Prisma.SupportTicketWhereInput = {};
 
     if (filters?.status) {
       where.status = filters.status;
@@ -35,7 +43,19 @@ export async function getAllTickets(filters?: GetAllTicketsFilters) {
       where.assignedToAdminId = session.user.id;
     }
 
-    // 3. Obtener tickets con información del usuario
+    // Búsqueda por ticketNumber, subject o nombre de usuario
+    if (filters?.search && filters.search.trim() !== '') {
+      where.OR = [
+        { ticketNumber: { contains: filters.search, mode: 'insensitive' } },
+        { subject: { contains: filters.search, mode: 'insensitive' } },
+        { user: { name: { contains: filters.search, mode: 'insensitive' } } }
+      ];
+    }
+
+    // 4. Obtener total de tickets (para paginación)
+    const totalTickets = await prisma.supportTicket.count({ where });
+
+    // 5. Obtener tickets paginados con información del usuario
     const tickets = await prisma.supportTicket.findMany({
       where,
       select: {
@@ -67,20 +87,45 @@ export async function getAllTickets(filters?: GetAllTicketsFilters) {
       orderBy: [
         { status: 'asc' }, // OPEN primero
         { createdAt: 'desc' } // Más recientes primero
-      ]
+      ],
+      skip,
+      take: pageSize
     });
 
-    // 4. Calcular métricas
-    const metrics = {
-      total: tickets.length,
-      open: tickets.filter(t => t.status === 'OPEN').length,
-      resolved: tickets.filter(t => t.status === 'RESOLVED').length,
-      assignedToMe: tickets.filter(t => t.assignedAdmin?.id === session.user.id).length
-    };
+    // 6. Calcular métricas globales (sin filtros de paginación)
+    const metricsWhere: Prisma.SupportTicketWhereInput = {};
+    if (filters?.assignedToMe) {
+      metricsWhere.assignedToAdminId = session.user.id;
+    }
+
+    const [totalCount, openCount, resolvedCount, assignedToMeCount] = await Promise.all([
+      prisma.supportTicket.count({ where: metricsWhere }),
+      prisma.supportTicket.count({ where: { ...metricsWhere, status: 'OPEN' } }),
+      prisma.supportTicket.count({ where: { ...metricsWhere, status: 'RESOLVED' } }),
+      prisma.supportTicket.count({ where: { assignedToAdminId: session.user.id } })
+    ]);
+
+    // 7. Calcular metadata de paginación
+    const totalPages = Math.ceil(totalTickets / pageSize);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
 
     return ApiHandler.handleSuccess({
       tickets,
-      metrics
+      metrics: {
+        total: totalCount,
+        open: openCount,
+        resolved: resolvedCount,
+        assignedToMe: assignedToMeCount
+      },
+      pagination: {
+        page,
+        pageSize,
+        totalItems: totalTickets,
+        totalPages,
+        hasNextPage,
+        hasPrevPage
+      }
     });
 
   } catch (error) {

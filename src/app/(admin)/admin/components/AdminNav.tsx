@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { BarChart3, Users, FileText, Settings, Bell } from 'lucide-react'
+import { BarChart3, Users, FileText, Settings, Bell, LifeBuoy } from 'lucide-react'
 
 interface NavItem {
   title: string
@@ -29,6 +29,12 @@ const navItems: NavItem[] = [
     href: "/admin/usuarios",
     icon: Users,
     description: "Administra cuentas de usuarios, documentacion y permisos"
+  },
+  {
+    title: "Gestión de Tickets",
+    href: "/admin/soporte",
+    icon: LifeBuoy,
+    description: "Administra y resuelve tickets de soporte"
   },
   {
     title: "Configuración",

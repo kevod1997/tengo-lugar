@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { Loader2, Send, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
 
 interface CreateTicketFormProps {
   onSuccess?: () => void
@@ -78,9 +79,9 @@ export function CreateTicketForm({ onSuccess }: CreateTicketFormProps) {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Para crear tickets de soporte, primero debes verificar tu número de teléfono.{' '}
-              <a href="/perfil" className="underline font-medium">
+              <Link href="/perfil" className="underline font-medium">
                 Ir a mi perfil
-              </a>
+              </Link>
             </AlertDescription>
           </Alert>
         )}
