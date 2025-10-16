@@ -58,7 +58,7 @@ export async function getUserTrips() {
             payment: {
               select: {
                 status: true,
-                amount: true
+                totalAmount: true
               }
             }
           }
@@ -101,7 +101,7 @@ export async function getUserTrips() {
             payment: {
               select: {
                 status: true,
-                amount: true
+                totalAmount: true
               }
             }
           }
@@ -151,7 +151,7 @@ export async function getUserTrips() {
         payment: {
           select: {
             status: true,
-            amount: true
+            totalAmount: true
           }
         }
       }
@@ -220,7 +220,7 @@ export async function getUserTrips() {
         payment: {
           select: {
             status: true,
-            amount: true
+            totalAmount: true
           }
         }
       }

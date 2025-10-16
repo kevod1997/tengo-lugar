@@ -11,12 +11,14 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Users, 
-  Info
+import {
+  MapPin,
+  Calendar,
+  Clock,
+  Users,
+  Info,
+  CreditCard,
+  CheckCircle
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatDatetoLocaleDateString, formatDateLong, formatTime } from "@/utils/format/formatDate";
@@ -152,18 +154,39 @@ export default function ReservationsList({
                 <div className="text-sm font-medium">
                   {formatCurrency(reservation.totalPrice)}
                 </div>
-                
+
                 <div className="flex gap-2">
-                  <Button 
-                    size="sm"
-                    variant="outline"
-                    onClick={() => router.push(`/viajes/${reservation.trip.id}`)}
-                  >
-                    Ver detalles
-                  </Button>
-                  
-                  {showCancelButton && ['PENDING_APPROVAL', 'APPROVED'].includes(reservation.reservationStatus) && (
-                    <Button 
+                  {/* Mostrar botón de pago si está APPROVED */}
+                  {reservation.reservationStatus === 'APPROVED' ? (
+                    <Button
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => router.push(`/viajes/${reservation.trip.id}/pagar`)}
+                    >
+                      <CreditCard className="h-3 w-3 mr-1" />
+                      Pagar ahora
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => router.push(`/viajes/${reservation.trip.id}`)}
+                    >
+                      Ver detalles
+                    </Button>
+                  )}
+
+                  {/* Mostrar badge si está CONFIRMED */}
+                  {reservation.reservationStatus === 'CONFIRMED' && (
+                    <Badge className="bg-green-600 text-white">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Pagado
+                    </Badge>
+                  )}
+
+                  {/* Botón de cancelar - Solo estados cancelables */}
+                  {showCancelButton && ['PENDING_APPROVAL', 'WAITLISTED', 'APPROVED', 'CONFIRMED'].includes(reservation.reservationStatus) && (
+                    <Button
                       size="sm"
                       variant="destructive"
                       onClick={() => openCancelDialog(reservation.id)}

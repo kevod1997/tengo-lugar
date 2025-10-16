@@ -241,9 +241,9 @@ export async function processPassengerCancellation(
 
   // Si la reserva estaba confirmada (pagada), procesar reembolso
   if (reservation.reservationStatus === 'CONFIRMED' && reservation.payment?.status === 'COMPLETED') {
-    const totalAmount = reservation.payment.amount;
+    const totalAmount = reservation.payment.totalAmount;
     const tripPrice = reservation.totalPrice;
-    const serviceFee = totalAmount - tripPrice;
+    const serviceFee = reservation.payment.serviceFee;
 
     const refundAmounts = calculateRefundAmounts(
       totalAmount,
@@ -350,9 +350,9 @@ export async function processDriverCancellation(
 
     // Si el pasajero tenía pago confirmado, crear reembolso completo (100% precio viaje, 0% fee)
     if (passenger.reservationStatus === 'CONFIRMED' && passenger.payment?.status === 'COMPLETED') {
-      const totalAmount = passenger.payment.amount;
+      // const totalAmount = passenger.payment.totalAmount;
       const tripPrice = passenger.totalPrice;
-      const serviceFee = totalAmount - tripPrice;
+      const serviceFee = passenger.payment.serviceFee;
 
       // Conductor canceló: pasajero recibe 100% del precio del viaje, fee se retiene
       await createRefundRecord(

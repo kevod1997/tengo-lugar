@@ -10,6 +10,7 @@ import { z } from "zod";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { notifyUser } from "@/utils/notifications/notification-helpers";
+import { canCreateReservation, formatTimeRestrictionError } from "@/utils/helpers/time-restrictions-helper";
 
 // Schema for validation
 const reservationSchema = z.object({
@@ -88,6 +89,16 @@ export async function createTripReservation(data: {
       throw ServerActionError.NotFound('create-trip-reservation.ts', 'createTripReservation', 'Viaje no encontrado');
     }
 
+    // Validate time restriction: cannot create reservations within 3 hours of departure
+    const timeCheck = canCreateReservation(trip.departureTime);
+    if (!timeCheck.isAllowed) {
+      throw ServerActionError.ValidationFailed(
+        'create-trip-reservation.ts',
+        'createTripReservation',
+        formatTimeRestrictionError(timeCheck)
+      );
+    }
+
     // Cannot reserve your own trip
     if (trip.driverCar.driver.userId === userId) {
       throw ServerActionError.ValidationFailed(
@@ -134,19 +145,27 @@ export async function createTripReservation(data: {
     let reservation;
     
     if (existingReservation) {
-      // If there's an existing reservation that was cancelled, update it instead of creating a new one
-      if (['CANCELLED_BY_DRIVER', 'CANCELLED_BY_PASSENGER'].includes(existingReservation.reservationStatus)) {
+      // Estados que permiten re-reservar (sin penalizaciones)
+      const canReReserveStatuses = [
+        'REJECTED',                  // Conductor rechazó - puede reintentar
+        'CANCELLED_EARLY',           // Canceló >24h - sin penalización
+        'CANCELLED_BY_DRIVER_EARLY'  // Conductor canceló >48h - sin penalización
+      ];
+
+      if (canReReserveStatuses.includes(existingReservation.reservationStatus)) {
+        // Actualizar la reserva existente con los nuevos datos
         reservation = await prisma.tripPassenger.update({
           where: { id: existingReservation.id },
           data: {
             seatsReserved: validatedData.seatsReserved,
             totalPrice: validatedData.totalPrice,
             reservationMessage: validatedData.reservationMessage,
-            reservationStatus: initialStatus
+            reservationStatus: initialStatus,
+            updatedAt: new Date()
           }
         });
       } else {
-        // The reservation exists and is not cancelled
+        // La reserva existe y está activa o tiene historial problemático
         throw ServerActionError.ValidationFailed(
           'create-trip-reservation.ts',
           'createTripReservation',

@@ -29,6 +29,8 @@ import {
   CigaretteOffIcon,
   InfoIcon,
   UserIcon,
+  CreditCard,
+  CheckCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -43,6 +45,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { cancelTrip } from '@/actions/trip/cancel-trip'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
@@ -123,10 +126,13 @@ export default function TripDetail({
     'CANCELLED': { label: 'Cancelado', color: 'bg-red-100 text-red-800' }
   }
 
+  // Estados que permiten cancelación
+  const cancellableReservationStatuses = ['PENDING_APPROVAL', 'WAITLISTED', 'APPROVED', 'CONFIRMED'];
+
   // Check if trip can be cancelled
   const canCancel = ['PENDING', 'ACTIVE'].includes(trip.status) && (isDriver || isPassenger) &&
-    // If user is a passenger, check if their reservation is not already cancelled
-    (isDriver || (isPassenger && passengerInfo && !['CANCELLED_BY_DRIVER', 'CANCELLED_BY_PASSENGER'].includes(passengerInfo.reservationStatus)));
+    // If user is a passenger, check if their reservation is in a cancellable state
+    (isDriver || (isPassenger && passengerInfo && cancellableReservationStatuses.includes(passengerInfo.reservationStatus)));
 
   // Calculate seats available
   const confirmedPassengers = trip.passengers.filter(
@@ -198,33 +204,88 @@ export default function TripDetail({
           <CardContent className="space-y-6">
             {/* Passenger reservation information */}
             {isPassenger && passengerInfo && (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
-                <h3 className="text-blue-800 font-medium flex items-center gap-2">
-                  <InfoIcon className="h-5 w-5" />
-                  Tu reserva
-                </h3>
-                <div className="mt-2 space-y-2 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span>Estado:</span>
-                    <Badge className={getStatusBadgeColor(passengerInfo.reservationStatus)}>
-                      {getStatusText(passengerInfo.reservationStatus)}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Asientos reservados:</span>
-                    <span className="font-medium">{passengerInfo.seatsReserved}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Precio total:</span>
-                    <span className="font-medium">${passengerInfo.totalPrice}</span>
-                  </div>
+              <div className="space-y-3 mb-4">
+                {/* Reserva APROBADA - Pendiente de pago */}
+                {passengerInfo.reservationStatus === 'APPROVED' && (
+                  <>
+                    <Alert className="bg-blue-50 border-blue-200">
+                      <InfoIcon className="h-4 w-4 text-blue-600" />
+                      <AlertTitle className="text-blue-900 font-semibold">¡Reserva aprobada!</AlertTitle>
+                      <AlertDescription className="text-blue-700 text-sm">
+                        El conductor aprobó tu solicitud. Ahora debes completar el pago para confirmar tu lugar.
+                      </AlertDescription>
+                    </Alert>
 
-                  {passengerInfo.reservationStatus === 'APPROVED_PENDING_PAYMENT' && (
-                    <Button className="w-full mt-3">
-                      Proceder al pago
+                    {passengerInfo.payment && (
+                      <div className="bg-slate-50 rounded-lg p-4 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Monto a pagar:</span>
+                          <span className="font-mono font-bold text-blue-600">${passengerInfo.payment.totalAmount}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Estado del pago:</span>
+                          <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>
+                        </div>
+                      </div>
+                    )}
+
+                    <Button
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      onClick={() => router.push(`/viajes/${trip.id}/pagar`)}
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Ver instrucciones de pago
                     </Button>
-                  )}
-                </div>
+                  </>
+                )}
+
+                {/* Reserva CONFIRMADA - Pago completado */}
+                {passengerInfo.reservationStatus === 'CONFIRMED' && (
+                  <Alert className="bg-green-50 border-green-200">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertTitle className="text-green-900 font-semibold">Pago confirmado</AlertTitle>
+                    <AlertDescription className="text-green-700 text-sm">
+                      Tu pago fue verificado. ¡Estás listo para viajar! 🚗
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Mensaje cuando fue rechazado */}
+                {passengerInfo.reservationStatus === 'REJECTED' && (
+                  <Alert className="bg-orange-50 border-orange-200">
+                    <InfoIcon className="h-4 w-4 text-orange-600" />
+                    <AlertTitle className="text-orange-900 font-semibold">Reserva rechazada</AlertTitle>
+                    <AlertDescription className="text-orange-700 text-sm">
+                      Tu solicitud anterior fue rechazada por el conductor. Puedes volver a reservar si lo deseas.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Otros estados de reserva */}
+                {!['APPROVED', 'CONFIRMED', 'REJECTED'].includes(passengerInfo.reservationStatus) && (
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h3 className="text-blue-800 font-medium flex items-center gap-2">
+                      <InfoIcon className="h-5 w-5" />
+                      Tu reserva
+                    </h3>
+                    <div className="mt-2 space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span>Estado:</span>
+                        <Badge className={getStatusBadgeColor(passengerInfo.reservationStatus)}>
+                          {getStatusText(passengerInfo.reservationStatus)}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Asientos reservados:</span>
+                        <span className="font-medium">{passengerInfo.seatsReserved}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Precio total:</span>
+                        <span className="font-medium">${passengerInfo.totalPrice}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

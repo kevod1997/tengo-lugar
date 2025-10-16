@@ -6,6 +6,7 @@ import { ApiHandler } from "@/lib/api-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
+import { TRIP_COMPLETION_CONFIG } from "@/lib/constants/trip-completion-config";
 
 export async function completeTripAction(tripId: string, isAutomated = false) {
   try {
@@ -115,44 +116,80 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
 
 export async function completeExpiredTrips() {
   try {
-    // Find all active trips where departure time + 24 hours has passed
-    const twentyFourHoursAgo = new Date();
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+    const now = new Date();
+    const bufferSeconds = TRIP_COMPLETION_CONFIG.COMPLETION_BUFFER_SECONDS;
 
-    const expiredTrips = await prisma.trip.findMany({
-      where: {
-        status: 'ACTIVE',
-        departureTime: {
-          lt: twentyFourHoursAgo
+    // Query optimizada: La DB calcula y filtra directamente
+    // Solo devuelve viajes que YA deben completarse
+    // Lógica SQL: now >= (departureTime + durationSeconds + buffer)
+    // Reescrito: (departureTime + INTERVAL durationSeconds + buffer) <= now
+    const tripsToComplete = await prisma.$queryRaw<
+      Array<{ id: string; departureTime: Date; durationSeconds: number }>
+    >`
+      SELECT id, "departureTime", "durationSeconds"
+      FROM "Trip"
+      WHERE status = 'ACTIVE'
+        AND "durationSeconds" IS NOT NULL
+        AND "durationSeconds" > 0
+        AND ("departureTime" + (("durationSeconds" + ${bufferSeconds}) * interval '1 second')) <= ${now}
+    `;
+
+    // Query separada para viajes sin duración (para logging)
+    const skippedTrips = await prisma.$queryRaw<
+      Array<{ id: string; departureTime: Date }>
+    >`
+      SELECT id, "departureTime"
+      FROM "Trip"
+      WHERE status = 'ACTIVE'
+        AND ("durationSeconds" IS NULL OR "durationSeconds" <= 0)
+    `;
+
+    // Log si hay viajes sin duración (problema de datos)
+    if (skippedTrips.length > 0) {
+      await logActionWithErrorHandling(
+        {
+          userId: 'SYSTEM',
+          action: TipoAccionUsuario.FINALIZACION_VIAJE,
+          status: 'FAILED',
+          details: {
+            message: 'Viajes activos sin durationSeconds detectados',
+            skippedCount: skippedTrips.length,
+            tripIds: skippedTrips.map(t => t.id),
+          }
+        },
+        {
+          fileName: 'complete-trip.ts',
+          functionName: 'completeExpiredTrips'
         }
-      },
-      select: {
-        id: true,
-        departureTime: true
-      }
-    });
-
-    if (expiredTrips.length === 0) {
-      return ApiHandler.handleSuccess(
-        { processedTrips: 0 },
-        'No hay viajes expirados para completar'
       );
     }
 
-    // Store the count before processing
-    const totalTripsToProcess = expiredTrips.length;
-    
-    // Process each expired trip
+    if (tripsToComplete.length === 0) {
+      return ApiHandler.handleSuccess(
+        {
+          processedTrips: 0,
+          successCount: 0,
+          failureCount: 0,
+          skippedTrips: skippedTrips.length,
+          tripIds: []
+        },
+        skippedTrips.length > 0
+          ? `${skippedTrips.length} viajes sin durationSeconds fueron ignorados`
+          : 'No hay viajes para completar'
+      );
+    }
+
+    // Completar cada viaje
     const results = [];
-    for (const trip of expiredTrips) {
+    for (const trip of tripsToComplete) {
       try {
         const result = await completeTripAction(trip.id, true);
         results.push({ tripId: trip.id, success: true, result });
       } catch (error) {
-        results.push({ 
-          tripId: trip.id, 
-          success: false, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        results.push({
+          tripId: trip.id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
     }
@@ -160,18 +197,20 @@ export async function completeExpiredTrips() {
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.filter(r => !r.success).length;
 
-    // Only log if there were actual results to process
+    // Log de resultados
     if (results.length > 0) {
-        await logActionWithErrorHandling(
+      await logActionWithErrorHandling(
         {
           userId: 'SYSTEM',
           action: TipoAccionUsuario.FINALIZACION_VIAJE,
           status: successCount > 0 ? 'SUCCESS' : 'FAILED',
           details: {
-            totalTrips: totalTripsToProcess,
+            totalProcessed: tripsToComplete.length,
             successCount,
             failureCount,
-            results: results.map(r => ({ tripId: r.tripId, success: r.success }))
+            skippedCount: skippedTrips.length,
+            results: results.map(r => ({ tripId: r.tripId, success: r.success })),
+            bufferUsed: TRIP_COMPLETION_CONFIG.COMPLETION_BUFFER_SECONDS,
           }
         },
         {
@@ -183,12 +222,13 @@ export async function completeExpiredTrips() {
 
     return ApiHandler.handleSuccess(
       {
-        processedTrips: totalTripsToProcess,
+        processedTrips: tripsToComplete.length,
         successCount,
         failureCount,
+        skippedTrips: skippedTrips.length,
         tripIds: results.map(r => r.tripId)
       },
-      `Procesados ${totalTripsToProcess} viajes expirados. ${successCount} completados exitosamente, ${failureCount} fallaron.`
+      `Procesados ${tripsToComplete.length} viajes. ${successCount} completados, ${failureCount} fallaron. ${skippedTrips.length} ignorados por falta de duración.`
     );
   } catch (error) {
     await logActionWithErrorHandling(
@@ -196,8 +236,8 @@ export async function completeExpiredTrips() {
         userId: 'SYSTEM',
         action: TipoAccionUsuario.FINALIZACION_VIAJE,
         status: 'FAILED',
-        details: { 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        details: {
+          error: error instanceof Error ? error.message : 'Unknown error'
         }
       },
       {
@@ -205,7 +245,7 @@ export async function completeExpiredTrips() {
         functionName: 'completeExpiredTrips'
       }
     );
-    
+
     return ApiHandler.handleError(error);
   }
 }

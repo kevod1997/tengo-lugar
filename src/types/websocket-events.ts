@@ -36,12 +36,17 @@ export type eventType =
   | 'trip_status_changed'
   | 'trip_created'
   | 'trip_cancelled'
-  
+
+  // Payment Events
+  | 'payment_approved'
+  | 'payment_rejected'
+  | 'payment_completed'
+
   // System Notification Events
   | 'system_maintenance'
   | 'new_feature'
   | 'system_announcement'
-  
+
   // General Notification Events
   | 'notification_created'
 

@@ -308,11 +308,26 @@ export default function PassengersList({ trip }: PassengersListProps) {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span>Aprobado: {formatDatetoLocaleDateString(passenger.updatedAt)}</span>
                       </div>
-                      
+
+                      {/* Estado de pago mejorado */}
                       {passenger.payment && (
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span>Pago: {passenger.payment.status === 'COMPLETED' ? 'Completado' : 'Pendiente'}</span>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span>Estado de pago:</span>
+                            </div>
+                            <Badge variant={passenger.payment.status === 'COMPLETED' ? 'default' : 'secondary'}
+                              className={passenger.payment.status === 'COMPLETED' ? 'bg-green-600' : 'bg-yellow-600'}>
+                              {passenger.payment.status === 'COMPLETED' ? 'Confirmado' : 'Pendiente'}
+                            </Badge>
+                          </div>
+
+                          {passenger.payment.status !== 'COMPLETED' && (
+                            <div className="text-xs text-yellow-700 bg-yellow-50 p-2 rounded border border-yellow-200">
+                              ⚠️ El pasajero debe completar el pago
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

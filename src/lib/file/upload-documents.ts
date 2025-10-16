@@ -27,7 +27,7 @@ export async function uploadDocuments(
   frontDocument: FileInput | undefined,
   backDocument: FileInput | undefined,
   userInfo: UserInfo,
-  type: 'identity' | 'license' | 'insurance' | 'profile' | 'car-card',
+  type: 'identity' | 'license' | 'insurance' | 'profile' | 'car-card' | 'payment-proof',
   carPlate?: string
 ): Promise<Partial<UploadResult>> {
   try {
@@ -66,7 +66,8 @@ export async function uploadDocuments(
       license: StorageService.getDriverLicenseUploadUrl,
       insurance: StorageService.getInsuranceDocumentUploadUrl,
       profile: StorageService.getProfileImageUploadUrl,
-      'car-card': StorageService.getCarCardDocumentUploadUrl
+      'car-card': StorageService.getCarCardDocumentUploadUrl,
+      'payment-proof': StorageService.getPaymentProofUploadUrl
     }[type];
 
     // Procesamos los documentos que existan
@@ -91,39 +92,6 @@ export async function uploadDocuments(
 
     // Subimos los documentos
     const uploadPromises = [];
-    // if (processedDocuments[0] && uploadData[0]) {
-    //   uploadPromises.push(
-    //     fetch(uploadData[0].signedUrl, {
-    //       method: 'PUT',
-    //       body: processedDocuments[0],
-    //       headers: {
-    //         'Content-Type': frontDocument!.file!.type,
-    //         'Cache-Control': 'no-store'
-    //       },
-    //       cache: 'no-store'
-    //     })
-    //   );
-    //   resultData.frontFileKey = uploadData[0].key;
-    // }
-
-    // if (processedDocuments[1] && uploadData[uploadData.length - 1]) {
-    //   uploadPromises.push(
-    //     fetch(uploadData[uploadData.length - 1].signedUrl, {
-    //       method: 'PUT',
-    //       body: processedDocuments[1],
-    //       headers: {
-    //         'Content-Type': backDocument!.file!.type,
-    //         'Cache-Control': 'no-store'
-    //       },
-    //       cache: 'no-store'
-    //     })
-    //   );
-    //   resultData.backFileKey = uploadData[uploadData.length - 1].key;
-    // }
-
-    // await Promise.all(uploadPromises).catch(error => {
-    //   throw S3ServiceError.UploadFailed('upload-images.ts', 'uploadImages', error.message);
-    // });
 
     // return resultData;
 

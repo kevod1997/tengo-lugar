@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
 }
 
@@ -9,82 +9,76 @@ datasource db {
 }
 
 model User {
-  id                         String    @id @default(cuid()) @map("_id")
-  name                       String
-  email                      String    @unique
-  emailVerified              Boolean   @default(false)
-  image                      String?
-  role                       String    @default("user")
-  banned                     Boolean   @default(false)
-  banReason                  String?
-  banExpires                 Int? // Unix timestamp for ban expiration
-  phoneNumber                String?
-  phoneNumberVerified        Boolean   @default(false)
-  pendingPhoneNumber         String? // For pending verification
-  pendingPhoneVerificationId String? // For verification ID
   birthDate                  DateTime?
-  gender                     Gender?
+  email                      String                @unique
+  createdAt                  DateTime              @default(now())
+  updatedAt                  DateTime              @updatedAt
   profileImageKey            String?
-  createdAt                  DateTime  @default(now())
-  updatedAt                  DateTime  @updatedAt
-
-  // Auth related relations
-  accounts Account[]
-  sessions Session[]
-
-  // App specific relations
-  identityCard      IdentityCard?
-  passenger         Passenger?
-  driver            Driver?
-  termsAcceptance   UserTermsAcceptance[]
-  actionLogs        UserActionLog[]
-  reviewsGiven      Review[]              @relation("ReviewGiven")
-  reviewsReceived   Review[]              @relation("ReviewReceived")
-  pushSubscriptions PushSubscription[]
-  notifications     Notification[]
-  supportTickets    SupportTicket[]
-  assignedTickets   SupportTicket[]       @relation("AssignedTickets")
+  gender                     Gender?
+  emailVerified              Boolean               @default(false)
+  image                      String?
+  name                       String
+  banExpires                 Int?
+  banReason                  String?
+  banned                     Boolean               @default(false)
+  role                       String                @default("user")
+  id                         String                @id @default(cuid()) @map("_id")
+  phoneNumber                String?
+  phoneNumberVerified        Boolean               @default(false)
+  pendingPhoneNumber         String?
+  pendingPhoneVerificationId String?
+  accounts                   Account[]
+  driver                     Driver?
+  identityCard               IdentityCard?
+  notifications              Notification[]
+  passenger                  Passenger?
+  pushSubscriptions          PushSubscription[]
+  reviewsReceived            Review[]              @relation("ReviewReceived")
+  reviewsGiven               Review[]              @relation("ReviewGiven")
+  sessions                   Session[]
+  assignedTickets            SupportTicket[]       @relation("AssignedTickets")
+  supportTickets             SupportTicket[]
+  actionLogs                 UserActionLog[]
+  termsAcceptance            UserTermsAcceptance[]
 }
 
 model Session {
-  id             String   @id @default(cuid()) @map("_id")
   userId         String
   token          String
   expiresAt      DateTime
   ipAddress      String?
   userAgent      String?
-  impersonatedBy String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid()) @map("_id")
+  impersonatedBy String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
-  id                    String    @id @default(cuid()) @map("_id")
   userId                String
-  accountId             String
   providerId            String
-  accessToken           String?
   refreshToken          String?
+  accessToken           String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  id                    String    @id @default(cuid()) @map("_id")
   accessTokenExpiresAt  DateTime?
+  accountId             String
+  password              String?
   refreshTokenExpiresAt DateTime?
   scope                 String?
   idToken               String?
-  password              String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Verification {
-  id         String   @id @default(cuid()) @map("_id")
   identifier String
-  value      String
-  expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  id         String   @id @default(cuid()) @map("_id")
+  expiresAt  DateTime
+  value      String
 }
 
 model jwks {
@@ -97,64 +91,58 @@ model jwks {
 model IdentityCard {
   id            String             @id @default(uuid())
   userId        String             @unique
-  idNumber      Int
   frontFileKey  String
   backFileKey   String
-  fileType      FileType
-  status        VerificationStatus @default(PENDING)
   verifiedAt    DateTime?
-  failureReason String?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
+  fileType      FileType
+  idNumber      Int
+  failureReason String?
+  status        VerificationStatus @default(PENDING)
+  user          User               @relation(fields: [userId], references: [id])
 }
 
 model TermsAndCondition {
-  id            String   @id @default(uuid())
+  id            String                @id @default(uuid())
   version       String
   content       String
   effectiveDate DateTime
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  acceptances UserTermsAcceptance[]
+  isActive      Boolean               @default(true)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  acceptances   UserTermsAcceptance[]
 }
 
 model UserTermsAcceptance {
-  id         String   @id @default(uuid())
+  id         String            @id @default(uuid())
   userId     String
   termsId    String
-  acceptedAt DateTime @default(now())
-
-  user  User              @relation(fields: [userId], references: [id])
-  terms TermsAndCondition @relation(fields: [termsId], references: [id])
+  acceptedAt DateTime          @default(now())
+  terms      TermsAndCondition @relation(fields: [termsId], references: [id])
+  user       User              @relation(fields: [userId], references: [id])
 
   @@unique([userId, termsId])
 }
 
 model Driver {
-  id                   String      @id @default(uuid())
-  userId               String      @unique
-  averageRating        Float       @default(0)
-  totalReviews         Int         @default(0)
-  totalTrips           Int         @default(0)
-  isEnabled            Boolean     @default(false)
-  enabledAt            DateTime?
+  id                   String         @id @default(uuid())
+  userId               String         @unique
+  averageRating        Float          @default(0)
+  totalReviews         Int            @default(0)
+  totalTrips           Int            @default(0)
   disabledReason       String?
-  lastEligibilityCheck DateTime    @default(now())
-
-  // Información bancaria para pagos
+  enabledAt            DateTime?
+  isEnabled            Boolean        @default(false)
+  lastEligibilityCheck DateTime       @default(now())
   bankAlias            String?
-  bankCbuOrCvu         String?     // CBU o CVU (22 dígitos)
-  bankInfoVerified     Boolean     @default(false)
+  bankCbuOrCvu         String?
+  bankInfoVerified     Boolean        @default(false)
   bankInfoVerifiedAt   DateTime?
-
-  licence              Licence?
+  user                 User           @relation(fields: [userId], references: [id])
   cars                 DriverCar[]
   payouts              DriverPayout[]
-  user                 User        @relation(fields: [userId], references: [id])
+  licence              Licence?
 }
 
 model Licence {
@@ -169,8 +157,7 @@ model Licence {
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   failureReason String?
-
-  driver Driver @relation(fields: [driverId], references: [id])
+  driver        Driver             @relation(fields: [driverId], references: [id])
 }
 
 model Passenger {
@@ -179,8 +166,8 @@ model Passenger {
   averageRating Float           @default(0)
   totalReviews  Int             @default(0)
   totalTrips    Int             @default(0)
-  trips         TripPassenger[]
   user          User            @relation(fields: [userId], references: [id])
+  trips         TripPassenger[]
 }
 
 model Brand {
@@ -204,15 +191,15 @@ model CarModel {
 
 model FuelPrice {
   id             String    @id @default(uuid())
-  name           String
   fuelType       FuelType
-  price          Float // Precio por litro/kWh
-  regionCode     String? // Código de región o provincia (opcional, si los precios varían por región)
-  effectiveDate  DateTime // Fecha desde la que aplica este precio
-  expirationDate DateTime? // Fecha opcional hasta la que aplica
+  price          Float
+  regionCode     String?
+  effectiveDate  DateTime
+  expirationDate DateTime?
   isActive       Boolean   @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  name           String
 
   @@index([fuelType, isActive])
   @@index([fuelType, regionCode, effectiveDate])
@@ -220,14 +207,13 @@ model FuelPrice {
 }
 
 model Car {
-  id           String   @id @default(uuid())
-  plate        String   @unique
-  year         Int
+  id           String        @id @default(uuid())
+  plate        String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   carModelId   String
   insuredCarId String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  year         Int
   carModel     CarModel      @relation(fields: [carModelId], references: [id])
   insuredCar   InsuredCar?   @relation(fields: [insuredCarId], references: [id])
   driverCars   DriverCar[]
@@ -238,15 +224,14 @@ model Car {
 }
 
 model DriverCar {
-  id             String   @id @default(uuid())
+  id             String        @id @default(uuid())
+  assignmentDate DateTime      @default(now())
   driverId       String
   carId          String
-  assignmentDate DateTime @default(now())
-
-  driver       Driver        @relation(fields: [driverId], references: [id])
-  car          Car           @relation(fields: [carId], references: [id])
-  vehicleCards VehicleCard[] @relation("DriverCarVehicleCards")
-  trips        Trip[]
+  car            Car           @relation(fields: [carId], references: [id])
+  driver         Driver        @relation(fields: [driverId], references: [id])
+  trips          Trip[]
+  vehicleCards   VehicleCard[] @relation("DriverCarVehicleCards")
 
   @@unique([driverId, carId])
   @@index([driverId])
@@ -256,19 +241,18 @@ model DriverCar {
 model VehicleCard {
   id             String             @id @default(uuid())
   carId          String
-  driverCarId    String?
   cardType       CardType
   fileKey        String
   fileType       FileType
   expirationDate DateTime
   status         VerificationStatus @default(PENDING)
   verifiedAt     DateTime?
-  failureReason  String?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
-
-  car       Car        @relation(fields: [carId], references: [id])
-  driverCar DriverCar? @relation("DriverCarVehicleCards", fields: [driverCarId], references: [id])
+  failureReason  String?
+  driverCarId    String?
+  car            Car                @relation(fields: [carId], references: [id])
+  driverCar      DriverCar?         @relation("DriverCarVehicleCards", fields: [driverCarId], references: [id])
 
   @@unique([carId, cardType])
   @@index([carId, driverCarId])
@@ -276,20 +260,18 @@ model VehicleCard {
 
 model InsuredCar {
   id              String            @id @default(uuid())
-  cars            Car[]
-  currentPolicyId String?           @unique
-  policyHistory   InsurancePolicy[]
-  currentPolicy   InsurancePolicy?  @relation("CurrentPolicy", fields: [currentPolicyId], references: [id])
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  currentPolicyId String?           @unique
+  cars            Car[]
+  policyHistory   InsurancePolicy[]
+  currentPolicy   InsurancePolicy?  @relation("CurrentPolicy", fields: [currentPolicyId], references: [id])
 
   @@index([currentPolicyId])
 }
 
 model InsurancePolicy {
   id            String             @id @default(uuid())
-  insuredCarId  String
-  insuranceId   String
   policyNumber  Int
   startDate     DateTime
   expireDate    DateTime
@@ -299,10 +281,11 @@ model InsurancePolicy {
   verifiedAt    DateTime?
   failureReason String?
   createdAt     DateTime           @default(now())
-
-  insuredCar    InsuredCar  @relation(fields: [insuredCarId], references: [id])
-  insurance     Insurance   @relation(fields: [insuranceId], references: [id])
-  currentForCar InsuredCar? @relation("CurrentPolicy")
+  insuredCarId  String
+  insuranceId   String
+  insurance     Insurance          @relation(fields: [insuranceId], references: [id])
+  insuredCar    InsuredCar         @relation(fields: [insuredCarId], references: [id])
+  currentForCar InsuredCar?        @relation("CurrentPolicy")
 
   @@index([insuredCarId])
   @@index([insuranceId])
@@ -316,45 +299,20 @@ model Insurance {
 }
 
 model Trip {
-  id          String @id @default(uuid())
-  driverCarId String
-
-  // Enhanced origin details
-  originAddress   String? // Full formatted address
-  originCity      String // City name
-  originProvince  String // Province/state name
-  originLatitude  Float? // Latitude coordinate
-  originLongitude Float? // Longitude coordinate
-
-  // Enhanced destination details
-  destinationAddress   String? // Full formatted address
-  destinationCity      String // City name
-  destinationProvince  String // Province/state name
-  destinationLatitude  Float? // Latitude coordinate
-  destinationLongitude Float? // Longitude coordinate
-
-  // Route information
-  googleMapsUrl   String? // URL to Google Maps route
-  date            DateTime
-  originalDepartureTime DateTime? // Original scheduled departure time
-  departureTime   DateTime
-  price           Int
-  distance        Float?
-  duration        String? // Duration string from Google (e.g. "2h 15m")
-  durationSeconds Int? // Duration in seconds for easier calculations
-
-  // Toll information
-  hasTolls           Boolean @default(false)
-  tollEstimatedPrice Float? // Estimated toll price
-
-  // Trip details
+  id                      String           @id @default(uuid())
+  driverCarId             String
+  date                    DateTime
+  departureTime           DateTime
+  price                   Int
+  distance                Float?
   availableSeats          Int
-  remainingSeats          Int
   status                  TripStatus       @default(PENDING)
   isFull                  Boolean          @default(false)
   priceGuide              Float?
   maximumPrice            Float?
   serviceFee              Float?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
   autoApproveReservations Boolean          @default(false)
   luggageAllowance        LuggageAllowance @default(MEDIUM)
   allowPets               Boolean          @default(false)
@@ -362,16 +320,30 @@ model Trip {
   smokingAllowed          Boolean          @default(false)
   additionalNotes         String?
   categoryId              String?
+  destinationAddress      String?
+  destinationCity         String
+  destinationLatitude     Float?
+  destinationLongitude    Float?
+  destinationProvince     String
+  duration                String?
+  durationSeconds         Int?
+  googleMapsUrl           String?
+  hasTolls                Boolean          @default(false)
+  originAddress           String?
+  originCity              String
+  originLatitude          Float?
+  originLongitude         Float?
+  originProvince          String
+  tollEstimatedPrice      Float?
+  remainingSeats          Int
   chatRoomId              String?          @unique
-  createdAt               DateTime         @default(now())
-  updatedAt               DateTime         @updatedAt
-
-  driverCar     DriverCar       @relation(fields: [driverCarId], references: [id])
-  passengers    TripPassenger[]
-  reviews       Review[]
-  category      TripCategory?   @relation(fields: [categoryId], references: [id])
-  cancellations Cancellation[]
-  driverPayout  DriverPayout?
+  originalDepartureTime   DateTime?
+  cancellations           Cancellation[]
+  driverPayout            DriverPayout?
+  reviews                 Review[]
+  category                TripCategory?    @relation(fields: [categoryId], references: [id])
+  driverCar               DriverCar        @relation(fields: [driverCarId], references: [id])
+  passengers              TripPassenger[]
 
   @@index([driverCarId])
   @@index([date, status])
@@ -386,14 +358,13 @@ model TripPassenger {
   seatsReserved      Int               @default(1)
   totalPrice         Float
   reservationMessage String?
-  approvedAt         DateTime? 
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
-
-  trip         Trip          @relation(fields: [tripId], references: [id])
-  passenger    Passenger     @relation(fields: [passengerId], references: [id])
-  payment      Payment?
-  cancellation Cancellation?
+  approvedAt         DateTime?
+  cancellation       Cancellation?
+  payment            Payment?
+  passenger          Passenger         @relation(fields: [passengerId], references: [id])
+  trip               Trip              @relation(fields: [tripId], references: [id])
 
   @@unique([tripId, passengerId])
   @@index([tripId])
@@ -411,10 +382,9 @@ model Review {
   comments     String?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
-
-  trip     Trip @relation(fields: [tripId], references: [id])
-  reviewer User @relation("ReviewGiven", fields: [reviewerId], references: [id])
-  reviewed User @relation("ReviewReceived", fields: [reviewedId], references: [id])
+  reviewed     User         @relation("ReviewReceived", fields: [reviewedId], references: [id])
+  reviewer     User         @relation("ReviewGiven", fields: [reviewerId], references: [id])
+  trip         Trip         @relation(fields: [tripId], references: [id])
 
   @@index([tripId])
   @@index([reviewerId])
@@ -424,18 +394,18 @@ model Review {
 model Payment {
   id              String        @id @default(uuid())
   tripPassengerId String        @unique
-  amount          Float
   currency        String        @default("ARS")
   status          PaymentStatus @default(PENDING)
-  paymentMethod   PaymentMethod
   notes           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   completedAt     DateTime?
-
-  tripPassenger TripPassenger @relation(fields: [tripPassengerId], references: [id])
-  bankTransfer  BankTransfer?
-  refund        Refund?
+  paymentMethod   PaymentMethod
+  serviceFee      Float
+  totalAmount     Float
+  bankTransfer    BankTransfer?
+  tripPassenger   TripPassenger @relation(fields: [tripPassengerId], references: [id])
+  refund          Refund?
 
   @@index([status])
   @@index([createdAt])
@@ -451,45 +421,39 @@ model BankTransfer {
   verifiedAt    DateTime?
   verifiedBy    String?
   failureReason String?
-
-  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payment       Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 }
 
 model Refund {
   id                 String       @id @default(cuid())
   paymentId          String       @unique
-  refundAmount       Float // Monto reembolsado al pasajero
-  driverCompensation Float        @default(0) // Compensación al conductor
-  serviceFeeRetained Float // Tarifa de servicio retenida por Tengo Lugar
-  refundStatus       RefundStatus // PROCESSING, COMPLETED, FAILED
-  refundType         RefundType // FULL_REFUND, PARTIAL_75, PARTIAL_50, NO_REFUND
-  processedAt        DateTime? // Cuándo se procesó el reembolso
-  completedAt        DateTime? // Cuándo se completó
-  failureReason      String? // Si falló, por qué
+  refundAmount       Float
+  driverCompensation Float        @default(0)
+  serviceFeeRetained Float
+  refundStatus       RefundStatus
+  refundType         RefundType
+  processedAt        DateTime?
+  completedAt        DateTime?
+  failureReason      String?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
-
-  payment Payment @relation(fields: [paymentId], references: [id])
+  payment            Payment      @relation(fields: [paymentId], references: [id])
 
   @@index([refundStatus])
   @@index([paymentId])
 }
 
 model Cancellation {
-  id                   String       @id @default(cuid())
-  // IMPORTANTE: Solo UNO de estos dos campos debe tener valor
-  // - Si cancelledBy === PASSENGER → usar tripPassengerId
-  // - Si cancelledBy === DRIVER → usar tripId
-  tripPassengerId      String?      @unique
+  id                   String         @id @default(cuid())
+  tripPassengerId      String?        @unique
   tripId               String?
-  cancelledBy          CancelledBy // PASSENGER, DRIVER
-  reason               String // Texto libre - motivo de cancelación
-  hoursBeforeDeparture Float // Horas de anticipación
-  refundPercentage     Float // % de reembolso aplicado (solo cuando cancelledBy === PASSENGER)
-  cancelledAt          DateTime     @default(now())
-
-  tripPassenger TripPassenger? @relation(fields: [tripPassengerId], references: [id])
-  trip          Trip?          @relation(fields: [tripId], references: [id])
+  cancelledBy          CancelledBy
+  reason               String
+  hoursBeforeDeparture Float
+  refundPercentage     Float
+  cancelledAt          DateTime       @default(now())
+  trip                 Trip?          @relation(fields: [tripId], references: [id])
+  tripPassenger        TripPassenger? @relation(fields: [tripPassengerId], references: [id])
 
   @@index([cancelledBy])
   @@index([tripPassengerId])
@@ -508,18 +472,17 @@ model TripCategory {
 }
 
 model FeePolicy {
-  id             String        @id @default(uuid())
+  id             String         @id @default(uuid())
   name           String
   description    String?
   serviceFeeRate Float
-  serviceFeeType FeePolicyType @default(PERCENTAGE)
+  serviceFeeType FeePolicyType  @default(PERCENTAGE)
   minimumFee     Float?
   maximumFee     Float?
-  isDefault      Boolean       @default(false)
-  isActive       Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-
+  isDefault      Boolean        @default(false)
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
   tripCategories TripCategory[]
 }
 
@@ -542,8 +505,7 @@ model UserActionLog {
   status    String
   metadata  Json
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId, action, createdAt])
 }
@@ -556,8 +518,7 @@ model PushSubscription {
   auth      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, endpoint])
   @@index([userId])
@@ -568,67 +529,51 @@ model Notification {
   userId    String
   title     String
   message   String
-  link      String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  link      String?
   updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, read])
 }
 
 model SupportTicket {
-  id           String        @id @default(uuid())
-  ticketNumber String        @unique
-  userId       String
-
-  category     TicketCategory
-  subject      String
-  description  String        @db.Text
-  status       TicketStatus  @default(OPEN)
-
+  id                String         @id @default(uuid())
+  ticketNumber      String         @unique
+  userId            String
+  category          TicketCategory
+  subject           String
+  description       String
+  status            TicketStatus   @default(OPEN)
   assignedToAdminId String?
-  resolution        String?   @db.Text
-
-  createdAt  DateTime @default(now())
-  resolvedAt DateTime?
-
-  user          User  @relation(fields: [userId], references: [id])
-  assignedAdmin User? @relation("AssignedTickets", fields: [assignedToAdminId], references: [id])
+  resolution        String?
+  createdAt         DateTime       @default(now())
+  resolvedAt        DateTime?
+  assignedAdmin     User?          @relation("AssignedTickets", fields: [assignedToAdminId], references: [id])
+  user              User           @relation(fields: [userId], references: [id])
 
   @@index([userId, status])
   @@index([status, createdAt])
 }
 
 model DriverPayout {
-  id           String        @id @default(uuid())
-  tripId       String        @unique
-  driverId     String
-
-  // Montos
-  totalEarned  Float         // Total ganado por el viaje (sin descontar fee)
-  serviceFee   Float         // Fee de Tengo Lugar
-  payoutAmount Float         // Total a pagar al conductor (totalEarned - serviceFee)
-  currency     String        @default("ARS")
-
-  // Estado
-  status       PayoutStatus  @default(PENDING)
-  payoutMethod PaymentMethod @default(BANK_TRANSFER)
-
-  // Notas y auditoría
-  notes        String?
-  processedBy  String?       // Admin que procesó el pago
-
-  // Timestamps
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  processedAt  DateTime?     // Cuándo se procesó la transferencia
-  completedAt  DateTime?     // Cuándo se completó
-
-  trip          Trip           @relation(fields: [tripId], references: [id])
+  id            String         @id @default(uuid())
+  tripId        String         @unique
+  driverId      String
+  payoutAmount  Float
+  currency      String         @default("ARS")
+  status        PayoutStatus   @default(PENDING)
+  payoutMethod  PaymentMethod  @default(BANK_TRANSFER)
+  notes         String?
+  processedBy   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  processedAt   DateTime?
+  completedAt   DateTime?
   driver        Driver         @relation(fields: [driverId], references: [id])
+  trip          Trip           @relation(fields: [tripId], references: [id])
   transferProof TransferProof?
 
   @@index([driverId, status])
@@ -637,15 +582,14 @@ model DriverPayout {
 }
 
 model TransferProof {
-  id             String   @id @default(uuid())
-  driverPayoutId String   @unique
-  proofFileKey   String   // S3 key del comprobante
-  transferDate   DateTime // Fecha de la transferencia
-  transferredBy  String   // ID del admin que realizó la transferencia
+  id             String       @id @default(uuid())
+  driverPayoutId String       @unique
+  proofFileKey   String
+  transferDate   DateTime
+  transferredBy  String
   notes          String?
-  createdAt      DateTime @default(now())
-
-  driverPayout DriverPayout @relation(fields: [driverPayoutId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  driverPayout   DriverPayout @relation(fields: [driverPayoutId], references: [id], onDelete: Cascade)
 }
 
 enum CardType {
@@ -686,27 +630,28 @@ enum TripStatus {
 }
 
 enum ReservationStatus {
-  PENDING_APPROVAL // Esperando aprobación del conductor
-  WAITLISTED // Trip full but passenger is on waiting list
-  APPROVED // Aprobado, pendiente de pago
-  REJECTED // Rechazado por conductor
-  CONFIRMED // Pagado y confirmado - LISTO PARA VIAJAR
-  CANCELLED_EARLY // Cancelado con >24h (reembolso completo)
-  CANCELLED_MEDIUM // Cancelado 12-24h (reembolso 75%)
-  CANCELLED_LATE // Cancelado <12h (reembolso 50%)
-  CANCELLED_BY_DRIVER_EARLY // Cancelado por conductor >48h (sin penalidad)
-  CANCELLED_BY_DRIVER_LATE // Cancelado por conductor <48h (con penalidad)
-  NO_SHOW // No se presentó (sin reembolso)
-  COMPLETED // Viaje completado exitosamente
-  EXPIRED // Reserva expirada (no pagada a tiempo)
+  PENDING_APPROVAL
+  WAITLISTED
+  APPROVED
+  REJECTED
+  CONFIRMED
+  CANCELLED_EARLY
+  CANCELLED_MEDIUM
+  CANCELLED_LATE
+  CANCELLED_BY_DRIVER_EARLY
+  CANCELLED_BY_DRIVER_LATE
+  NO_SHOW
+  COMPLETED
+  EXPIRED
 }
 
 enum PaymentStatus {
-  PENDING // Payment pending
-  PROCESSING // Payment processing
-  COMPLETED // Payment completed
-  FAILED // Payment failed
-  REFUNDED // Payment refunded
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
 }
 
 enum RevieweeType {
@@ -715,16 +660,16 @@ enum RevieweeType {
 }
 
 enum FeePolicyType {
-  PERCENTAGE // Apply a percentage on the price
-  FIXED_AMOUNT // Fixed amount per reservation
-  PER_SEAT // Fixed amount per seat
+  PERCENTAGE
+  FIXED_AMOUNT
+  PER_SEAT
 }
 
 enum LuggageAllowance {
-  SMALL // Only small hand luggage (backpack, handbag)
-  MEDIUM // Medium luggage (cabin luggage)
-  LARGE // Large suitcases
-  EXTRA // Extra or bulky luggage (sports, instruments, etc.)
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA
 }
 
 enum ChatRoomStatus {
@@ -776,11 +721,12 @@ enum PaymentMethod {
 }
 
 enum PayoutStatus {
-  PENDING       // Esperando procesamiento
-  PROCESSING    // En proceso de transferencia
-  COMPLETED     // Transferencia completada
-  FAILED        // Transferencia fallida
-  ON_HOLD       // En espera (verificación pendiente)
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  ON_HOLD
+  CANCELLED
 }
 
 enum TicketCategory {

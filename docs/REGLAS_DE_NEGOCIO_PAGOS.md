@@ -60,7 +60,6 @@ PENDING_APPROVAL → APPROVED → CONFIRMED → COMPLETED
 Razón Social: Tengo Lugar S.A.
 CUIT/CUIL: [A COMPLETAR]
 Banco: [A COMPLETAR]
-Tipo de cuenta: Cuenta Corriente
 CBU: [A COMPLETAR]
 Alias: tengo.lugar.pagos
 ```

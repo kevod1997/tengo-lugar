@@ -139,8 +139,14 @@ export async function canUserReserveTrip(tripId: string) {
     // User already has a reservation
     if (trip.passengers.length > 0) {
       const status = trip.passengers[0].reservationStatus;
-      // If it's cancelled, they can reserve again
-      if (!['CANCELLED_BY_DRIVER', 'CANCELLED_BY_PASSENGER'].includes(status)) {
+      // Solo permite re-reservar en casos sin penalización
+      const canReReserveStatuses = [
+        'REJECTED',                  // Conductor rechazó - puede reintentar
+        'CANCELLED_EARLY',           // Canceló >24h - sin penalización
+        'CANCELLED_BY_DRIVER_EARLY'  // Conductor canceló >48h - sin penalización
+      ];
+
+      if (!canReReserveStatuses.includes(status)) {
         return { canReserve: false, reason: 'already_reserved' };
       }
     }

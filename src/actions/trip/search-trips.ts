@@ -2,6 +2,7 @@
 
 import { ApiHandler } from "@/lib/api-handler"
 import prisma from "@/lib/prisma"
+import { TRIP_COMPLETION_CONFIG } from "@/lib/constants/trip-completion-config"
 import { TripStatus } from "@prisma/client"
 
 export interface TripSearchParams {
@@ -51,9 +52,27 @@ export async function searchTrips({
             const nextDay = new Date(selectedDate)
             nextDay.setDate(nextDay.getDate() + 1)
 
-            where.date = {
-                gte: selectedDate,
-                lt: nextDay
+            // Verificar si la búsqueda es para el día actual
+            const now = new Date()
+            const isToday = selectedDate.toDateString() === now.toDateString()
+
+            if (isToday) {
+                // Si busca para HOY, solo mostrar viajes que salgan en más de 3h 30min
+                const minDepartureTime = new Date()
+                minDepartureTime.setSeconds(
+                    minDepartureTime.getSeconds() + TRIP_COMPLETION_CONFIG.MINIMUM_BOOKING_TIME_SECONDS
+                )
+
+                where.date = {
+                    gte: minDepartureTime,
+                    lt: nextDay
+                }
+            } else {
+                // Para búsquedas de fechas futuras, usar lógica original
+                where.date = {
+                    gte: selectedDate,
+                    lt: nextDay
+                }
             }
         }
 

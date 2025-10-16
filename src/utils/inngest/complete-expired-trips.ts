@@ -7,7 +7,7 @@ export const completeExpiredTripsFunction = inngest.createFunction(
     id: "complete-expired-trips",
     retries: 3
   },
-  { cron: "0 */4 * * *" }, // Run every 4 hours
+  { cron: "0 */2 * * *" }, // Run every 2 hours
   async ({ step }) => {
     try {
       // Use steps to get automatic retry with backoff
@@ -15,10 +15,25 @@ export const completeExpiredTripsFunction = inngest.createFunction(
         return await completeExpiredTrips();
       });
 
-      return { 
-        success: true, 
+      // Log más detallado con información de viajes procesados
+      if (result.success && result.data) {
+        const {
+          processedTrips = 0,
+          successCount = 0,
+          failureCount = 0,
+          skippedTrips = 0
+        } = result.data;
+
+        console.log(
+          `[Inngest] Processed ${processedTrips} trips: ${successCount} completed, ${failureCount} failed. ` +
+          `${skippedTrips > 0 ? `⚠️ ${skippedTrips} skipped (missing durationSeconds)` : ''}`
+        );
+      }
+
+      return {
+        success: true,
         message: "Expired trips completion process finished",
-        data: result.success ? result.data : { processedTrips: 0 },
+        data: result.success ? result.data : { processedTrips: 0, skippedTrips: 0 },
         originalResult: result
       };
     } catch (error) {

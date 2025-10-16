@@ -57,7 +57,8 @@ export async function getUserReservations() {
       payment: {
         select: {
           status: true,
-          amount: true
+          totalAmount: true,
+          serviceFee: true
         }
       }
     };

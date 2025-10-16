@@ -10,6 +10,7 @@ import { z } from "zod";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { notifyUser } from "@/utils/notifications/notification-helpers";
+import { canApproveReservation, formatTimeRestrictionError } from "@/utils/helpers/time-restrictions-helper";
 
 // Schema for validation
 const managePassengerSchema = z.object({
@@ -43,8 +44,11 @@ export async function managePassenger(data: {
       select: {
         id: true,
         remainingSeats: true,
+        departureTime: true,
         originCity: true,
         destinationCity: true,
+        price: true,
+        serviceFee: true,
         driverCar: {
           include: {
             driver: true
@@ -79,6 +83,16 @@ export async function managePassenger(data: {
     
     // If approving, check that there are enough seats available
     if (validatedData.action === 'approve') {
+      // Validate time restriction: cannot approve reservations within 3 hours of departure
+      const timeCheck = canApproveReservation(trip.departureTime);
+      if (!timeCheck.isAllowed) {
+        throw ServerActionError.ValidationFailed(
+          'manage-passenger.ts',
+          'managePassenger',
+          formatTimeRestrictionError(timeCheck)
+        );
+      }
+
       // Use the remainingSeats field for validation instead of calculating
       if (passengerTrip.seatsReserved > trip.remainingSeats) {
         throw ServerActionError.ValidationFailed(
@@ -103,13 +117,28 @@ export async function managePassenger(data: {
     
     // Update passenger status
     const newStatus = validatedData.action === 'approve' ? 'APPROVED' : 'REJECTED';
-    
+
     await prisma.tripPassenger.update({
       where: { id: validatedData.passengerTripId },
       data: { reservationStatus: newStatus,
         approvedAt: validatedData.action === 'approve' ? new Date() : null
       }
     });
+
+    // 🆕 CREAR PAYMENT AUTOMÁTICAMENTE AL APROBAR
+    if (validatedData.action === 'approve') {
+      // El monto del pago es el totalPrice que ya incluye precio base + service fee
+      await prisma.payment.create({
+        data: {
+          tripPassengerId: validatedData.passengerTripId,
+          totalAmount: passengerTrip.totalPrice,
+          serviceFee: trip.price * (trip.serviceFee || 0) / 100 * passengerTrip.seatsReserved, // service fee proporcional a los asientos
+          currency: 'ARS',
+          status: 'PENDING',
+          paymentMethod: 'BANK_TRANSFER'
+        }
+      });
+    }
     
     // If rejecting passenger that was previously approved, update remainingSeats and trip fullness
     if (validatedData.action === 'reject' && 
@@ -149,21 +178,34 @@ export async function managePassenger(data: {
 
     // Notify the passenger about the decision
     const passengerUserId = passengerTrip.passenger.userId;
-    const title = validatedData.action === 'approve'
-      ? "Reserva aprobada"
-      : "Reserva rechazada";
 
-    const message = validatedData.action === 'approve'
-      ? `Tu reserva para el viaje de ${trip.originCity} a ${trip.destinationCity} ha sido aprobada.`
-      : `Tu reserva para el viaje de ${trip.originCity} a ${trip.destinationCity} ha sido rechazada por el conductor.`;
+    if (validatedData.action === 'approve') {
+      const title = "¡Reserva aprobada!";
+      const message = `El conductor aprobó tu reserva para el viaje de ${trip.originCity} a ${trip.destinationCity}.
 
-    await notifyUser(
-      passengerUserId,
-      title,
-      message,
-      undefined,
-      `/viajes/${validatedData.tripId}`
-    );
+**IMPORTANTE:** Debes completar el pago para confirmar tu lugar.
+
+Hacé clic aquí para ver las instrucciones de pago.`;
+
+      await notifyUser(
+        passengerUserId,
+        title,
+        message,
+        undefined,
+        `/viajes/${validatedData.tripId}/pagar` // Link directo a página de pago
+      );
+    } else {
+      const title = "Reserva rechazada";
+      const message = `Tu reserva para el viaje de ${trip.originCity} a ${trip.destinationCity} ha sido rechazada por el conductor.`;
+
+      await notifyUser(
+        passengerUserId,
+        title,
+        message,
+        undefined,
+        `/viajes/${validatedData.tripId}`
+      );
+    }
     
     return ApiHandler.handleSuccess(
       { success: true },

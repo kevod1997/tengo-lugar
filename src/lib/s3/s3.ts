@@ -29,15 +29,16 @@ export class S3Service {
     this.environment = process.env.VERCEL_ENV || process.env.NODE_ENV || 'development';
   }
 
-  private getObjectKey(type: 'profile' | 'identity' | 'license' | 'insurance' | 'car-card', fileName: string, userInfo: UserInfo, carPlate?: string) {
+  private getObjectKey(type: 'profile' | 'identity' | 'license' | 'insurance' | 'car-card' | 'payment-proof', fileName: string, userInfo: UserInfo, carPlate?: string) {
     const envPrefix = this.environment === 'production' ? 'prod' : 'dev';
-    
+
     const prefix = {
       profile: `${envPrefix}/public/profile-images`,
       identity: `${envPrefix}/private/identity-documents`,
       license: `${envPrefix}/private/driver-licenses`,
       insurance: `${envPrefix}/private/insurance-documents`,
       'car-card': `${envPrefix}/private/car-card`,
+      'payment-proof': `${envPrefix}/private/payment-proofs`,
     }[type];
 
     const timestamp = Date.now();
@@ -63,7 +64,7 @@ export class S3Service {
   }
 
   async getSignedUploadUrl(
-    type: 'profile' | 'identity' | 'license' | 'insurance' | 'car-card',
+    type: 'profile' | 'identity' | 'license' | 'insurance' | 'car-card' | 'payment-proof',
     fileName: string,
     contentType: string,
     userInfo: UserInfo,

@@ -79,6 +79,18 @@ export class StorageService {
     return await s3Service.getSignedDownloadUrl(key);
   }
 
+  static async getPaymentProofUploadUrl(
+    fileExtension: string,
+    contentType: string,
+    userInfo: UserInfo
+  ) {
+    const fileName = `comprobante-${Date.now()}.${fileExtension}`;
+    return await s3Service.getSignedUploadUrl('payment-proof', fileName, contentType, userInfo);
+  }
+
+  static async getPaymentProofUrl(key: string) {
+    return await s3Service.getSignedDownloadUrl(key);
+  }
 
   // Función de utilidad para eliminar archivos si es necesario
   // static async deleteFile(key: string) {
