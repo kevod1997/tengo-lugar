@@ -179,20 +179,27 @@ export async function completeExpiredTrips() {
       );
     }
 
-    // Completar cada viaje
-    const results = [];
-    for (const trip of tripsToComplete) {
-      try {
-        const result = await completeTripAction(trip.id, true);
-        results.push({ tripId: trip.id, success: true, result });
-      } catch (error) {
-        results.push({
-          tripId: trip.id,
+    // Completar cada viaje en paralelo para mejor performance
+    const completionResults = await Promise.allSettled(
+      tripsToComplete.map(trip =>
+        completeTripAction(trip.id, true)
+          .then(result => ({ tripId: trip.id, success: true, result }))
+      )
+    );
+
+    // Mapear resultados de Promise.allSettled a formato esperado
+    const results = completionResults.map((result, index) => {
+      const tripId = tripsToComplete[index].id;
+      if (result.status === 'fulfilled') {
+        return result.value;
+      } else {
+        return {
+          tripId,
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
+          error: result.reason instanceof Error ? result.reason.message : 'Unknown error'
+        };
       }
-    }
+    });
 
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.filter(r => !r.success).length;

@@ -144,21 +144,24 @@ export async function expireUnpaidReservations() {
 
     const successfulExpirations = results.filter(r => r.status === 'fulfilled').length;
 
-    // Enviar notificaciones a pasajeros afectados
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
+    // Enviar notificaciones a pasajeros afectados en paralelo para mejor performance
+    const notificationPromises = results
+      .filter(r => r.status === 'fulfilled')
+      .map(result => {
         const reservation = result.value;
         const hoursUntil = calculateHoursUntilDeparture(reservation.trip.departureTime);
 
-        await notifyUser(
+        return notifyUser(
           reservation.passenger.userId,
           'Reserva expirada por falta de pago',
           `Tu reserva para el viaje de ${reservation.trip.originCity} a ${reservation.trip.destinationCity} expiró porque no se confirmó el pago a tiempo.\n\nTiempo restante hasta salida: ${Math.floor(hoursUntil)}h ${Math.floor((hoursUntil % 1) * 60)}m`,
           undefined,
           `/viajes/${reservation.trip.id}`
         );
-      }
-    }
+      });
+
+    // Ejecutar todas las notificaciones en paralelo
+    await Promise.allSettled(notificationPromises);
 
     await logActionWithErrorHandling(
       {

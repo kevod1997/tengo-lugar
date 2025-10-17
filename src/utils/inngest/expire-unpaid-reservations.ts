@@ -4,12 +4,15 @@ import { expireUnpaidReservations } from "@/actions/trip/expire-unpaid-reservati
 /**
  * Inngest cron job para expirar reservas APPROVED sin pago
  *
- * Se ejecuta cada 30 minutos para detectar reservas que:
+ * Se ejecuta cada 1 hora para detectar reservas que:
  * - Estado: APPROVED
  * - Payment.status: PENDING
  * - Tiempo hasta salida: < 2 horas
  *
  * Según REGLAS_DE_NEGOCIO_PAGOS.md Sección 9.3
+ *
+ * Frecuencia optimizada: Cada 1 hora es suficiente dado que la ventana
+ * de expiración es de 2 horas, proporcionando margen de seguridad adecuado.
  */
 export const expireUnpaidReservationsFunction = inngest.createFunction(
   {
@@ -17,7 +20,7 @@ export const expireUnpaidReservationsFunction = inngest.createFunction(
     name: "Expire Unpaid Reservations"
   },
   {
-    cron: "*/30 * * * *" // Cada 30 minutos
+    cron: "0 * * * *" // Cada 1 hora (en punto)
   },
   async ({ step }) => {
     console.log("[Inngest] Starting expire-unpaid-reservations job");
