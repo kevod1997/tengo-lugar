@@ -17,7 +17,10 @@ import { expireUnpaidReservations } from "@/actions/trip/expire-unpaid-reservati
 export const expireUnpaidReservationsFunction = inngest.createFunction(
   {
     id: "expire-unpaid-reservations",
-    name: "Expire Unpaid Reservations"
+    name: "Expire Unpaid Reservations",
+    concurrency: {
+      limit: 1
+    }
   },
   {
     cron: "0 * * * *" // Cada 1 hora (en punto)

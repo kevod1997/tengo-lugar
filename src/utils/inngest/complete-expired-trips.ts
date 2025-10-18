@@ -5,7 +5,10 @@ import { logError } from "@/services/logging/logging-service";
 export const completeExpiredTripsFunction = inngest.createFunction(
   {
     id: "complete-expired-trips",
-    retries: 3
+    retries: 3,
+    concurrency: {
+      limit: 1
+    }
   },
   { cron: "0 */2 * * *" }, // Run every 2 hours
   async ({ step }) => {

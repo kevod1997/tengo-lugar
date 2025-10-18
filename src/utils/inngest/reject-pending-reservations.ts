@@ -5,7 +5,10 @@ import { logError } from "@/services/logging/logging-service";
 export const rejectPendingReservationsFunction = inngest.createFunction(
   {
     id: "reject-pending-reservations",
-    retries: 3
+    retries: 3,
+    concurrency: {
+      limit: 1
+    }
   },
   { cron: "0 */3 * * *" }, // Run every 3 hours
   async ({ step }) => {
