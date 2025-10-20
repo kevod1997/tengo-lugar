@@ -71,8 +71,8 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
         userId: 'SYSTEM', // For automated completion
         action: TipoAccionUsuario.FINALIZACION_VIAJE,
         status: 'SUCCESS',
-        details: { 
-          tripId, 
+        details: {
+          tripId,
           isAutomated,
           completedPassengers: trip.passengers.length,
           departureTime: trip.departureTime.toISOString()
@@ -84,11 +84,47 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
       }
     );
 
+    // Create DriverPayout automatically after trip completion
+    // This is done AFTER trip completion to avoid rollback if payout creation fails
+    let payoutCreated = false;
+    let payoutId: string | undefined;
+
+    try {
+      const { createDriverPayout } = await import('@/actions/driver-payout/create-driver-payout');
+      const payoutResult = await createDriverPayout(tripId);
+
+      if (payoutResult.success && payoutResult.data) {
+        payoutCreated = true;
+        payoutId = payoutResult.data.id;
+        console.log(`[Trip Completion] DriverPayout created successfully: ${payoutId}`);
+      }
+    } catch (payoutError) {
+      // Log error but DO NOT fail trip completion
+      // Admin can manually create payout from dashboard
+      const { logError } = await import('@/services/logging/logging-service');
+      await logError({
+        origin: 'Trip Completion - Payout Creation',
+        code: 'PAYOUT_CREATION_FAILED',
+        message: 'Failed to create DriverPayout after trip completion',
+        details: JSON.stringify({
+          tripId,
+          error: payoutError instanceof Error ? payoutError.message : 'Unknown error',
+          stack: payoutError instanceof Error ? payoutError.stack : undefined
+        }),
+        fileName: 'complete-trip.ts',
+        functionName: 'completeTripAction'
+      });
+
+      console.error(`[Trip Completion] Failed to create DriverPayout for trip ${tripId}:`, payoutError);
+    }
+
     return ApiHandler.handleSuccess(
-      { 
+      {
         success: true,
         tripId,
-        completedPassengers: trip.passengers.length
+        completedPassengers: trip.passengers.length,
+        payoutCreated,
+        payoutId
       },
       'Viaje completado exitosamente'
     );

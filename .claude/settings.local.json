@@ -47,7 +47,8 @@
       "Read(C:\\Users\\Kevin\\OneDrive\\Escritorio\\Dev\\tengo-lugar-websocket-notifications\\src\\controllers/**)",
       "mcp__puppeteer__puppeteer_navigate",
       "mcp__puppeteer__puppeteer_evaluate",
-      "mcp__puppeteer__puppeteer_screenshot"
+      "mcp__puppeteer__puppeteer_screenshot",
+      "Bash(git diff src/app/(admin)/admin/pagos/page.tsx)"
     ],
     "deny": [],
     "additionalDirectories": [

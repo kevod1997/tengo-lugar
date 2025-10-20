@@ -4,18 +4,18 @@ import Header from '@/components/header/header'
 import { DashboardShell } from '../usuarios/components/DashboardShell'
 import { DashboardHeader } from '../usuarios/components/DashboardHeader'
 import { Pagination } from '../usuarios/components/Pagination'
-import { PaymentTable } from './components/PaymentTable'
-import { PaymentFilters } from './components/PaymentFilters'
+import { DriverPayoutTable } from './components/DriverPayoutTable'
+import { DriverPayoutFilters } from './components/DriverPayoutFilters'
 import Loading from './loading'
-import { getPendingPayments } from '@/actions/payment/get-pending-payments'
-import { PaymentStatus } from '@prisma/client'
+import { getDriverPayouts } from '@/actions/driver-payout/get-driver-payouts'
+import { PayoutStatus } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata: Metadata = {
-  title: 'Gestión de Pagos | Admin - Tengo Lugar',
-  description: 'Administra y verifica los pagos de las reservas',
+  title: 'Pagos a Conductores | Admin - Tengo Lugar',
+  description: 'Gestiona los pagos pendientes para los conductores',
 }
 
 interface PageProps {
@@ -27,20 +27,21 @@ interface PageProps {
   }>
 }
 
-export default async function AdminPaymentsPage({ searchParams }: PageProps) {
+export default async function AdminDriverPayoutsPage({ searchParams }: PageProps) {
   const params = await searchParams
   const page = Number(params.page) || 1
   const pageSize = Number(params.pageSize) || 10
-  const status = (params.status as PaymentStatus) || undefined
+  const status = (params.status as PayoutStatus) || undefined
   const searchTerm = params.search || ''
 
-  const response = await getPendingPayments({
+  const response = await getDriverPayouts({
     page,
     pageSize,
     status: status || 'ALL',
     searchTerm,
   })
 
+    console.log(response)
 
   if (!response.success) {
     return (
@@ -49,13 +50,13 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
           breadcrumbs={[
             { label: 'Inicio', href: '/' },
             { label: 'Admin', href: '/admin' },
-            { label: 'Pagos' },
+            { label: 'Pagos a Conductores' },
           ]}
         />
         <DashboardShell>
           <DashboardHeader
-            heading="Gestión de Pagos"
-            text="Administra y verifica los pagos de las reservas."
+            heading="Pagos a Conductores"
+            text="Gestiona los pagos pendientes para los conductores."
           />
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <p className="text-destructive font-semibold">{response.message}</p>
@@ -68,7 +69,7 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
     )
   }
 
-  const { payments, pagination } = response.data!
+  const { payouts, pagination } = response.data!
 
   return (
     <>
@@ -76,25 +77,25 @@ export default async function AdminPaymentsPage({ searchParams }: PageProps) {
         breadcrumbs={[
           { label: 'Inicio', href: '/' },
           { label: 'Admin', href: '/admin' },
-          { label: 'Pagos' },
+          { label: 'Pagos a Conductores' },
         ]}
       />
       <DashboardShell>
         <DashboardHeader
-          heading="Gestión de Pagos"
-          text="Administra y verifica los pagos de las reservas."
+          heading="Pagos a Conductores"
+          text="Gestiona y procesa los pagos pendientes para los conductores que han completado viajes."
         />
 
-        <PaymentFilters />
+        <DriverPayoutFilters />
 
         <Suspense fallback={<Loading />}>
-          <PaymentTable payments={payments} />
+          <DriverPayoutTable payouts={payouts} />
         </Suspense>
 
         <Pagination
-          total={pagination.total}
+          total={pagination.totalItems}
           pageCount={pagination.totalPages}
-          currentPage={pagination.page}
+          currentPage={pagination.currentPage}
           pageSize={pagination.pageSize}
           urlBased={true}
           totalLabel="Pagos"
