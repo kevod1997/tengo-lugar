@@ -33,7 +33,7 @@ export default function EmailVerification({ verificationUrl, userName }: EmailVe
         </Text>
         <Text style={description}>
           Gracias por unirte a nuestra comunidad de carpooling. Estamos emocionados de tenerte a bordo. 
-          Para comenzar a usar todas las funciones de la plataforma, solo necesitas verificar tu email.
+          Para comenzar a usar la plataforma, solo necesitas verificar tu email.
         </Text>
         
         <div style={buttonContainer}>

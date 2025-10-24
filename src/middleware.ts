@@ -26,7 +26,28 @@ export default async function authMiddleware(request: NextRequest) {
     cookies?.get("better-auth.session_token") ||
     cookies?.get("__Secure-better-auth.session_token");
 
+  // Validar sesión solo cuando hay cookies Y usuario intenta acceder a auth/password routes
+  if (sessionCookie && (isAuthRoute || isPasswordRoute)) {
+    const { data: session } = await betterFetch<Session>(
+      "/api/auth/get-session",
+      {
+        baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? "https://localhost:3000",
+        headers: {
+          cookie: request.headers.get("cookie") || "",
+        },
+      },
+    );
 
+    console.log("Sesión verificada en middleware para rutas de auth/password:", session);
+
+    // Si la sesión es inválida, limpiar cookies y permitir acceso
+    if (!session) {
+      const response = NextResponse.next();
+      response.cookies.delete("better-auth.session_token");
+      response.cookies.delete("__Secure-better-auth.session_token");
+      return response;
+    }
+  }
 
   // If user is not authenticated
   if (!sessionCookie) {

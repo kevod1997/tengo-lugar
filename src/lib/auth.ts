@@ -55,7 +55,7 @@ export const auth = betterAuth({
       const encodedToken = encodeURIComponent(token);
       const callbackWithTokenAndUserId = `${process.env.EMAIL_VERIFICATION_CALLBACK_URL}?token=${encodedToken}&userId=${user.id}`;
 
-      const verificationUrl = `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? 'http://localhost:3000'}/api/auth/verify-email?token=${encodedToken}&callbackURL=${encodeURIComponent(callbackWithTokenAndUserId)}`;
+      const verificationUrl = `${process.env.NEXT_PUBLIC_CLIENT_URL ?? 'https://localhost:3000'}/api/auth/verify-email?token=${encodedToken}&callbackURL=${encodeURIComponent(callbackWithTokenAndUserId)}`;
 
       await emailService.sendEmailVerificationEmail(
         user.email,

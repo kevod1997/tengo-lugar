@@ -40,6 +40,7 @@ model User {
   supportTickets             SupportTicket[]
   actionLogs                 UserActionLog[]
   termsAcceptance            UserTermsAcceptance[]
+  bankAccount                BankAccount?
 }
 
 model Session {
@@ -135,10 +136,6 @@ model Driver {
   enabledAt            DateTime?
   isEnabled            Boolean        @default(false)
   lastEligibilityCheck DateTime       @default(now())
-  bankAlias            String?
-  bankCbuOrCvu         String?
-  bankInfoVerified     Boolean        @default(false)
-  bankInfoVerifiedAt   DateTime?
   user                 User           @relation(fields: [userId], references: [id])
   cars                 DriverCar[]
   payouts              DriverPayout[]
@@ -559,40 +556,63 @@ model SupportTicket {
 }
 
 model DriverPayout {
-  id                       String         @id @default(uuid())
-  tripId                   String         @unique
-  driverId                 String
-  payoutAmount             Float
-  totalReceived            Float?
-  serviceFee               Float?
-  lateCancellationPenalty  Float?
-  currency                 String         @default("ARS")
-  status                   PayoutStatus   @default(PENDING)
-  payoutMethod             PaymentMethod  @default(BANK_TRANSFER)
-  notes                    String?
-  processedBy              String?
-  createdAt                DateTime       @default(now())
-  updatedAt                DateTime       @updatedAt
-  processedAt              DateTime?
-  completedAt              DateTime?
-  driver                   Driver         @relation(fields: [driverId], references: [id])
-  trip                     Trip           @relation(fields: [tripId], references: [id])
-  transferProof            TransferProof?
+  id                      String         @id @default(uuid())
+  tripId                  String         @unique
+  driverId                String
+  payoutAmount            Float
+  totalReceived           Float?
+  serviceFee              Float?
+  lateCancellationPenalty Float?
+  currency                String         @default("ARS")
+  status                  PayoutStatus   @default(PENDING)
+  payoutMethod            PaymentMethod  @default(BANK_TRANSFER)
+  notes                   String?
+  processedBy             String?
+  proofFileKey            String?
+  transferDate            DateTime?
+  transferredBy           String?
+  transferNotes           String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  processedAt             DateTime?
+  completedAt             DateTime?
+  driver                  Driver         @relation(fields: [driverId], references: [id])
+  trip                    Trip           @relation(fields: [tripId], references: [id])
 
   @@index([driverId, status])
   @@index([status, createdAt])
   @@index([tripId])
 }
 
-model TransferProof {
-  id             String       @id @default(uuid())
-  driverPayoutId String       @unique
-  proofFileKey   String
-  transferDate   DateTime
-  transferredBy  String
-  notes          String?
-  createdAt      DateTime     @default(now())
-  driverPayout   DriverPayout @relation(fields: [driverPayoutId], references: [id], onDelete: Cascade)
+model BankAccount {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  // Datos bancarios
+  bankAlias    String
+  bankCbuOrCvu String? // Obligatorio, validado con Luhn
+  accountType  BankAccountType?
+  accountOwner String // Nombre del titular
+
+  // Verificación (por admin)
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+  verifiedBy String? // Admin userId que verificó
+
+  // Auditoría
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isVerified])
+}
+
+enum BankAccountType {
+  CBU
+  CVU
 }
 
 enum CardType {

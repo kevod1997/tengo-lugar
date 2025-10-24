@@ -30,6 +30,10 @@ export interface DriverPayoutWithDetails {
   payoutMethod: PaymentMethod;
   notes: string | null;
   processedBy: string | null;
+  proofFileKey: string | null;
+  transferDate: Date | null;
+  transferredBy: string | null;
+  transferNotes: string | null;
   createdAt: Date;
   updatedAt: Date;
   processedAt: Date | null;
@@ -41,10 +45,12 @@ export interface DriverPayoutWithDetails {
       name: string;
       email: string;
       profileImageKey: string | null;
+      bankAccount: {
+        bankAlias: string;
+        bankCbuOrCvu: string | null;
+        isVerified: boolean;
+      } | null;
     };
-    bankAlias: string | null;
-    bankCbuOrCvu: string | null;
-    bankInfoVerified: boolean;
   };
   trip: {
     id: string;
@@ -57,13 +63,6 @@ export interface DriverPayoutWithDetails {
     status: string;
     chatRoomId: string | null;
   };
-  transferProof?: {
-    id: string;
-    proofFileKey: string;
-    transferDate: Date;
-    transferredBy: string;
-    notes: string | null;
-  } | null;
 }
 
 /**

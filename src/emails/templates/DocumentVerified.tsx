@@ -43,7 +43,7 @@ export default function DocumentVerified({ documentType }: DocumentVerifiedProps
           Explora nuestra plataforma y comienza a disfrutar de viajes compartidos seguros y económicos.
         </Text>
         <div style={buttonContainer}>
-          <EmailButton href="https://tengolugar.com/dashboard">
+          <EmailButton href="https://tengolugar.store/dashboard">
             Acceder a mi cuenta
           </EmailButton>
         </div>

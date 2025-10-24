@@ -11,9 +11,9 @@ export const EmailHeader = () => {
     <Section style={header}>
       <Row>
         <Column style={logoColumn}>
-          <Link href="https://tengolugar.com" style={logoLink}>
+          <Link href="https://tengolugar.store" style={logoLink}>
             <Img
-              src="https://i.ibb.co/nNCtf5vG/logo.png"
+              src="https://i.ibb.co/k63ZbY43/logo-2.png"
               width="180"
               height="auto"
               alt="Tengo Lugar"

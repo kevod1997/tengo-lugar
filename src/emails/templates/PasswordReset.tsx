@@ -61,7 +61,7 @@ export default function PasswordReset({ resetUrl, userName }: PasswordResetProps
           nuestro equipo de soporte está aquí para ayudarte.
         </Text>
         <div style={buttonContainer}>
-          <EmailButton href="https://tengolugar.com/support" variant="secondary">
+          <EmailButton href="https://tengolugar.store/support" variant="secondary">
             Contactar soporte
           </EmailButton>
         </div>

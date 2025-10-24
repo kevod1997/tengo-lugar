@@ -56,10 +56,10 @@ export const processDriverPayoutSchema = z.object({
  */
 export const completeDriverPayoutSchema = z.object({
   payoutId: z.string().uuid('Payout ID debe ser un UUID válido'),
-  transferProofFileKey: z.string().min(1, 'El comprobante de transferencia es requerido'),
+  proofFileKey: z.string().min(1, 'El comprobante de transferencia es requerido'),
   transferDate: z.date(),
   transferredBy: z.string().uuid('Transferred by debe ser un UUID válido'),
-  notes: z.string().optional(),
+  transferNotes: z.string().optional(),
 });
 
 /**

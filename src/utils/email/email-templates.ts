@@ -34,7 +34,7 @@ export function getVerifiedEmailTemplate(documentType: string): string {
               <table role="presentation" style="width:94%;max-width:600px;border:none;border-spacing:0;text-align:left;font-family:Arial,sans-serif;font-size:16px;line-height:22px;color:#363636;">
                 <tr>
                   <td style="padding:40px 30px 30px 30px;text-align:center;font-size:24px;font-weight:bold;">
-                    <a href="https://tengolugar.com" style="text-decoration:none;"><img src="https://tengolugar.com/logo.png" width="165" alt="Logo" style="width:165px;max-width:80%;height:auto;border:none;text-decoration:none;color:#ffffff;"></a>
+                    <a href="https://tengolugar.store" style="text-decoration:none;"><img src="https://tengolugar.store/logo.png" width="165" alt="Logo" style="width:165px;max-width:80%;height:auto;border:none;text-decoration:none;color:#ffffff;"></a>
                   </td>
                 </tr>
                 <tr>
@@ -45,7 +45,7 @@ export function getVerifiedEmailTemplate(documentType: string): string {
                 </tr>
                 <tr>
                   <td style="padding:0;font-size:24px;line-height:28px;font-weight:bold;">
-                    <a href="https://tengolugar.com/dashboard" style="text-decoration:none;"><img src="https://tengolugar.com/images/carpool.jpg" width="600" alt="" style="width:100%;height:auto;display:block;border:none;text-decoration:none;color:#363636;"></a>
+                    <a href="https://tengolugar.store/dashboard" style="text-decoration:none;"><img src="https://tengolugar.store/images/carpool.jpg" width="600" alt="" style="width:100%;height:auto;display:block;border:none;text-decoration:none;color:#363636;"></a>
                   </td>
                 </tr>
                 <tr>
@@ -56,7 +56,7 @@ export function getVerifiedEmailTemplate(documentType: string): string {
                     <td style="width:145px;" align="left" valign="top">
                     <![endif]-->
                     <div class="col-sml" style="display:inline-block;width:100%;max-width:145px;vertical-align:top;text-align:left;font-family:Arial,sans-serif;font-size:14px;color:#363636;">
-                      <img src="https://tengolugar.com/images/icon.png" width="115" alt="" style="width:115px;max-width:80%;margin-bottom:20px;">
+                      <img src="https://tengolugar.store/images/icon.png" width="115" alt="" style="width:115px;max-width:80%;margin-bottom:20px;">
                     </div>
                     <!--[if mso]>
                     </td>
@@ -65,7 +65,7 @@ export function getVerifiedEmailTemplate(documentType: string): string {
                     <div class="col-lge" style="display:inline-block;width:100%;max-width:395px;vertical-align:top;padding-bottom:20px;font-family:Arial,sans-serif;font-size:16px;line-height:22px;color:#363636;">
                       <p style="margin-top:0;margin-bottom:12px;">Estamos emocionados de tenerte a bordo. Explora nuestra plataforma y comienza a disfrutar de viajes compartidos seguros y económicos.</p>
                       <p style="margin-top:0;margin-bottom:18px;">¿Listo para empezar?</p>
-                      <p style="margin:0;"><a href="https://tengolugar.com/dashboard" style="background: #ff3884; text-decoration: none; padding: 10px 25px; color: #ffffff; border-radius: 4px; display:inline-block; mso-padding-alt:0;text-underline-color:#ff3884"><!--[if mso]><i style="letter-spacing: 25px;mso-font-width:-100%;mso-text-raise:20pt">&nbsp;</i><![endif]--><span style="mso-text-raise:10pt;font-weight:bold;">Ir a mi cuenta</span><!--[if mso]><i style="letter-spacing: 25px;mso-font-width:-100%">&nbsp;</i><![endif]--></a></p>
+                      <p style="margin:0;"><a href="https://tengolugar.store/dashboard" style="background: #ff3884; text-decoration: none; padding: 10px 25px; color: #ffffff; border-radius: 4px; display:inline-block; mso-padding-alt:0;text-underline-color:#ff3884"><!--[if mso]><i style="letter-spacing: 25px;mso-font-width:-100%;mso-text-raise:20pt">&nbsp;</i><![endif]--><span style="mso-text-raise:10pt;font-weight:bold;">Ir a mi cuenta</span><!--[if mso]><i style="letter-spacing: 25px;mso-font-width:-100%">&nbsp;</i><![endif]--></a></p>
                     </div>
                     <!--[if mso]>
                     </td>
@@ -131,7 +131,7 @@ export function getFailedEmailTemplate(documentType: string, failureReason?: str
               <table role="presentation" style="width:94%;max-width:600px;border:none;border-spacing:0;text-align:left;font-family:Arial,sans-serif;font-size:16px;line-height:22px;color:#363636;">
                 <tr>
                   <td style="padding:40px 30px 30px 30px;text-align:center;font-size:24px;font-weight:bold;">
-                    <a href="https://tengolugar.com" style="text-decoration:none;"><img src="https://tengolugar.com/logo.png" width="165" alt="Logo" style="width:165px;max-width:80%;height:auto;border:none;text-decoration:none;color:#ffffff;"></a>
+                    <a href="https://tengolugar.store" style="text-decoration:none;"><img src="https://tengolugar.store/logo.png" width="165" alt="Logo" style="width:165px;max-width:80%;height:auto;border:none;text-decoration:none;color:#ffffff;"></a>
                   </td>
                 </tr>
                 <tr>
@@ -143,7 +143,7 @@ export function getFailedEmailTemplate(documentType: string, failureReason?: str
                 </tr>
                 <tr>
                   <td style="padding:0;font-size:24px;line-height:28px;font-weight:bold;">
-                    <a href="https://tengolugar.com/support" style="text-decoration:none;"><img src="https://tengolugar.com/images/support.jpg" width="600" alt="" style="width:100%;height:auto;display:block;border:none;text-decoration:none;color:#363636;"></a>
+                    <a href="https://tengolugar.store/support" style="text-decoration:none;"><img src="https://tengolugar.store/images/support.jpg" width="600" alt="" style="width:100%;height:auto;display:block;border:none;text-decoration:none;color:#363636;"></a>
                   </td>
                 </tr>
                 <tr>
@@ -154,7 +154,7 @@ export function getFailedEmailTemplate(documentType: string, failureReason?: str
                     <td style="width:145px;" align="left" valign="top">
                     <![endif]-->
                     <div class="col-sml" style="display:inline-block;width:100%;max-width:145px;vertical-align:top;text-align:left;font-family:Arial,sans-serif;font-size:14px;color:#363636;">
-                      <img src="https://tengolugar.com/images/icon.png" width="115" alt="" style="width:115px;max-width:80%;margin-bottom:20px;">
+                      <img src="https://tengolugar.store/images/icon.png" width="115" alt="" style="width:115px;max-width:80%;margin-bottom:20px;">
                     </div>
                     <!--[if mso]>
                     </td>
@@ -163,7 +163,7 @@ export function getFailedEmailTemplate(documentType: string, failureReason?: str
                     <div class="col-lge" style="display:inline-block;width:100%;max-width:395px;vertical-align:top;padding-bottom:20px;font-family:Arial,sans-serif;font-size:16px;line-height:22px;color:#363636;">
                       <p style="margin-top:0;margin-bottom:12px;">Nuestro equipo de soporte está listo para ayudarte. No dudes en contactarnos si tienes alguna pregunta o necesitas asistencia adicional.</p>
                       <p style="margin-top:0;margin-bottom:18px;">¿Necesitas ayuda?</p>
-                      <p style="margin:0;"><a href="https://tengolugar.com/support" style="background: #ff3884; text-decoration: none; padding: 10px 25px; color: #ffffff; border-radius: 4px; display:inline-block; mso-padding-alt:0;text-underline-color:#ff3884"><!--[if mso]><i style="letter-spacing: 25px;mso-font-width:-100%;mso-text-raise:20pt">&nbsp;</i><![endif]--><span style="mso-text-raise:10pt;font-weight:bold;">Contactar soporte</span><!--[if mso]><i style="letter-spacing: 25px;mso-font-width:-100%">&nbsp;</i><![endif]--></a></p>
+                      <p style="margin:0;"><a href="https://tengolugar.store/support" style="background: #ff3884; text-decoration: none; padding: 10px 25px; color: #ffffff; border-radius: 4px; display:inline-block; mso-padding-alt:0;text-underline-color:#ff3884"><!--[if mso]><i style="letter-spacing: 25px;mso-font-width:-100%;mso-text-raise:20pt">&nbsp;</i><![endif]--><span style="mso-text-raise:10pt;font-weight:bold;">Contactar soporte</span><!--[if mso]><i style="letter-spacing: 25px;mso-font-width:-100%">&nbsp;</i><![endif]--></a></p>
                     </div>
                     <!--[if mso]>
                     </td>

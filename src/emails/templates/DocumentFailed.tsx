@@ -51,10 +51,10 @@ export default function DocumentFailed({ documentType, failureReason }: Document
           Nuestro equipo de soporte está listo para ayudarte a resolver esto rápidamente.
         </Text>
         <div style={buttonContainer}>
-          <EmailButton href="https://tengolugar.com/perfil">
+          <EmailButton href="https://tengolugar.store/perfil">
             Subir nuevo documento
           </EmailButton>
-          <EmailButton href="https://tengolugar.com/support" variant="secondary">
+          <EmailButton href="https://tengolugar.store/support" variant="secondary">
             Contactar soporte
           </EmailButton>
         </div>

@@ -63,6 +63,7 @@ export default async function EmailVerifiedPage({
   }
 
   // Redirección después de un corto retraso
+  //todo redirigir al perfil directamente
   const redirectTo = callbackURL || "/perfil";
 
   return (

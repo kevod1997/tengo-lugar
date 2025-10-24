@@ -21,15 +21,15 @@ export const EmailFooter = () => {
               La plataforma de carpooling que conecta conductores y pasajeros
             </Text>
             <Text style={linksText}>
-              <Link href="https://tengolugar.com/politica-de-privacidad" style={footerLink}>
+              <Link href="https://tengolugar.store/politica-de-privacidad" style={footerLink}>
                 Política de Privacidad
               </Link>
               {' • '}
-              <Link href="https://tengolugar.com/terminos" style={footerLink}>
+              <Link href="https://tengolugar.store/terminos-y-condiciones" style={footerLink}>
                 Términos de Uso
               </Link>
               {' • '}
-              <Link href="https://tengolugar.com/unsubscribe" style={footerLink}>
+              <Link href="https://tengolugar.store/unsubscribe" style={footerLink}>
                 Darse de baja
               </Link>
             </Text>

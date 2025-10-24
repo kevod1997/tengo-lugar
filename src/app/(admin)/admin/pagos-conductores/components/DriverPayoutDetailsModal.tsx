@@ -61,7 +61,7 @@ export function DriverPayoutDetailsModal({
                 <p className="text-muted-foreground">ID del conductor</p>
                 <p className="font-mono text-xs">{payout.driverId}</p>
               </div>
-              {payout.driver.bankInfoVerified && (
+              {payout.driver.user.bankAccount?.isVerified && (
                 <div>
                   <p className="text-muted-foreground">Info bancaria</p>
                   <p className="text-green-600 font-medium flex items-center gap-1">

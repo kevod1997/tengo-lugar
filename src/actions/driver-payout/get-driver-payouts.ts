@@ -121,6 +121,10 @@ export async function getDriverPayouts(params: GetDriverPayoutsParams = {}) {
         payoutMethod: true,
         notes: true,
         processedBy: true,
+        proofFileKey: true,
+        transferDate: true,
+        transferredBy: true,
+        transferNotes: true,
         createdAt: true,
         updatedAt: true,
         processedAt: true,
@@ -128,15 +132,19 @@ export async function getDriverPayouts(params: GetDriverPayoutsParams = {}) {
         driver: {
           select: {
             id: true,
-            bankAlias: true,
-            bankCbuOrCvu: true,
-            bankInfoVerified: true,
             user: {
               select: {
                 id: true,
                 name: true,
                 email: true,
                 profileImageKey: true,
+                bankAccount: {
+                  select: {
+                    bankAlias: true,
+                    bankCbuOrCvu: true,
+                    isVerified: true,
+                  }
+                }
               }
             }
           }
@@ -152,15 +160,6 @@ export async function getDriverPayouts(params: GetDriverPayoutsParams = {}) {
             price: true,
             status: true,
             chatRoomId: true,
-          }
-        },
-        transferProof: {
-          select: {
-            id: true,
-            proofFileKey: true,
-            transferDate: true,
-            transferredBy: true,
-            notes: true,
           }
         }
       }
@@ -180,13 +179,16 @@ export async function getDriverPayouts(params: GetDriverPayoutsParams = {}) {
       payoutMethod: payout.payoutMethod,
       notes: payout.notes,
       processedBy: payout.processedBy,
+      proofFileKey: payout.proofFileKey,
+      transferDate: payout.transferDate,
+      transferredBy: payout.transferredBy,
+      transferNotes: payout.transferNotes,
       createdAt: payout.createdAt,
       updatedAt: payout.updatedAt,
       processedAt: payout.processedAt,
       completedAt: payout.completedAt,
       driver: payout.driver,
       trip: payout.trip,
-      transferProof: payout.transferProof ?? undefined,
     }));
 
     const response: GetDriverPayoutsResponse = {
