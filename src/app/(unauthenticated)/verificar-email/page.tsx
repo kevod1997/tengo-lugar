@@ -16,7 +16,6 @@ export default async function EmailVerifiedPage({
   // Accede a los valores sin usar await
   const token = searchParams.token as string | undefined;
   const userId = searchParams.userId as string | undefined;
-  const callbackURL = searchParams.callbackURL as string | undefined;
 
   // Si hay un userId, registra la acción
   if (userId) {
@@ -63,8 +62,7 @@ export default async function EmailVerifiedPage({
   }
 
   // Redirección después de un corto retraso
-  //todo redirigir al perfil directamente
-  const redirectTo = callbackURL || "/perfil";
+  const redirectTo = "/perfil";
 
   return (
     <>

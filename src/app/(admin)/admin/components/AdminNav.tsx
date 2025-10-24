@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { BarChart3, Users, FileText, Settings, Bell, LifeBuoy, CreditCard } from 'lucide-react'
+import { BarChart3, Users, FileText, Settings, Bell, LifeBuoy, CreditCard, Wallet } from 'lucide-react'
 
 interface NavItem {
   title: string
@@ -35,6 +35,12 @@ const navItems: NavItem[] = [
     href: "/admin/pagos",
     icon: CreditCard,
     description: "Verifica y aprueba pagos de reservas"
+  },
+  {
+    title: "Datos Bancarios",
+    href: "/admin/datos-bancarios",
+    icon: Wallet,
+    description: "Verifica alias bancarios de usuarios"
   },
   {
     title: "Gestión de Tickets",

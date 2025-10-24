@@ -20,6 +20,7 @@ import { authClient } from '@/lib/auth-client'
 import { splitFullName } from '@/utils/format/user-formatter'
 import ProfileForm from "./ProfileForm"
 import AccountManagement from "./AccountManagement"
+import BankAccountWidget from "./BankAccountWidget"
 import { useHydration } from "@/hooks/ui/useHydration"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangleIcon } from "lucide-react"
@@ -270,6 +271,9 @@ export default function IntegratedProfileContent({
               // phoneNumberVerified={user.phoneNumberVerified} // Assuming user object has this
               gender={gender}
             />
+
+            {/* Bank Account Widget - Only visible if user has phone number */}
+            {phoneNumber && <BankAccountWidget phoneNumber={phoneNumber} />}
 
             <Card>
               <CardHeader>
