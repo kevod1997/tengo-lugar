@@ -30,9 +30,26 @@ export const tripCreationSchema = z.object({
   duration: z.string().optional(),
   durationSeconds: z.number().int().positive().optional(),
   
-  // Date and time - with additional validation for future date
-  date: z.date().refine(date => date > new Date(), 'La fecha debe ser en el futuro'),
-  departureTime: z.date().refine(date => date > new Date(), 'La hora debe ser en el futuro'),
+  // Date and time - with additional validation for future date and minimum 6 hours
+  date: z.date().refine(
+    date => {
+      // Normalize dates to compare only day/month/year (ignore time)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dateNormalized = new Date(date);
+      dateNormalized.setHours(0, 0, 0, 0);
+      return dateNormalized >= today;
+    },
+    'La fecha debe ser hoy o en el futuro'
+  ),
+  departureTime: z.date().refine(
+    date => {
+      const now = new Date()
+      const sixHoursFromNow = new Date(now.getTime() + 6 * 60 * 60 * 1000)
+      return date >= sixHoursFromNow
+    },
+    'El viaje debe publicarse con al menos 6 horas de anticipación'
+  ),
   
   // Pricing
   price: z.number().positive('El precio debe ser positivo'),

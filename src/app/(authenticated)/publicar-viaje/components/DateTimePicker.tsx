@@ -1,11 +1,11 @@
-import { Control, Controller, FieldErrors } from 'react-hook-form'
+import { Control, Controller, FieldErrors, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CalendarIcon, Clock } from 'lucide-react'
-import { addDays, addHours, format, isBefore, isToday, parse } from 'date-fns'
+import { addDays, addHours, format, isBefore, isSameDay, parse } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { generateTimeOptions } from '@/utils/helpers/time/generate-time-options'
 
@@ -15,32 +15,52 @@ interface DateTimePickerProps {
 }
 
 const DateTimePicker = ({ control, errors }: DateTimePickerProps) => {
+  // Watch tripDate reactively to update time options
+  const selectedDate = useWatch({
+    control,
+    name: 'tripDate'
+  })
+
   // Setup date constraints
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  
+
   const maxDate = addDays(today, 15)
   maxDate.setHours(23, 59, 59, 999)
-  
+
   const disabledDays = {
     after: maxDate,
     before: today
   }
-  
+
   // Get available time options based on selected date
   const getAvailableTimeOptions = (selectedDate?: Date) => {
     const now = new Date()
     const baseOptions = generateTimeOptions()
-    
-    if (selectedDate && isToday(selectedDate)) {
-      const fourHoursFromNow = addHours(now, 4)
+
+    // Si no hay fecha seleccionada, retornar todas las opciones
+    if (!selectedDate) {
+      return baseOptions
+    }
+
+    // Normalizar las fechas para comparación (solo año, mes, día)
+    const selectedDateNormalized = new Date(selectedDate)
+    selectedDateNormalized.setHours(0, 0, 0, 0)
+
+    const todayNormalized = new Date()
+    todayNormalized.setHours(0, 0, 0, 0)
+
+    // Si la fecha seleccionada es hoy, filtrar por 6 horas mínimas
+    if (isSameDay(selectedDateNormalized, todayNormalized)) {
+      const sixHoursFromNow = addHours(now, 6)
+
       return baseOptions.filter((option) => {
         const optionTime = parse(option.value, 'HH:mm', new Date())
         optionTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate())
-        return isBefore(fourHoursFromNow, optionTime)
+        return isBefore(sixHoursFromNow, optionTime)
       })
     }
-    
+
     return baseOptions
   }
   
@@ -95,11 +115,11 @@ const DateTimePicker = ({ control, errors }: DateTimePickerProps) => {
           control={control}
           rules={{ required: "La hora es requerida" }}
           render={({ field }) => {
-            const timeOptions = getAvailableTimeOptions(control._formValues.tripDate);
-            
+            const timeOptions = getAvailableTimeOptions(selectedDate);
+
             return (
-              <Select 
-                onValueChange={field.onChange} 
+              <Select
+                onValueChange={field.onChange}
                 value={field.value}
               >
                 <SelectTrigger className="w-full">

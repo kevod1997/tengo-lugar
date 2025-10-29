@@ -11,6 +11,7 @@ import { TripData } from "@/types/trip-types"
 import { ServiceError } from "@/lib/exceptions/service-error"
 import { logError } from "@/services/logging/logging-service"
 import { updateDriverStatus } from "../driver/driver-eligibility"
+import { z } from "zod"
 
 // Función para crear la sala de chat
 async function createChatRoom(tripId: string): Promise<string> {
@@ -232,6 +233,21 @@ export async function createTrip(tripData: TripData) {
         return ApiHandler.handleSuccess(tripResult, 'Viaje creado exitosamente')
 
     } catch (error) {
+        // Handle Zod validation errors specifically
+        if (error instanceof z.ZodError) {
+            const errorMessage = error.errors
+                .map(err => err.message)
+                .join(', ');
+
+            return ApiHandler.handleError(
+                ServerActionError.ValidationFailed(
+                    'create-trip.ts',
+                    'createTrip',
+                    errorMessage
+                )
+            );
+        }
+
         return ApiHandler.handleError(error)
     }
 }

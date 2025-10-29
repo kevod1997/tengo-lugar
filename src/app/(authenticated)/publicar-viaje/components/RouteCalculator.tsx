@@ -199,8 +199,7 @@ const RouteCalculator = ({
           async () => createTrip(tripData),
           { showToastOnError: false } // Manejamos el toast manualmente
         );
-        
-        
+
         if (result?.success) {
           // NUEVO: Toast de éxito con información
           toast.success('¡Viaje creado exitosamente!', {
