@@ -10,7 +10,7 @@ import { z } from "zod";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { notifyUser } from "@/utils/notifications/notification-helpers";
-import { canApproveReservation, formatTimeRestrictionError } from "@/utils/helpers/time-restrictions-helper";
+import { canApproveReservation, canDriverRemoveApprovedPassenger, formatTimeRestrictionError } from "@/utils/helpers/time-restrictions-helper";
 
 // Schema for validation
 const managePassengerSchema = z.object({
@@ -56,7 +56,12 @@ export async function managePassenger(data: {
         },
         passengers: {
           where: { id: validatedData.passengerTripId },
-          include: {
+          select: {
+            id: true,
+            reservationStatus: true,
+            seatsReserved: true,
+            totalPrice: true,
+            approvedAt: true,
             passenger: {
               select: { userId: true }
             }
@@ -80,7 +85,35 @@ export async function managePassenger(data: {
     }
     
     const passengerTrip = trip.passengers[0];
-    
+
+    // VALIDACIONES PARA RECHAZAR PASAJEROS
+    if (validatedData.action === 'reject') {
+      // Regla 1: NUNCA se puede rechazar un pasajero CONFIRMED (que ya pagó)
+      if (passengerTrip.reservationStatus === 'CONFIRMED') {
+        throw ServerActionError.ValidationFailed(
+          'manage-passenger.ts',
+          'managePassenger',
+          'No se puede rechazar un pasajero que ya confirmó su pago. El pasajero tiene un lugar garantizado en el viaje.'
+        );
+      }
+
+      // Regla 2: Ventanas de protección para pasajeros APPROVED
+      if (passengerTrip.reservationStatus === 'APPROVED' && passengerTrip.approvedAt) {
+        const protectionCheck = canDriverRemoveApprovedPassenger(
+          trip.departureTime,
+          passengerTrip.approvedAt
+        );
+
+        if (!protectionCheck.isAllowed) {
+          throw ServerActionError.ValidationFailed(
+            'manage-passenger.ts',
+            'managePassenger',
+            protectionCheck.reason || 'No se puede rechazar este pasajero en este momento'
+          );
+        }
+      }
+    }
+
     // If approving, check that there are enough seats available
     if (validatedData.action === 'approve') {
       // Validate time restriction: cannot approve reservations within 3 hours of departure

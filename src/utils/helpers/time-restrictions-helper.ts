@@ -95,6 +95,62 @@ export function shouldExpireUnpaidReservation(
 }
 
 /**
+ * Verifica si el conductor puede remover un pasajero APPROVED
+ * Regla (Sección 2.5.1): Ventanas de protección según tiempo hasta salida:
+ * - >24h hasta salida: 8h de protección desde aprobación
+ * - 12-24h hasta salida: 4h de protección desde aprobación
+ * - 3-12h hasta salida: 2h de protección desde aprobación
+ * - <3h hasta salida: NO se puede remover (ya bloqueado por otra regla)
+ */
+export function canDriverRemoveApprovedPassenger(
+  departureTime: Date,
+  approvedAt: Date
+): TimeRestrictionResult {
+  const hoursUntilDeparture = calculateHoursUntilDeparture(departureTime);
+  const hoursSinceApproval = (new Date().getTime() - approvedAt.getTime()) / (1000 * 60 * 60);
+
+  // Determinar ventana de protección según tiempo hasta salida
+  let protectionWindowHours = 0;
+  let timeRangeDescription = '';
+
+  if (hoursUntilDeparture > 24) {
+    protectionWindowHours = 8;
+    timeRangeDescription = 'más de 24 horas';
+  } else if (hoursUntilDeparture >= 12 && hoursUntilDeparture <= 24) {
+    protectionWindowHours = 4;
+    timeRangeDescription = '12-24 horas';
+  } else if (hoursUntilDeparture >= 3 && hoursUntilDeparture < 12) {
+    protectionWindowHours = 2;
+    timeRangeDescription = '3-12 horas';
+  } else {
+    // Menos de 3 horas - no se puede remover de ninguna manera
+    return {
+      isAllowed: false,
+      reason: 'No se pueden rechazar pasajeros dentro de las 3 horas previas a la salida',
+      hoursUntilDeparture
+    };
+  }
+
+  // Verificar si el pasajero está dentro de la ventana de protección
+  if (hoursSinceApproval < protectionWindowHours) {
+    const remainingProtectionTime = protectionWindowHours - hoursSinceApproval;
+    const hours = Math.floor(remainingProtectionTime);
+    const minutes = Math.floor((remainingProtectionTime % 1) * 60);
+
+    return {
+      isAllowed: false,
+      reason: `El pasajero fue aprobado recientemente y está protegido durante ${protectionWindowHours}h (rango ${timeRangeDescription} hasta salida). Tiempo restante de protección: ${hours}h ${minutes}m`,
+      hoursUntilDeparture
+    };
+  }
+
+  return {
+    isAllowed: true,
+    hoursUntilDeparture
+  };
+}
+
+/**
  * Formatea un mensaje de error user-friendly
  */
 export function formatTimeRestrictionError(result: TimeRestrictionResult): string {

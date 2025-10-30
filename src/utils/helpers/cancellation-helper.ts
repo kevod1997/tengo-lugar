@@ -14,14 +14,35 @@ export interface CancellationDetails {
 
 /**
  * Calcula los detalles de cancelación para un pasajero
+ *
+ * Regla especial (Sección 1.4): Si el pasajero reservó hace menos de 24 horas
+ * Y cancela dentro de 1 hora de haber reservado, recibe reembolso completo
+ * independientemente del tiempo hasta la salida.
  */
 export function calculatePassengerCancellationDetails(
   departureTime: Date,
-  cancelledAt: Date = new Date()
+  cancelledAt: Date = new Date(),
+  reservationCreatedAt?: Date
 ): CancellationDetails {
   const hoursBeforeDeparture = (departureTime.getTime() - cancelledAt.getTime()) / (1000 * 60 * 60);
 
-  // Determinar estado y porcentaje de reembolso según reglas de negocio
+  // Regla especial: Cancelación dentro de 1 hora de reserva reciente
+  if (reservationCreatedAt) {
+    const hoursSinceReservation = (cancelledAt.getTime() - reservationCreatedAt.getTime()) / (1000 * 60 * 60);
+    const hoursSinceReservationFromNow = (new Date().getTime() - reservationCreatedAt.getTime()) / (1000 * 60 * 60);
+
+    // Si reservó hace menos de 24h Y cancela dentro de 1h de la reserva → 100% reembolso
+    if (hoursSinceReservationFromNow < 24 && hoursSinceReservation < 1) {
+      return {
+        hoursBeforeDeparture,
+        newStatus: 'CANCELLED_EARLY',
+        refundPercentage: 100,
+        refundType: 'FULL_REFUND'
+      };
+    }
+  }
+
+  // Determinar estado y porcentaje de reembolso según reglas de negocio estándar
   if (hoursBeforeDeparture > 24) {
     return {
       hoursBeforeDeparture,
@@ -219,9 +240,11 @@ export async function processPassengerCancellation(
     throw new Error(validation.reason);
   }
 
-  // Calcular detalles de cancelación
+  // Calcular detalles de cancelación (incluye regla de 1 hora)
   const cancellationDetails = calculatePassengerCancellationDetails(
-    reservation.trip.departureTime
+    reservation.trip.departureTime,
+    new Date(),
+    reservation.createdAt
   );
 
   // Actualizar estado de la reserva
