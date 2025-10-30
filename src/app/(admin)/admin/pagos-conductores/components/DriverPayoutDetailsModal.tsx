@@ -1,17 +1,22 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { DriverPayoutWithDetails } from '@/types/driver-payout'
 import { DriverPayoutStatusBadge } from './DriverPayoutStatusBadge'
+import { ProcessPayoutDialog } from './ProcessPayoutDialog'
+import { CompletePayoutDialog } from './CompletePayoutDialog'
 import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/utils/format/formateCurrency'
-import { Calendar, MapPin, User, Building, CreditCard, AlertCircle } from 'lucide-react'
+import { Calendar, MapPin, User, Building, CreditCard, AlertCircle, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -20,16 +25,30 @@ interface DriverPayoutDetailsModalProps {
   payout: DriverPayoutWithDetails | null
   open: boolean
   onClose: () => void
+  onUpdate?: () => void
 }
 
 export function DriverPayoutDetailsModal({
   payout,
   open,
   onClose,
+  onUpdate,
 }: DriverPayoutDetailsModalProps) {
+  const [processDialogOpen, setProcessDialogOpen] = useState(false)
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
+
   if (!payout) return null
 
   const hasLateCancellations = (payout.lateCancellationPenalty ?? 0) > 0
+  const bankAccountVerified = payout.driver.user.bankAccount?.isVerified ?? false
+  const hasExistingProof = !!payout.proofFileKey
+
+  const handleDialogSuccess = () => {
+    setProcessDialogOpen(false)
+    setCompleteDialogOpen(false)
+    onUpdate?.()
+    onClose()
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -61,15 +80,20 @@ export function DriverPayoutDetailsModal({
                 <p className="text-muted-foreground">ID del conductor</p>
                 <p className="font-mono text-xs">{payout.driverId}</p>
               </div>
-              {payout.driver.user.bankAccount?.isVerified && (
-                <div>
-                  <p className="text-muted-foreground">Info bancaria</p>
+              <div>
+                <p className="text-muted-foreground">Info bancaria</p>
+                {bankAccountVerified ? (
                   <p className="text-green-600 font-medium flex items-center gap-1">
                     <Building className="h-3 w-3" />
                     Verificada
                   </p>
-                </div>
-              )}
+                ) : (
+                  <p className="text-red-600 font-medium flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    No verificada
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -224,12 +248,16 @@ export function DriverPayoutDetailsModal({
             </div>
           </div>
 
-          {/* Nota sobre Fase 2 */}
-          {payout.status === 'PENDING' && (
-            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Próximamente:</strong> Funcionalidad de procesamiento de pagos con carga
-                de comprobantes de transferencia.
+          {/* Advertencia de cuenta bancaria no verificada */}
+          {!bankAccountVerified && payout.status === 'PENDING' && (
+            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <p className="text-sm text-red-800 dark:text-red-200 flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                <span>
+                  <strong>Información bancaria no verificada:</strong> El conductor no ha verificado
+                  su información bancaria. No podrás procesar este pago hasta que el conductor
+                  complete y verifique sus datos bancarios.
+                </span>
               </p>
             </div>
           )}
@@ -246,8 +274,83 @@ export function DriverPayoutDetailsModal({
               </p>
             </div>
           )}
+
+          {/* Información de comprobante para estados PROCESSING/COMPLETED */}
+          {payout.status === 'PROCESSING' && !hasExistingProof && (
+            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>En proceso:</strong> Cuando completes la transferencia, deberás subir el
+                comprobante para finalizar el pago.
+              </p>
+            </div>
+          )}
+
+          {payout.transferDate && payout.completedAt && (
+            <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-4 space-y-2">
+              <p className="text-sm text-green-800 dark:text-green-200 font-medium">
+                Transferencia completada
+              </p>
+              <div className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                <p>
+                  <strong>Fecha de transferencia:</strong>{' '}
+                  {format(new Date(payout.transferDate), "d 'de' MMMM, yyyy", { locale: es })}
+                </p>
+                {payout.transferNotes && (
+                  <p>
+                    <strong>Notas:</strong> {payout.transferNotes}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Action Buttons */}
+        {(payout.status === 'PENDING' || payout.status === 'PROCESSING') && (
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={onClose}>
+              Cerrar
+            </Button>
+
+            {payout.status === 'PENDING' && (
+              <Button
+                onClick={() => setProcessDialogOpen(true)}
+                className="bg-orange-600 hover:bg-orange-700"
+                disabled={!bankAccountVerified}
+              >
+                Procesar Pago
+              </Button>
+            )}
+
+            {payout.status === 'PROCESSING' && (
+              <Button
+                onClick={() => setCompleteDialogOpen(true)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Completar Pago
+              </Button>
+            )}
+          </DialogFooter>
+        )}
       </DialogContent>
+
+      {/* Nested Dialogs */}
+      <ProcessPayoutDialog
+        payoutId={payout.id}
+        driverName={payout.driver.user.name || ''}
+        bankAccountVerified={bankAccountVerified}
+        open={processDialogOpen}
+        onSuccess={handleDialogSuccess}
+        onCancel={() => setProcessDialogOpen(false)}
+      />
+
+      <CompletePayoutDialog
+        payoutId={payout.id}
+        hasExistingProof={hasExistingProof}
+        open={completeDialogOpen}
+        onSuccess={handleDialogSuccess}
+        onCancel={() => setCompleteDialogOpen(false)}
+      />
     </Dialog>
   )
 }

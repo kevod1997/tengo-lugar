@@ -785,7 +785,6 @@ export async function approvePassenger(tripId: string, passengerId: string) {
 
 ```
 Alias de banco/Mercado Pago: ejemplo.alias.mp
-CBU o CVU: 0000000000000000000000 (22 dígitos)
 ```
 
 **IMPORTANTE: Validaciones críticas**
@@ -796,8 +795,6 @@ CBU o CVU: 0000000000000000000000 (22 dígitos)
 
 2. **Formato válido:**
    - Alias: 6-50 caracteres alfanuméricos con puntos
-   - CBU/CVU: Exactamente 22 dígitos numéricos
-   - Validación con algoritmo Luhn (verificación de dígito)
 
 3. **Verificación administrativa:**
    - Admin revisa y aprueba la información bancaria
@@ -1006,7 +1003,7 @@ El dinero llegará a tu cuenta en las próximas horas.
 Transferimos $15,000 a tu cuenta.
 
 Detalles:
-🏦 CBU/CVU: ...XXXX (últimos 4 dígitos)
+🏦 alias: [alias]
 📅 Fecha de transferencia: [DD/MM/YYYY HH:mm]
 🚗 Viaje: [Origen] → [Destino]
 
@@ -1074,7 +1071,7 @@ Monto retenido: $15,000
 2. Se agrega nota explicativa en `DriverPayout.notes`:
 ```
 "Pago retenido por disputa abierta con pasajero [Nombre].
-Esperando resolución. Ticket #12345"
+Esperando resolución."
 ```
 3. Se notifica al conductor:
 ```
@@ -1158,143 +1155,3 @@ PAGO AL CONDUCTOR: $7,500
 ```
 
 ---
-
-### 10.6 Seguridad y Validaciones
-
-#### 10.7.1 Validación de CBU/CVU con Algoritmo Luhn
-
-**Implementación del algoritmo Luhn:**
-
-```typescript
-/**
- * Valida un CBU o CVU usando el algoritmo Luhn
- * @param cbuCvu - String de 22 dígitos
- * @returns true si es válido, false si no
- */
-export function validateCbuCvu(cbuCvu: string): boolean {
-  // 1. Validar formato básico
-  if (!/^\d{22}$/.test(cbuCvu)) {
-    return false;
-  }
-
-  // 2. Separar dígitos
-  const digits = cbuCvu.split('').map(Number);
-
-  // 3. Aplicar algoritmo Luhn en los primeros 21 dígitos
-  let sum = 0;
-  for (let i = 0; i < 21; i++) {
-    let digit = digits[i];
-
-    // Duplicar cada segundo dígito desde la derecha
-    if ((21 - i) % 2 === 0) {
-      digit *= 2;
-      if (digit > 9) {
-        digit -= 9;
-      }
-    }
-
-    sum += digit;
-  }
-
-  // 4. Calcular dígito verificador
-  const checkDigit = (10 - (sum % 10)) % 10;
-
-  // 5. Comparar con el último dígito del CBU/CVU
-  return checkDigit === digits[21];
-}
-```
-
-**Ejemplos de validación:**
-
-```typescript
-validateCbuCvu('0000003100010000000001') // true - válido
-validateCbuCvu('1234567890123456789012') // false - checksum inválido
-validateCbuCvu('123456789012345678901')  // false - solo 21 dígitos
-validateCbuCvu('12345678901234567890AB') // false - contiene letras
-```
-
-#### 10.7.5 Protección de Comprobantes Bancarios
-
-**Almacenamiento seguro en S3:**
-
-```typescript
-// Subir comprobante con restricciones
-const s3Key = `driver-payouts/${driverPayoutId}/transfer-proof-${Date.now()}.pdf`;
-
-await uploadToS3({
-  key: s3Key,
-  body: file,
-  contentType: file.type,
-  metadata: {
-    driverPayoutId,
-    uploadedBy: adminId,
-    uploadedAt: new Date().toISOString()
-  }
-});
-
-// Generar URL pre-firmada con expiración corta
-const presignedUrl = await getSignedUrl(s3Client, new GetObjectCommand({
-  Bucket: process.env.AWS_S3_BUCKET_NAME,
-  Key: s3Key,
-}), {
-  expiresIn: 300, // 5 minutos
-});
-```
-
-**Acceso restringido:**
-
-- ✅ Solo usuarios con role `admin` pueden ver comprobantes
-- ✅ URLs pre-firmadas con expiración de 5 minutos
-- ✅ Logs de acceso en S3 activados
-- ✅ Encriptación en reposo (S3 server-side encryption)
-
-#### 10.7.6 Validaciones Pre-Pago
-
-**Checklist antes de crear DriverPayout:**
-
-```typescript
-async function validatePayoutCreation(tripId: string, driverId: string) {
-  // ✓ 1. Viaje está completado
-  const trip = await prisma.trip.findUnique({ where: { id: tripId } });
-  if (trip?.status !== 'COMPLETED') {
-    throw new Error('El viaje debe estar completado');
-  }
-
-  // ✓ 2. Driver tiene info bancaria verificada
-  const driver = await prisma.driver.findUnique({
-    where: { id: driverId },
-    select: { bankInfoVerified: true, bankCbuOrCvu: true }
-  });
-  if (!driver?.bankInfoVerified || !driver.bankCbuOrCvu) {
-    throw new Error('Conductor sin información bancaria verificada');
-  }
-
-  // ✓ 3. Existen pagos completados de pasajeros
-  const completedPayments = await prisma.payment.count({
-    where: {
-      tripPassenger: {
-        tripId,
-        reservationStatus: 'CONFIRMED'
-      },
-      status: 'COMPLETED'
-    }
-  });
-  if (completedPayments === 0) {
-    throw new Error('No hay pagos completados de pasajeros');
-  }
-
-  // ✓ 4. No existe pago duplicado
-  const existingPayout = await prisma.driverPayout.findUnique({
-    where: { tripId }
-  });
-  if (existingPayout) {
-    throw new Error('Ya existe un pago para este viaje');
-  }
-
-  // ✓ 5. Monto calculado es positivo
-  const { payoutAmount } = await calculateDriverPayout(tripId);
-  if (payoutAmount <= 0) {
-    throw new Error('El monto a pagar debe ser positivo');
-  }
-}
-```

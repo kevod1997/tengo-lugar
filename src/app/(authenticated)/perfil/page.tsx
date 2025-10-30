@@ -15,7 +15,7 @@ export default async function UserProfilePage({
     headers: await headers(),
   });
   const params = await searchParams
-  const { birthDate, phoneNumber, gender } = session!.user;
+  const { birthDate, phoneNumber, gender, phoneNumberVerified } = session!.user;
 
   return (
     <>
@@ -27,6 +27,7 @@ export default async function UserProfilePage({
         <IntegratedProfileContent
           birthDate={birthDate}
           phoneNumber={phoneNumber}
+          phoneNumberVerified={phoneNumberVerified}
           gender={gender}
           userId={session!.user.id}
           setupMode={params.setup}

@@ -63,6 +63,14 @@ export const completeDriverPayoutSchema = z.object({
 });
 
 /**
+ * Schema for uploading driver payout proof
+ */
+export const uploadDriverPayoutProofSchema = z.object({
+  payoutId: z.string().uuid('Payout ID debe ser un UUID válido'),
+  fileKey: z.string().min(1, 'File key es requerido'),
+});
+
+/**
  * Schema for payout calculation result
  */
 export const payoutCalculationSchema = z.object({
@@ -80,4 +88,5 @@ export type UpdateDriverPayoutInput = z.infer<typeof updateDriverPayoutSchema>;
 export type GetDriverPayoutsInput = z.infer<typeof getDriverPayoutsSchema>;
 export type ProcessDriverPayoutInput = z.infer<typeof processDriverPayoutSchema>;
 export type CompleteDriverPayoutInput = z.infer<typeof completeDriverPayoutSchema>;
+export type UploadDriverPayoutProofInput = z.infer<typeof uploadDriverPayoutProofSchema>;
 export type PayoutCalculationResult = z.infer<typeof payoutCalculationSchema>;

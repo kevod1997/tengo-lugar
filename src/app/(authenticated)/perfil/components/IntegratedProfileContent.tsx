@@ -31,6 +31,7 @@ type RegistrationMode = null | 'initial' | 'identity' | 'driver';
 interface IntegratedProfileContentProps {
   birthDate: Date | null | undefined;
   phoneNumber: string | null | undefined;
+  phoneNumberVerified: boolean | null | undefined;
   gender: string | null | undefined;
   userId: string;
   setupMode?: string;
@@ -39,6 +40,7 @@ interface IntegratedProfileContentProps {
 export default function IntegratedProfileContent({
   birthDate,
   phoneNumber,
+  phoneNumberVerified,
   gender,
   userId,
   setupMode
@@ -268,7 +270,7 @@ export default function IntegratedProfileContent({
               isIdentityVerified={user.identityStatus === 'VERIFIED'}
               birthDate={birthDate}
               phoneNumber={phoneNumber}
-              // phoneNumberVerified={user.phoneNumberVerified} // Assuming user object has this
+              phoneNumberVerified={phoneNumberVerified}
               gender={gender}
             />
 

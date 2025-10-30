@@ -19,7 +19,7 @@ interface ProfileFormProps {
   isIdentityVerified: boolean
   birthDate: Date | null | undefined
   phoneNumber: string | null | undefined
-  phoneNumberVerified?: boolean
+  phoneNumberVerified: boolean | null | undefined
   gender?: string | null
   onSubmit?: (formData: any) => Promise<void>
 }
@@ -35,10 +35,10 @@ interface FormValues {
 }
 
 export default function ProfileForm({ 
-  isIdentityVerified, 
-  birthDate, 
-  phoneNumber, 
-  phoneNumberVerified: initialPhoneVerified = false,
+  isIdentityVerified,
+  birthDate,
+  phoneNumber,
+  phoneNumberVerified,
   gender: initialGender = null,
   onSubmit 
 }: ProfileFormProps) {
@@ -80,7 +80,7 @@ export default function ProfileForm({
         lastName: lastName || '',
         email: data.user.email || '',
         phoneNumber: phoneNumber || '',
-        phoneNumberVerified: initialPhoneVerified,
+        phoneNumberVerified: phoneNumberVerified ?? false,
         gender: initialGender || '',
         birthDate: birthDate ? new Date(birthDate).toISOString().split('T')[0] : '',
       }
@@ -94,7 +94,7 @@ export default function ProfileForm({
         formInitialized.current = true
       }, 100)
     }
-  }, [reset, data, birthDate, phoneNumber, initialPhoneVerified, initialGender]);
+  }, [reset, data, birthDate, phoneNumber, phoneNumberVerified, initialGender]);
 
   // Check for form modifications
   useEffect(() => {

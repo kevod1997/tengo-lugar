@@ -117,6 +117,8 @@ export function PaymentProofModal({ paymentId, open, onClose }: PaymentProofModa
                 <Image
                   src={proofUrl}
                   alt="Comprobante de pago"
+                  width={20}
+                  height={20}
                   className="w-full h-auto"
                 />
               )}

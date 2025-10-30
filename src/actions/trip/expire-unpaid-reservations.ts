@@ -9,21 +9,21 @@ import { notifyUser } from "@/utils/notifications/notification-helpers";
 import { shouldExpireUnpaidReservation, calculateHoursUntilDeparture } from "@/utils/helpers/time-restrictions-helper";
 
 /**
- * Expira automáticamente reservas APPROVED sin pago confirmado
+ * Expira automáticamente reservas APPROVED o PENDING_APPROVAL sin pago confirmado
  * que están dentro de 2 horas de la salida
  *
  * Según REGLAS_DE_NEGOCIO_PAGOS.md Sección 9.3:
- * - Expira APPROVED con Payment.status = PENDING dentro de 2h
+ * - Expira APPROVED y PENDING_APPROVAL con Payment.status = PENDING dentro de 2h
  */
 export async function expireUnpaidReservations() {
   try {
     const now = new Date();
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
-    // Buscar reservas APPROVED con pago PENDING que salen en menos de 2 horas
+    // Buscar reservas APPROVED o PENDING_APPROVAL con pago PENDING que salen en menos de 2 horas
     const reservationsToCheck = await prisma.tripPassenger.findMany({
       where: {
-        reservationStatus: 'APPROVED',
+        reservationStatus: { in: ['PENDING_APPROVAL', 'APPROVED'] },
         trip: {
           departureTime: {
             lte: twoHoursFromNow,

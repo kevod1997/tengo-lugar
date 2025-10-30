@@ -11,18 +11,30 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Eye, AlertCircle } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Eye, AlertCircle, Clock, AlertTriangle } from 'lucide-react'
 import { DriverPayoutStatusBadge } from './DriverPayoutStatusBadge'
 import { DriverPayoutDetailsModal } from './DriverPayoutDetailsModal'
-import { format } from 'date-fns'
+import { format, differenceInDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { formatCurrency } from '@/utils/format/formateCurrency'
+import { cn } from '@/lib/utils'
 
 interface DriverPayoutTableProps {
   payouts: DriverPayoutWithDetails[]
+  onUpdate?: () => void
 }
 
-export function DriverPayoutTable({ payouts }: DriverPayoutTableProps) {
+// Helper function to determine urgency level based on days since creation
+function getUrgencyLevel(createdAt: Date): 'critical' | 'high' | 'normal' | null {
+  const daysSinceCreation = differenceInDays(new Date(), new Date(createdAt))
+
+  if (daysSinceCreation >= 7) return 'critical' // 1 week or more
+  if (daysSinceCreation >= 3) return 'high'     // 3-6 days
+  return null // Less than 3 days - no urgency indicator
+}
+
+export function DriverPayoutTable({ payouts, onUpdate }: DriverPayoutTableProps) {
   const [selectedPayout, setSelectedPayout] = useState<DriverPayoutWithDetails | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
 
@@ -34,6 +46,11 @@ export function DriverPayoutTable({ payouts }: DriverPayoutTableProps) {
   const handleCloseModal = () => {
     setShowDetailsModal(false)
     setSelectedPayout(null)
+  }
+
+  const handleUpdate = () => {
+    onUpdate?.()
+    handleCloseModal()
   }
 
   if (payouts.length === 0) {
@@ -67,16 +84,34 @@ export function DriverPayoutTable({ payouts }: DriverPayoutTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {payouts.map((payout) => (
-              <TableRow key={payout.id}>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{payout.driver.user.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {payout.driver.user.email}
-                    </span>
-                  </div>
-                </TableCell>
+            {payouts.map((payout) => {
+              const urgency = (payout.status === 'PENDING' || payout.status === 'PROCESSING')
+                ? getUrgencyLevel(payout.createdAt)
+                : null
+              const bankAccountVerified = payout.driver.user.bankAccount?.isVerified ?? false
+
+              return (
+                <TableRow
+                  key={payout.id}
+                  className={cn(
+                    urgency === 'critical' && 'bg-red-50 dark:bg-red-950/20',
+                    urgency === 'high' && 'bg-amber-50 dark:bg-amber-950/20'
+                  )}
+                >
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium">{payout.driver.user.name}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {payout.driver.user.email}
+                      </span>
+                      {!bankAccountVerified && payout.status === 'PENDING' && (
+                        <Badge variant="destructive" className="w-fit text-xs">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Sin verificar
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-medium text-sm">
@@ -111,25 +146,56 @@ export function DriverPayoutTable({ payouts }: DriverPayoutTableProps) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <DriverPayoutStatusBadge status={payout.status} />
+                  <div className="flex flex-col gap-1">
+                    <DriverPayoutStatusBadge status={payout.status} />
+                    {urgency && (
+                      <Badge
+                        variant={urgency === 'critical' ? 'destructive' : 'secondary'}
+                        className={cn(
+                          'w-fit text-xs',
+                          urgency === 'high' && 'bg-amber-100 text-amber-800 border-amber-300'
+                        )}
+                      >
+                        {urgency === 'critical' ? (
+                          <>
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Urgente (7+ días)
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-3 w-3 mr-1" />
+                            Prioridad (3+ días)
+                          </>
+                        )}
+                      </Badge>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">
-                    {format(new Date(payout.createdAt), 'dd/MM/yyyy HH:mm', { locale: es })}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm">
+                      {format(new Date(payout.createdAt), 'dd/MM/yyyy HH:mm', { locale: es })}
+                    </span>
+                    {urgency && (
+                      <span className="text-xs text-muted-foreground">
+                        {differenceInDays(new Date(), new Date(payout.createdAt))} días pendiente
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleViewDetails(payout)}
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    Ver Detalles
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewDetails(payout)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Ver Detalles
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </div>
@@ -139,6 +205,7 @@ export function DriverPayoutTable({ payouts }: DriverPayoutTableProps) {
           payout={selectedPayout}
           open={showDetailsModal}
           onClose={handleCloseModal}
+          onUpdate={handleUpdate}
         />
       )}
     </>

@@ -4,13 +4,13 @@ import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, FileText, Image as ImageIcon, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { uploadPaymentProof } from '@/actions/payment/upload-payment-proof'
+import { uploadDriverPayoutProof } from '@/actions/driver-payout/upload-driver-payout-proof'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
-interface PaymentProofUploaderProps {
-  paymentId: string
+interface DriverPayoutProofUploaderProps {
+  payoutId: string
   onUploadSuccess: (fileKey: string) => void
   onError?: (error: string) => void
   disabled?: boolean
@@ -24,12 +24,12 @@ const ACCEPTED_FILE_TYPES = {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
-export function PaymentProofUploader({
-  paymentId,
+export function DriverPayoutProofUploader({
+  payoutId,
   onUploadSuccess,
   onError,
   disabled = false,
-}: PaymentProofUploaderProps) {
+}: DriverPayoutProofUploaderProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<{
     name: string
@@ -73,8 +73,8 @@ export function PaymentProofUploader({
         }
 
         // Send to Server Action (uses uploadDocuments internally)
-        const response = await uploadPaymentProof({
-          paymentId,
+        const response = await uploadDriverPayoutProof({
+          payoutId,
           file,
           preview,
         })
@@ -100,17 +100,17 @@ export function PaymentProofUploader({
         // Call success callback with validated file key
         onUploadSuccess(response.data.fileKey)
 
-        toast.success('Comprobante cargado exitosamente')
+        toast.success('Comprobante de transferencia cargado exitosamente')
       } catch (err: any) {
         const errorMsg = err.message || 'Error subiendo el comprobante'
         toast.error(errorMsg)
         onError?.(errorMsg)
-        console.error('Error uploading payment proof:', err)
+        console.error('Error uploading driver payout proof:', err)
       } finally {
         setUploading(false)
       }
     },
-    [paymentId, onUploadSuccess, onError, disabled, uploading]
+    [payoutId, onUploadSuccess, onError, disabled, uploading]
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -198,7 +198,7 @@ export function PaymentProofUploader({
             <p className="text-sm font-medium">
               {isDragActive
                 ? 'Suelta el archivo aquí'
-                : 'Arrastra el comprobante o haz clic para seleccionar'}
+                : 'Arrastra el comprobante de transferencia o haz clic para seleccionar'}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               JPG, PNG o PDF • Máximo 5MB

@@ -92,6 +92,19 @@ export class StorageService {
     return await s3Service.getSignedDownloadUrl(key);
   }
 
+  static async getDriverPayoutProofUploadUrl(
+    fileExtension: string,
+    contentType: string,
+    userInfo: UserInfo
+  ) {
+    const fileName = `payout-${Date.now()}.${fileExtension}`;
+    return await s3Service.getSignedUploadUrl('driver-payout', fileName, contentType, userInfo);
+  }
+
+  static async getDriverPayoutProofUrl(key: string) {
+    return await s3Service.getSignedDownloadUrl(key);
+  }
+
   // Función de utilidad para eliminar archivos si es necesario
   // static async deleteFile(key: string) {
   //   return await s3Service.deleteFile(key);

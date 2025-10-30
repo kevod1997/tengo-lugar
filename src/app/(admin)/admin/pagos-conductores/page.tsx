@@ -4,7 +4,7 @@ import Header from '@/components/header/header'
 import { DashboardShell } from '../usuarios/components/DashboardShell'
 import { DashboardHeader } from '../usuarios/components/DashboardHeader'
 import { Pagination } from '../usuarios/components/Pagination'
-import { DriverPayoutTable } from './components/DriverPayoutTable'
+import { DriverPayoutTableWrapper } from './components/DriverPayoutTableWrapper'
 import { DriverPayoutFilters } from './components/DriverPayoutFilters'
 import Loading from './loading'
 import { getDriverPayouts } from '@/actions/driver-payout/get-driver-payouts'
@@ -89,7 +89,7 @@ export default async function AdminDriverPayoutsPage({ searchParams }: PageProps
         <DriverPayoutFilters />
 
         <Suspense fallback={<Loading />}>
-          <DriverPayoutTable payouts={payouts} />
+          <DriverPayoutTableWrapper payouts={payouts} />
         </Suspense>
 
         <Pagination

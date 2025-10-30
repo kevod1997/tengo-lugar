@@ -119,7 +119,7 @@ export default function BankAccountWidget({ phoneNumber }: BankAccountWidgetProp
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="bankAlias">Alias bancario (CVU/CBU)</Label>
+            <Label htmlFor="bankAlias">Alias bancario</Label>
             <Input
               id="bankAlias"
               placeholder="tu.alias.bancario"

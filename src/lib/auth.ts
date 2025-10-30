@@ -92,6 +92,10 @@ export const auth = betterAuth({
         type: "string",
         required: false,
       },
+      phoneNumberVerified: {
+        type: "boolean",
+        required: false,
+      },
     }
   },
   baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? 'https://localhost:3000',

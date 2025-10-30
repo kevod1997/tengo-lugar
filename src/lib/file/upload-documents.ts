@@ -27,7 +27,7 @@ export async function uploadDocuments(
   frontDocument: FileInput | undefined,
   backDocument: FileInput | undefined,
   userInfo: UserInfo,
-  type: 'identity' | 'license' | 'insurance' | 'profile' | 'car-card' | 'payment-proof',
+  type: 'identity' | 'license' | 'insurance' | 'profile' | 'car-card' | 'payment-proof' | 'driver-payout',
   carPlate?: string
 ): Promise<Partial<UploadResult>> {
   try {
@@ -67,7 +67,8 @@ export async function uploadDocuments(
       insurance: StorageService.getInsuranceDocumentUploadUrl,
       profile: StorageService.getProfileImageUploadUrl,
       'car-card': StorageService.getCarCardDocumentUploadUrl,
-      'payment-proof': StorageService.getPaymentProofUploadUrl
+      'payment-proof': StorageService.getPaymentProofUploadUrl,
+      'driver-payout': StorageService.getDriverPayoutProofUploadUrl
     }[type];
 
     // Procesamos los documentos que existan
