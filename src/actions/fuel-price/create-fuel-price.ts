@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { requireAuthorization } from "@/utils/helpers/auth-helper";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
