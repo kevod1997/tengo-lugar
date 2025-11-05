@@ -29,8 +29,6 @@ import {
   CigaretteOffIcon,
   InfoIcon,
   UserIcon,
-  CreditCard,
-  CheckCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -45,14 +43,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { cancelTrip } from '@/actions/trip/cancel-trip'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { getStatusBadgeColor, getStatusText } from '@/utils/helpers/trip/trip-helpers'
 import { UserProfileModal } from '@/components/user-profile-modal/UserProfileModal'
 import { calculateAge } from '@/utils/helpers/calculate-age'
 import { useLoadingStore } from '@/store/loadingStore'
+import { PassengerTripInfo } from './PassengerTripInfo'
 
 interface TripDetailProps {
   trip: any;
@@ -202,91 +199,32 @@ export default function TripDetail({
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Passenger reservation information */}
+            {/* Passenger Trip Hub - Collapsible section with participants and quick actions */}
             {isPassenger && passengerInfo && (
-              <div className="space-y-3 mb-4">
-                {/* Reserva APROBADA - Pendiente de pago */}
-                {passengerInfo.reservationStatus === 'APPROVED' && (
-                  <>
-                    <Alert className="bg-blue-50 border-blue-200">
-                      <InfoIcon className="h-4 w-4 text-blue-600" />
-                      <AlertTitle className="text-blue-900 font-semibold">¡Reserva aprobada!</AlertTitle>
-                      <AlertDescription className="text-blue-700 text-sm">
-                        El conductor aprobó tu solicitud. Ahora debes completar el pago para confirmar tu lugar.
-                      </AlertDescription>
-                    </Alert>
-
-                    {passengerInfo.payment && (
-                      <div className="bg-slate-50 rounded-lg p-4 space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Monto a pagar:</span>
-                          <span className="font-mono font-bold text-blue-600">${passengerInfo.payment.totalAmount}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Estado del pago:</span>
-                          <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>
-                        </div>
-                      </div>
-                    )}
-
-                    <Button
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      onClick={() => router.push(`/viajes/${trip.id}/pagar`)}
-                    >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Ver instrucciones de pago
-                    </Button>
-                  </>
+              <PassengerTripInfo
+                reservation={{
+                  status: passengerInfo.reservationStatus,
+                  numberOfSeats: passengerInfo.seatsReserved,
+                  totalPrice: passengerInfo.totalPrice
+                }}
+                trip={{
+                  id: trip.id,
+                  status: trip.status,
+                  departureTime: new Date(trip.departureTime),
+                  origin: trip.originAddress,
+                  destination: trip.destinationAddress,
+                  chatRoomId: trip.chatRoomId
+                }}
+                payment={passengerInfo.payment ? {
+                  totalAmount: passengerInfo.payment.totalAmount,
+                  status: passengerInfo.payment.status
+                } : undefined}
+                coPassengers={trip.passengers.filter(
+                  (p: any) => ['CONFIRMED', 'APPROVED'].includes(p.reservationStatus) &&
+                  p.passenger.userId !== passengerInfo.userId
                 )}
-
-                {/* Reserva CONFIRMADA - Pago completado */}
-                {passengerInfo.reservationStatus === 'CONFIRMED' && (
-                  <Alert className="bg-green-50 border-green-200">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-900 font-semibold">Pago confirmado</AlertTitle>
-                    <AlertDescription className="text-green-700 text-sm">
-                      Tu pago fue verificado. ¡Estás listo para viajar! 🚗
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Mensaje cuando fue rechazado */}
-                {passengerInfo.reservationStatus === 'REJECTED' && (
-                  <Alert className="bg-orange-50 border-orange-200">
-                    <InfoIcon className="h-4 w-4 text-orange-600" />
-                    <AlertTitle className="text-orange-900 font-semibold">Reserva rechazada</AlertTitle>
-                    <AlertDescription className="text-orange-700 text-sm">
-                      Tu solicitud anterior fue rechazada por el conductor. Puedes volver a reservar si lo deseas.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Otros estados de reserva */}
-                {!['APPROVED', 'CONFIRMED', 'REJECTED'].includes(passengerInfo.reservationStatus) && (
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="text-blue-800 font-medium flex items-center gap-2">
-                      <InfoIcon className="h-5 w-5" />
-                      Tu reserva
-                    </h3>
-                    <div className="mt-2 space-y-2 text-sm">
-                      <div className="flex justify-between items-center">
-                        <span>Estado:</span>
-                        <Badge className={getStatusBadgeColor(passengerInfo.reservationStatus)}>
-                          {getStatusText(passengerInfo.reservationStatus)}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Asientos reservados:</span>
-                        <span className="font-medium">{passengerInfo.seatsReserved}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Precio total:</span>
-                        <span className="font-medium">${passengerInfo.totalPrice}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+                googleMapsUrl={trip.googleMapsUrl || '#'}
+              />
             )}
 
             {/* Route information */}
@@ -329,54 +267,79 @@ export default function TripDetail({
                 </div>
               </div>
 
-              <div className="flex justify-between items-center">
-                <Link
-                  href={trip.googleMapsUrl || '#'}
-                  target="_blank"
-                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
-                >
-                  Ver ruta en Google Maps
-                  <ArrowRightIcon className="h-4 w-4 ml-1" />
-                </Link>
-
-                {!isDriver && (
-                  <UserProfileModal
-                    userId={trip.driverCar.driver.userId}
-                    name={driverFirstName}
-                    profileImage={profileImageKey || trip.driverCar.driver.user.image}
-                    age={calculateAge(trip.driverCar.driver.user.birthDate)}
-                    gender={trip.driverCar.driver.user.gender}
-                    primaryRole="driver"
-                    tripStats={{
-                      asDriver: {
-                        tripsCompleted: trip.driverCar.driver.totalTrips,
-                        rating: trip.driverCar.driver.averageRating,
-                        reviewCount: trip.driverCar.driver.totalReviews
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-2 cursor-pointer hover:opacity-80">
-                      <Avatar className="h-8 w-8">
-                        {profileImageKey || trip.driverCar.driver.user.image ? (
-                          <Image
-                            src={profileImageKey || trip.driverCar.driver.user.image}
-                            alt={driverFirstName}
-                            width={32}
-                            height={32}
-                          />
-                        ) : (
-                          <UserIcon className="h-4 w-4" />
-                        )}
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{driverFirstName}</p>
-                        <p className="text-xs text-muted-foreground">Conductor</p>
-                      </div>
-                    </div>
-                  </UserProfileModal>
-                )}
-              </div>
+              <Link
+                href={trip.googleMapsUrl || '#'}
+                target="_blank"
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+              >
+                Ver ruta en Google Maps
+                <ArrowRightIcon className="h-4 w-4 ml-1" />
+              </Link>
             </div>
+
+            {/* Enhanced Driver Information Card */}
+            {!isDriver && (
+              <div className="bg-white rounded-lg border border-slate-200 p-4">
+                <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+                  <CarIcon className="h-4 w-4 text-blue-600" />
+                  Conductor del viaje
+                </h4>
+                <UserProfileModal
+                  userId={trip.driverCar.driver.userId}
+                  name={driverFirstName}
+                  profileImage={profileImageKey || trip.driverCar.driver.user.image}
+                  age={calculateAge(trip.driverCar.driver.user.birthDate)}
+                  gender={trip.driverCar.driver.user.gender}
+                  primaryRole="driver"
+                  tripStats={{
+                    asDriver: {
+                      tripsCompleted: trip.driverCar.driver.totalTrips,
+                      rating: trip.driverCar.driver.averageRating,
+                      reviewCount: trip.driverCar.driver.totalReviews
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-4 cursor-pointer hover:bg-slate-50 p-3 rounded-lg transition-colors">
+                    <Avatar className="h-14 w-14 border-2 border-white shadow-md">
+                      {profileImageKey || trip.driverCar.driver.user.image ? (
+                        <Image
+                          src={profileImageKey || trip.driverCar.driver.user.image}
+                          alt={driverFirstName}
+                          width={56}
+                          height={56}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white w-full h-full flex items-center justify-center">
+                          <UserIcon className="h-6 w-6" />
+                        </div>
+                      )}
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-slate-900 truncate">
+                        {driverFirstName}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {trip.driverCar.driver.averageRating > 0 && (
+                          <div className="flex items-center gap-1 text-sm text-amber-600">
+                            <svg className="h-4 w-4 fill-amber-500" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <span className="font-medium">{trip.driverCar.driver.averageRating.toFixed(1)}</span>
+                          </div>
+                        )}
+                        <span className="text-sm text-slate-500">
+                          {trip.driverCar.driver.totalTrips} {trip.driverCar.driver.totalTrips === 1 ? 'viaje' : 'viajes'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-blue-600 mt-1 hover:underline">
+                        Ver perfil completo →
+                      </p>
+                    </div>
+                  </div>
+                </UserProfileModal>
+              </div>
+            )}
 
             {/* Trip details */}
             <Tabs defaultValue="price" className="mt-6">
