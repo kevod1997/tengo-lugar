@@ -20,6 +20,58 @@ Solo se reembolsa el **precio del viaje** según las reglas especificadas más a
 
 ---
 
+## 0. Restricciones Generales de Cancelación
+
+### 0.1 Prohibición de Cancelación en la Última Hora
+
+**REGLA CRÍTICA DE TIEMPO:**
+
+**Ninguna parte (ni pasajero ni conductor) puede cancelar un viaje cuando faltan menos de 1 hora para la hora de salida programada.**
+
+**Condiciones:**
+
+- **Para Pasajeros**: Aplica SOLO si su reserva está en estado `CONFIRMED` (pagada)
+- **Para Conductores**: Aplica SOLO si tiene al menos un pasajero en estado `CONFIRMED` (pagado)
+- Se mide desde el momento actual hasta la hora de salida (`departureTime`)
+
+**No aplica cuando:**
+
+- Pasajero con reserva `PENDING_APPROVAL` o `APPROVED` (sin pagar): Puede cancelar libremente
+- Conductor sin pasajeros `CONFIRMED`: Puede cancelar el viaje libremente
+
+**Razón de esta regla:**
+
+- **Para pasajeros**: El conductor ya está en camino o preparándose para el viaje
+- **Para conductores**: Los pasajeros ya están en camino al punto de encuentro
+- Cancelaciones de último segundo son extremadamente disruptivas para todas las partes
+
+**Alternativas dentro de la última hora:**
+
+1. **Para Conductores**:
+   - Si un pasajero no se presenta: Usar función "Reportar No-Show" después de esperar 20 minutos
+   - En caso de emergencia genuina: Contactar soporte inmediatamente
+
+2. **Para Pasajeros**:
+   - En caso de emergencia genuina: Contactar soporte inmediatamente
+   - El sistema bloqueará cualquier intento de cancelación automática
+
+**Excepción:**
+
+- Solo en casos de fuerza mayor verificados por el equipo de soporte
+- Debe gestionarse a través de soporte con justificación válida
+
+**Mensaje del sistema cuando se intenta cancelar:**
+
+```
+⏰ No se puede cancelar un viaje con menos de 1 hora antes de la salida.
+
+Las cancelaciones de último momento afectan gravemente a todas las partes involucradas.
+
+Si tienes una emergencia genuina, contacta a soporte inmediatamente.
+```
+
+---
+
 ## 1. Políticas de Cancelación para Pasajeros
 
 ### 1.1 Cancelación con Más de 24 Horas de Anticipación
@@ -114,7 +166,7 @@ Solo se reembolsa el **precio del viaje** según las reglas especificadas más a
 **Condiciones:**
 
 - El pasajero no se presenta en el punto de encuentro
-- El conductor espera el tiempo mínimo establecido (15 minutos)
+- El conductor espera el tiempo mínimo establecido (20 minutos)
 - El conductor reporta la ausencia del pasajero
 
 **Consecuencias:**
@@ -284,45 +336,12 @@ Después del sábado 02:00: ✅ PUEDE bajar al pasajero
 
 **Nota Importante:** Si faltan menos de 3 horas para la salida, el conductor ya no puede aprobar nuevos pasajeros (ver sección 2.7).
 
-**Lógica de Validación:**
-
-```typescript
-function canDriverRemoveApprovedPassenger(
-  approvedAt: Date,
-  tripDepartureTime: Date
-): boolean {
-  const now = new Date();
-  const hoursSinceApproval = (now.getTime() - approvedAt.getTime()) / (1000 * 60 * 60);
-  const hoursUntilDeparture = (tripDepartureTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-  // Si faltan menos de 3h → No se puede aprobar ni modificar (ver sección 2.7)
-  if (hoursUntilDeparture < 3) return false;
-
-  // Escenario C: Si faltan menos de 12h → NO puede bajar durante primeras 2h
-  if (hoursUntilDeparture < 12) return hoursSinceApproval > 2;
-
-  // Escenario B: Si faltan menos de 24h → NO puede bajar durante primeras 4h
-  if (hoursUntilDeparture < 24) return hoursSinceApproval > 4;
-
-  // Escenario A: Por defecto (>24h) → NO puede bajar durante primeras 8h
-  return hoursSinceApproval > 8;
-}
-```
-
 **Consecuencias de Intento de Cancelación Bloqueada:**
 
 - 🚫 **Sistema**: Muestra mensaje de error indicando que la acción está bloqueada
 - 📞 **Alternativa**: Conductor debe contactar soporte con justificación válida
 - 📊 **Registro**: Se registra el intento en los logs del sistema
 - ⚠️ **Advertencia**: Múltiples intentos pueden resultar en revisión de cuenta
-
-**Justificaciones Válidas para Soporte:**
-
-- Emergencia personal grave del conductor
-- Problema mecánico del vehículo
-- Condiciones climáticas extremas
-- Otro pasajero con comportamiento inapropiado previo
-- Error del sistema en la aprobación automática
 
 **Nota Importante**: Esta protección aplica SOLO a pasajeros en estado `APPROVED` (aprobados pero no pagados). Los pasajeros en `CONFIRMED` (pagados) tienen protección total y NO pueden ser removidos bajo ninguna circunstancia excepto a través de soporte.
 
@@ -373,11 +392,9 @@ El viaje sale en [X] horas y [Y] minutos. Por favor, busca otro viaje o contacta
 
 3. **Liberar asientos:**
    - `Trip.remainingSeats` += asientos de reservas expiradas
-   - Asientos quedan disponibles para nuevos pasajeros (si aún no se alcanzaron las 3h)
 
 4. **Notificaciones automáticas:**
    - 📧 Email al pasajero afectado
-   - 🔔 Notificación push si tiene la app
    - 💬 WhatsApp con explicación del motivo
    - 📱 Notificación al conductor sobre liberación de asientos
 
@@ -470,8 +487,8 @@ Asientos disponibles ahora: [Y]
 
 **Sistema de Penalidades:**
 
-- **1 cancelaciones tardía**: Advertencia e insignia de que cancelo un viaje con anterioridad.
-- **2 cancelaciones tardías**: Suspension
+- **1 cancelaciones tardía**: Advertencia.
+- **2 cancelaciones tardías**: Suspension.
 
 **Nota**: Solo se cuentan cancelaciones de viajes con pasajeros en estado `CONFIRMED`
 
