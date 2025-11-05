@@ -27,24 +27,6 @@ export async function updateFuelPrice(data: UpdateFuelPriceInput) {
       );
     }
 
-    // Check if there's another active price for this fuel type with the same effective date
-    const conflictingPrice = await prisma.fuelPrice.findFirst({
-      where: {
-        id: { not: validatedData.id },
-        fuelType: validatedData.fuelType,
-        isActive: true,
-        effectiveDate: validatedData.effectiveDate,
-      },
-    });
-
-    if (conflictingPrice && validatedData.isActive) {
-      throw ServerActionError.ValidationFailed(
-        'update-fuel-price.ts',
-        'updateFuelPrice',
-        `Ya existe otro precio activo para ${validatedData.fuelType} con la misma fecha efectiva`
-      );
-    }
-
     const updatedFuelPrice = await prisma.fuelPrice.update({
       where: { id: validatedData.id },
       data: {

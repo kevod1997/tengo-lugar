@@ -14,23 +14,6 @@ export async function createFuelPrice(data: CreateFuelPriceInput) {
 
     const validatedData = createFuelPriceSchema.parse(data);
 
-    // Check if there's already an active price for this fuel type with the same effective date
-    const existingActivePrice = await prisma.fuelPrice.findFirst({
-      where: {
-        fuelType: validatedData.fuelType,
-        isActive: true,
-        effectiveDate: validatedData.effectiveDate,
-      },
-    });
-
-    if (existingActivePrice) {
-      throw ServerActionError.ValidationFailed(
-        'create-fuel-price.ts',
-        'createFuelPrice',
-        `Ya existe un precio activo para ${validatedData.fuelType} con la misma fecha efectiva`
-      );
-    }
-
     const fuelPrice = await prisma.fuelPrice.create({
       data: {
         name: validatedData.name,
