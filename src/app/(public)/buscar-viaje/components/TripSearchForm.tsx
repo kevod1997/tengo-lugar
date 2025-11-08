@@ -188,7 +188,7 @@ export default function TripSearchForm({ apiKey, initialValues = {}, className }
                                         <CalendarIcon className="mr-2 h-4 w-4" />
                                         {formData.date ? (
                                             <span className="truncate">
-                                                {format(formData.date, "PPP", { locale: es })}
+                                                {format(formData.date, "d 'de' MMMM 'de' yyyy", { locale: es })}
                                             </span>
                                         ) : (
                                             <span>Seleccionar fecha</span>

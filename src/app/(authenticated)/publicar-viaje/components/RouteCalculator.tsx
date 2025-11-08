@@ -169,7 +169,7 @@ const RouteCalculator = ({
             `${origin.coordinates!.latitude},${origin.coordinates!.longitude}`,
             `${destination.coordinates!.latitude},${destination.coordinates!.longitude}`
           ),
-          date: tripDate, // Esta es la fecha sin hora
+          date: combinedDateTime, // Usar la misma base para evitar inconsistencias de timezone
           departureTime: combinedDateTime, // Esta es la fecha CON hora
           price: calculatedPrice.price,
           priceGuide: calculatedPrice.priceGuide,

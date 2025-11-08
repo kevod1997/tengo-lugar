@@ -48,7 +48,8 @@ export async function searchTrips({
         }
 
         if (date) {
-            const selectedDate = new Date(date)
+            // Parsear la fecha como timezone local agregando 'T00:00:00'
+            const selectedDate = new Date(date + 'T00:00:00')
             const nextDay = new Date(selectedDate)
             nextDay.setDate(nextDay.getDate() + 1)
 
@@ -63,13 +64,13 @@ export async function searchTrips({
                     minDepartureTime.getSeconds() + TRIP_COMPLETION_CONFIG.MINIMUM_BOOKING_TIME_SECONDS
                 )
 
-                where.date = {
+                where.departureTime = {
                     gte: minDepartureTime,
                     lt: nextDay
                 }
             } else {
-                // Para búsquedas de fechas futuras, usar lógica original
-                where.date = {
+                // Para búsquedas de fechas futuras, usar departureTime que contiene la hora real
+                where.departureTime = {
                     gte: selectedDate,
                     lt: nextDay
                 }
@@ -97,7 +98,7 @@ export async function searchTrips({
             prisma.trip.findMany({
                 where,
                 orderBy: {
-                    date: 'asc'
+                    departureTime: 'asc'
                 },
                 skip,
                 take: pageSize,

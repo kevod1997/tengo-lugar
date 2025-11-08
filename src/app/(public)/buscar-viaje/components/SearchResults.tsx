@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Trip } from "@/types/trip-types"
 import { TripList } from "./TripList"
+import { format, parseISO } from "date-fns"
+import { es } from "date-fns/locale"
 
 interface SearchResultsProps {
     originCity?: string
@@ -37,11 +39,7 @@ export function SearchResults({
                         {/* Se encontraron {pagination.total} viajes */}
                         {date && (
                             <span className="text-sm text-muted-foreground">
-                                {`Para el ${new Date(date).toLocaleDateString('es-ES', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })}`}
+                                {`Para el ${format(parseISO(date), "d 'de' MMMM 'de' yyyy", { locale: es })}`}
                             </span>
                         )}
                     </p>
