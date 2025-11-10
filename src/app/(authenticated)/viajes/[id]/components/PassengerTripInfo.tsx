@@ -13,7 +13,6 @@ import { QuickActions } from './QuickActions'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
-import { utcToArgentina } from '@/utils/helpers/time/timezone-helper'
 
 interface PassengerTripInfoProps {
   reservation: {
@@ -129,7 +128,7 @@ export function PassengerTripInfo({
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span>{format(utcToArgentina(new Date(trip.departureTime)), "d 'de' MMMM, HH:mm", { locale: es })}</span>
+                    <span>{format(new Date(trip.departureTime), "d 'de' MMMM, HH:mm", { locale: es })}</span>
                   </div>
                   <div className="font-semibold text-slate-900">
                     ${reservation.totalPrice.toLocaleString()}
