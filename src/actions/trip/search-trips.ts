@@ -48,32 +48,47 @@ export async function searchTrips({
         }
 
         if (date) {
-            // Parsear la fecha como timezone local agregando 'T00:00:00'
-            const selectedDate = new Date(date + 'T00:00:00')
-            const nextDay = new Date(selectedDate)
-            nextDay.setDate(nextDay.getDate() + 1)
+            // El usuario busca una fecha en hora Argentina (UTC-3)
+            // Necesitamos ajustar el rango de búsqueda para consultar correctamente en UTC
+            const ARGENTINA_OFFSET_HOURS = 3;
+
+            // Crear fecha en hora local Argentina (00:00:00)
+            const selectedDateLocal = new Date(date + 'T00:00:00');
+
+            // Convertir a UTC agregando el offset (00:00 Argentina = 03:00 UTC)
+            const selectedDateUTC = new Date(selectedDateLocal);
+            selectedDateUTC.setHours(selectedDateUTC.getHours() + ARGENTINA_OFFSET_HOURS);
+
+            // El día siguiente en UTC (23:59:59 Argentina = 02:59:59 UTC del día siguiente)
+            const nextDayUTC = new Date(selectedDateUTC);
+            nextDayUTC.setDate(nextDayUTC.getDate() + 1);
 
             // Verificar si la búsqueda es para el día actual
-            const now = new Date()
-            const isToday = selectedDate.toDateString() === now.toDateString()
+            const now = new Date();
+            const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const isToday = selectedDateLocal.getTime() === todayLocal.getTime();
 
             if (isToday) {
                 // Si busca para HOY, solo mostrar viajes que salgan en más de 3h 30min
-                const minDepartureTime = new Date()
+                const minDepartureTime = new Date();
                 minDepartureTime.setSeconds(
                     minDepartureTime.getSeconds() + TRIP_COMPLETION_CONFIG.MINIMUM_BOOKING_TIME_SECONDS
-                )
+                );
+
+                // Convertir el tiempo mínimo a UTC
+                const minDepartureTimeUTC = new Date(minDepartureTime);
+                minDepartureTimeUTC.setHours(minDepartureTimeUTC.getHours() + ARGENTINA_OFFSET_HOURS);
 
                 where.departureTime = {
-                    gte: minDepartureTime,
-                    lt: nextDay
-                }
+                    gte: minDepartureTimeUTC,
+                    lt: nextDayUTC
+                };
             } else {
-                // Para búsquedas de fechas futuras, usar departureTime que contiene la hora real
+                // Para búsquedas de fechas futuras, usar el rango completo del día en UTC
                 where.departureTime = {
-                    gte: selectedDate,
-                    lt: nextDay
-                }
+                    gte: selectedDateUTC,
+                    lt: nextDayUTC
+                };
             }
         }
 

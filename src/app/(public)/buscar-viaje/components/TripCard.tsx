@@ -87,6 +87,7 @@ import { MapPin, PlusCircle, ArrowRightCircle } from "lucide-react"
 import Link from "next/link"
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { utcToArgentina } from '@/utils/helpers/time/timezone-helper'
 
 interface TripCardProps {
   trip: Trip
@@ -139,7 +140,7 @@ export function TripCard({ trip }: TripCardProps) {
             </div>
             <div className="flex-grow pt-[2px]"> {/* Text content, pt for fine-tuning */}
               <span className="text-sm font-medium block leading-snug">
-                {format(new Date(trip.departureTime), 'HH:mm', { locale: es })}
+                {format(utcToArgentina(new Date(trip.departureTime)), 'HH:mm', { locale: es })}
               </span>
               <span className="text-md text-gray-800 dark:text-gray-200 block leading-snug">{trip.originCity}</span>
             </div>

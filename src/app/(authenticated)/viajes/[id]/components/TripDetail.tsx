@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { utcToArgentina } from '@/utils/helpers/time/timezone-helper'
 import {
   Card,
   CardContent,
@@ -81,9 +82,9 @@ export default function TripDetail({
   const isPassenger = trip.userRole?.isPassenger || false;
   const passengerInfo = trip.userRole?.passengerInfo;
 
-  // Format date and time
-  const tripDate = format(new Date(trip.date), 'EEEE d MMMM, yyyy', { locale: es })
-  const departureTime = format(new Date(trip.departureTime), 'HH:mm', { locale: es })
+  // Format date and time (convertir de UTC a hora Argentina)
+  const tripDate = format(utcToArgentina(new Date(trip.date)), 'EEEE d MMMM, yyyy', { locale: es })
+  const departureTime = format(utcToArgentina(new Date(trip.departureTime)), 'HH:mm', { locale: es })
 
   // Get car details
   const carModel = trip.driverCar.car.carModel.model
