@@ -736,6 +736,7 @@ enum RefundType {
 enum CancelledBy {
   PASSENGER
   DRIVER
+  SYSTEM
 }
 
 enum PaymentMethod {

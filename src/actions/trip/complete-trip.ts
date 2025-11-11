@@ -7,6 +7,7 @@ import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { TRIP_COMPLETION_CONFIG } from "@/lib/constants/trip-completion-config";
+import { processSystemCancellation } from "@/utils/helpers/cancellation-helper";
 
 export async function completeTripAction(tripId: string, isAutomated = false) {
   try {
@@ -29,8 +30,8 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
     // Verify trip can be completed (must be ACTIVE)
     if (trip.status !== 'ACTIVE') {
       throw ServerActionError.ValidationFailed(
-        'complete-trip.ts', 
-        'completeTripAction', 
+        'complete-trip.ts',
+        'completeTripAction',
         `Viaje no puede ser completado. Estado actual: ${trip.status}`
       );
     }
@@ -39,7 +40,7 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
     if (isAutomated) {
       const twentyFourHoursAfterDeparture = new Date(trip.departureTime);
       twentyFourHoursAfterDeparture.setHours(twentyFourHoursAfterDeparture.getHours() + 24);
-      
+
       if (new Date() < twentyFourHoursAfterDeparture) {
         throw ServerActionError.ValidationFailed(
           'complete-trip.ts',
@@ -47,6 +48,47 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
           'No han pasado 24 horas desde la hora de salida del viaje'
         );
       }
+    }
+
+    // Check if trip has confirmed passengers
+    // If no CONFIRMED passengers, cancel trip instead of completing it
+    if (trip.passengers.length === 0) {
+      await prisma.$transaction(async (tx) => {
+        await processSystemCancellation(
+          tripId,
+          'Viaje cancelado automáticamente por el sistema: sin pasajeros confirmados al momento de expiración',
+          tx
+        );
+      });
+
+      await logActionWithErrorHandling(
+        {
+          userId: 'SYSTEM',
+          action: TipoAccionUsuario.CANCELACION_VIAJE,
+          status: 'SUCCESS',
+          details: {
+            tripId,
+            reason: 'no_confirmed_passengers',
+            isAutomated: true,
+            cancelledBy: 'SYSTEM',
+            departureTime: trip.departureTime.toISOString()
+          }
+        },
+        {
+          fileName: 'complete-trip.ts',
+          functionName: 'completeTripAction'
+        }
+      );
+
+      return ApiHandler.handleSuccess(
+        {
+          tripId,
+          status: 'CANCELLED',
+          reason: 'no_confirmed_passengers',
+          cancelledPassengers: 0
+        },
+        'Viaje cancelado por falta de pasajeros confirmados'
+      );
     }
 
     // Update trip status and passenger reservations in a transaction
@@ -122,6 +164,7 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
       {
         success: true,
         tripId,
+        status: 'COMPLETED',
         completedPassengers: trip.passengers.length,
         payoutCreated,
         payoutId
@@ -204,6 +247,8 @@ export async function completeExpiredTrips() {
       return ApiHandler.handleSuccess(
         {
           processedTrips: 0,
+          completedTrips: 0,
+          cancelledTrips: 0,
           successCount: 0,
           failureCount: 0,
           skippedTrips: skippedTrips.length,
@@ -239,6 +284,8 @@ export async function completeExpiredTrips() {
 
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.filter(r => !r.success).length;
+    const completedTrips = results.filter(r => r.success && 'result' in r && r.result?.data?.status === 'COMPLETED').length;
+    const cancelledTrips = results.filter(r => r.success && 'result' in r && r.result?.data?.status === 'CANCELLED').length;
 
     // Log de resultados
     if (results.length > 0) {
@@ -251,8 +298,14 @@ export async function completeExpiredTrips() {
             totalProcessed: tripsToComplete.length,
             successCount,
             failureCount,
+            completedTrips,
+            cancelledTrips,
             skippedCount: skippedTrips.length,
-            results: results.map(r => ({ tripId: r.tripId, success: r.success })),
+            results: results.map(r => ({
+              tripId: r.tripId,
+              success: r.success,
+              status: r.success && 'result' in r ? r.result?.data?.status : undefined
+            })),
             bufferUsed: TRIP_COMPLETION_CONFIG.COMPLETION_BUFFER_SECONDS,
           }
         },
@@ -266,12 +319,14 @@ export async function completeExpiredTrips() {
     return ApiHandler.handleSuccess(
       {
         processedTrips: tripsToComplete.length,
+        completedTrips,
+        cancelledTrips,
         successCount,
         failureCount,
         skippedTrips: skippedTrips.length,
         tripIds: results.map(r => r.tripId)
       },
-      `Procesados ${tripsToComplete.length} viajes. ${successCount} completados, ${failureCount} fallaron. ${skippedTrips.length} ignorados por falta de duración.`
+      `Procesados ${tripsToComplete.length} viajes. ${completedTrips} completados, ${cancelledTrips} cancelados (sin pasajeros), ${failureCount} fallaron. ${skippedTrips.length} ignorados por falta de duración.`
     );
   } catch (error) {
     await logActionWithErrorHandling(

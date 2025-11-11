@@ -400,3 +400,63 @@ export async function processDriverCancellation(
     affectedPassengers: affectedPassengers.length
   };
 }
+
+/**
+ * Procesa la cancelación automática de un viaje por el sistema
+ * Se usa cuando un viaje expira sin pasajeros confirmados
+ */
+export async function processSystemCancellation(
+  tripId: string,
+  reason: string,
+  tx: any // Prisma transaction client
+): Promise<void> {
+  // Obtener información del viaje
+  const trip = await tx.trip.findUnique({
+    where: { id: tripId },
+    include: {
+      passengers: {
+        where: {
+          reservationStatus: {
+            in: ['PENDING_APPROVAL', 'APPROVED', 'WAITLISTED']
+          }
+        }
+      }
+    }
+  });
+
+  if (!trip) {
+    throw new Error('Viaje no encontrado');
+  }
+
+  // 1. Actualizar estado del viaje a CANCELLED
+  await tx.trip.update({
+    where: { id: tripId },
+    data: { status: 'CANCELLED' }
+  });
+
+  // 2. Crear registro de cancelación con SYSTEM
+  await tx.cancellation.create({
+    data: {
+      tripId,
+      cancelledBy: 'SYSTEM',
+      reason,
+      hoursBeforeDeparture: 0,
+      refundPercentage: 0
+    }
+  });
+
+  // 3. Cancelar pasajeros no confirmados si los hay
+  if (trip.passengers.length > 0) {
+    await tx.tripPassenger.updateMany({
+      where: {
+        tripId,
+        reservationStatus: {
+          in: ['PENDING_APPROVAL', 'APPROVED', 'WAITLISTED']
+        }
+      },
+      data: {
+        reservationStatus: 'CANCELLED_BY_DRIVER_LATE'
+      }
+    });
+  }
+}

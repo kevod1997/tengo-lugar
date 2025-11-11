@@ -22,13 +22,17 @@ export const completeExpiredTripsFunction = inngest.createFunction(
       if (result.success && result.data) {
         const {
           processedTrips = 0,
+          completedTrips = 0,
+          cancelledTrips = 0,
           successCount = 0,
           failureCount = 0,
           skippedTrips = 0
         } = result.data;
 
         console.log(
-          `[Inngest] Processed ${processedTrips} trips: ${successCount} completed, ${failureCount} failed. ` +
+          `[Inngest] Processed ${processedTrips} trips: ` +
+          `${completedTrips} completed, ${cancelledTrips} cancelled (no passengers), ` +
+          `${failureCount} failed. ` +
           `${skippedTrips > 0 ? `⚠️ ${skippedTrips} skipped (missing durationSeconds)` : ''}`
         );
       }
@@ -36,7 +40,12 @@ export const completeExpiredTripsFunction = inngest.createFunction(
       return {
         success: true,
         message: "Expired trips completion process finished",
-        data: result.success ? result.data : { processedTrips: 0, skippedTrips: 0 },
+        data: result.success ? result.data : {
+          processedTrips: 0,
+          completedTrips: 0,
+          cancelledTrips: 0,
+          skippedTrips: 0
+        },
         originalResult: result
       };
     } catch (error) {
