@@ -33,6 +33,7 @@ export const completeExpiredTripsFunction = inngest.createFunction(
           `[Inngest] Processed ${processedTrips} trips: ` +
           `${completedTrips} completed, ${cancelledTrips} cancelled (no passengers), ` +
           `${failureCount} failed. ` +
+          `${successCount} succeeded. ` +
           `${skippedTrips > 0 ? `⚠️ ${skippedTrips} skipped (missing durationSeconds)` : ''}`
         );
       }
@@ -44,6 +45,8 @@ export const completeExpiredTripsFunction = inngest.createFunction(
           processedTrips: 0,
           completedTrips: 0,
           cancelledTrips: 0,
+          successCount: 0,
+          failureCount: 0,
           skippedTrips: 0
         },
         originalResult: result
