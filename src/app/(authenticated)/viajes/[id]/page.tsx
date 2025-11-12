@@ -6,12 +6,23 @@ import { headers } from 'next/headers';
 import NotFound from '@/app/not-found';
 import HeaderV2 from '@/components/header/HeaderV2';
 
-export default async function TripPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TripPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
 
   const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+
+  // Check if autoOpenReview query param is present
+  const autoOpenReview = resolvedSearchParams.openReview === 'true';
+
   if (!session) {
     redirect(`/login?redirect_url=/viajes/${resolvedParams.id}`);
   }
@@ -42,6 +53,7 @@ export default async function TripPage({ params }: { params: Promise<{ id: strin
           canReserve={reserveCheck.canReserve}
           reserveReason={reserveCheck.reason}
           availableSeats={reserveCheck.remainingSeats || trip.remainingSeats}
+          autoOpenReview={autoOpenReview}
         />
         </div>
       </>

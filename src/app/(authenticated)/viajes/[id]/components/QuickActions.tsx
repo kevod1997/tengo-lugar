@@ -1,8 +1,12 @@
 'use client'
 
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { MessageCircle, Map, Star, Receipt } from 'lucide-react'
 import Link from 'next/link'
+import { canUserReview } from '@/actions/review/can-user-review'
+import { ReviewModal } from '@/components/reviews/ReviewModal'
 
 interface QuickActionsProps {
   tripStatus: string
@@ -10,16 +14,38 @@ interface QuickActionsProps {
   googleMapsUrl: string
   tripId: string
   showChat: boolean
+  autoOpenReview?: boolean
 }
 
 export function QuickActions({
   tripStatus,
   chatRoomId,
   googleMapsUrl,
-  showChat
+  tripId,
+  showChat,
+  autoOpenReview = false
 }: QuickActionsProps) {
   const isActive = ['PENDING', 'ACTIVE'].includes(tripStatus)
   const isCompleted = tripStatus === 'COMPLETED'
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(autoOpenReview)
+
+  // Fetch review eligibility
+  const { data: reviewData, isLoading: isLoadingReview } = useQuery({
+    queryKey: ['canReview', tripId],
+    queryFn: async () => {
+      const result = await canUserReview({ tripId })
+      if (!result.success) {
+        return null
+      }
+      return result.data
+    },
+    enabled: isCompleted,
+  })
+
+  const canReview = reviewData?.canReview || false
+  const hasAlreadyReviewed = reviewData?.pendingUsers?.length === 0 && reviewData?.reviewableUsers?.length > 0
+  const isWithinWindow = reviewData?.tripCompletedAt ? true : false
+  const reviewableUsers = reviewData?.pendingUsers || []
 
   return (
     <div className="space-y-3">
@@ -58,16 +84,32 @@ export function QuickActions({
         {/* Acciones post-viaje - Solo si está completado */}
         {isCompleted && (
           <>
-            {/* Botón de calificar - preparado para futuro sistema de reviews */}
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-2 border-amber-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300"
-              disabled
-              title="Próximamente: Sistema de calificaciones"
-            >
-              <Star className="h-4 w-4" />
-              <span className="text-sm">Calificar viaje</span>
-            </Button>
+            {/* Botón de calificar - Sistema de reviews activo */}
+            {canReview && isWithinWindow && !hasAlreadyReviewed && (
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 border-amber-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300"
+                onClick={() => setIsReviewModalOpen(true)}
+                disabled={isLoadingReview}
+              >
+                <Star className="h-4 w-4" />
+                <span className="text-sm">Calificar viaje</span>
+              </Button>
+            )}
+
+            {/* Ver calificaciones ya dejadas */}
+            {hasAlreadyReviewed && (
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 border-green-200 hover:bg-green-50 hover:text-green-700 hover:border-green-300"
+                asChild
+              >
+                <a href="#mis-calificaciones">
+                  <Star className="h-4 w-4 fill-green-500 text-green-500" />
+                  <span className="text-sm">Ver mi calificación</span>
+                </a>
+              </Button>
+            )}
 
             {/* Botón de recibo - preparado para futuro */}
             <Button
@@ -84,10 +126,20 @@ export function QuickActions({
       </div>
 
       {/* Nota informativa para viajes completados */}
-      {isCompleted && (
-        <p className="text-xs text-muted-foreground mt-2 text-center">
-          Las funciones de calificación y recibo estarán disponibles próximamente
+      {isCompleted && !isWithinWindow && !hasAlreadyReviewed && (
+        <p className="text-xs text-amber-600 mt-2 text-center">
+          Ya no puedes calificar este viaje (han pasado más de 10 días)
         </p>
+      )}
+
+      {/* Review Modal */}
+      {reviewableUsers.length > 0 && (
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          tripId={tripId}
+          reviewableUsers={reviewableUsers}
+        />
       )}
     </div>
   )

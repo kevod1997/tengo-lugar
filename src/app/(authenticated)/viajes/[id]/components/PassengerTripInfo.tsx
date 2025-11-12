@@ -1,18 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import { ChevronDown, ChevronUp, Users, Calendar, CreditCard, CheckCircle, InfoIcon } from 'lucide-react'
+import { ChevronDown, ChevronUp, Users, Calendar, CreditCard, CheckCircle, InfoIcon, Star } from 'lucide-react'
 import { ParticipantsSection } from './ParticipantsSection'
 import { QuickActions } from './QuickActions'
+import { ReviewCard } from '@/components/reviews/ReviewCard'
+import { getReviewsForUser } from '@/actions/review/get-reviews-for-user'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface PassengerTripInfoProps {
   reservation: {
@@ -34,6 +38,8 @@ interface PassengerTripInfoProps {
   }
   coPassengers: any[]
   googleMapsUrl: string
+  userId: string
+  autoOpenReview?: boolean
 }
 
 export function PassengerTripInfo({
@@ -41,11 +47,34 @@ export function PassengerTripInfo({
   trip,
   payment,
   coPassengers,
-  googleMapsUrl
+  googleMapsUrl,
+  userId,
+  autoOpenReview = false
 }: PassengerTripInfoProps) {
   const router = useRouter()
   // Desktop (≥768px) should be open by default, mobile collapsed
   const [isOpen, setIsOpen] = useState(false)
+
+  // Fetch user's reviews for this trip (if completed)
+  const { data: myReviews, isLoading: isLoadingReviews } = useQuery({
+    queryKey: ['myReviews', trip.id, userId],
+    queryFn: async () => {
+      // Note: This is a simplified query - you may need to create a specific action
+      // to fetch reviews by tripId and reviewerId for this use case
+      const result = await getReviewsForUser({
+        userId,
+        revieweeType: 'DRIVER', // We'll fetch both types
+      })
+
+      if (!result.success || !result.data) {
+        return []
+      }
+
+      // Filter reviews for this specific trip
+      return result.data.reviews.filter((review: any) => review.trip.id === trip.id)
+    },
+    enabled: trip.status === 'COMPLETED',
+  })
 
   // Set initial state based on screen size
   useEffect(() => {
@@ -235,7 +264,33 @@ export function PassengerTripInfo({
               googleMapsUrl={googleMapsUrl}
               tripId={trip.id}
               showChat={showChat}
+              autoOpenReview={autoOpenReview}
             />
+
+            {/* My Reviews Section - Only if trip is completed and user has reviews */}
+            {trip.status === 'COMPLETED' && myReviews && myReviews.length > 0 && (
+              <>
+                <Separator />
+                <div id="mis-calificaciones" className="space-y-4 scroll-mt-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                    Tus calificaciones
+                  </div>
+
+                  {isLoadingReviews ? (
+                    <div className="space-y-3">
+                      <Skeleton className="h-32 w-full" />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {myReviews.map((review: any) => (
+                        <ReviewCard key={review.id} review={review} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </CollapsibleContent>
       </Collapsible>

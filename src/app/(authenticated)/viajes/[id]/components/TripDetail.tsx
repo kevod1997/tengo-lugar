@@ -57,13 +57,16 @@ interface TripDetailProps {
   canReserve: boolean;
   reserveReason?: string;
   availableSeats?: number;
+  autoOpenReview?: boolean;
 }
 
 export default function TripDetail({
   trip,
+  userId,
   canReserve,
   reserveReason,
-  availableSeats = 0
+  availableSeats = 0,
+  autoOpenReview = false
 }: TripDetailProps) {
   const router = useRouter()
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false)
@@ -224,6 +227,8 @@ export default function TripDetail({
                   p.passenger.userId !== passengerInfo.userId
                 )}
                 googleMapsUrl={trip.googleMapsUrl || '#'}
+                userId={userId}
+                autoOpenReview={autoOpenReview}
               />
             )}
 
