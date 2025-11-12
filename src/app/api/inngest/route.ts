@@ -3,6 +3,7 @@ import { sendDocumentVerificationEmail } from "@/utils/inngest/send-document-ver
 import { completeExpiredTripsFunction } from "@/utils/inngest/complete-expired-trips";
 import { rejectPendingReservationsFunction } from "@/utils/inngest/reject-pending-reservations";
 import { expireUnpaidReservationsFunction } from "@/utils/inngest/expire-unpaid-reservations";
+import { sendReviewReminder, sendReviewReceivedNotification } from "@/utils/inngest/send-review-reminder";
 import { serve } from "inngest/next";
 
 export const { GET, POST, PUT } = serve({
@@ -11,6 +12,8 @@ export const { GET, POST, PUT } = serve({
     sendDocumentVerificationEmail,
     completeExpiredTripsFunction,
     rejectPendingReservationsFunction,
-    expireUnpaidReservationsFunction
+    expireUnpaidReservationsFunction,
+    sendReviewReminder,
+    sendReviewReceivedNotification
   ]
 });

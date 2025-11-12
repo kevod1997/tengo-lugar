@@ -3,6 +3,8 @@ export { default as DocumentVerified } from './templates/DocumentVerified';
 export { default as DocumentFailed } from './templates/DocumentFailed';
 export { default as PasswordReset } from './templates/PasswordReset';
 export { default as EmailVerification } from './templates/EmailVerification';
+export { default as ReviewReminder } from './templates/ReviewReminder';
+export { default as ReviewReceived } from './templates/ReviewReceived';
 
 // Components
 export { EmailLayout } from './components/EmailLayout';

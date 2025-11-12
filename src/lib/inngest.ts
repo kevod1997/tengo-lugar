@@ -12,6 +12,30 @@ export type Events = {
     'reject-pending-reservations': {
         data: Record<string, never>
     };
+    'send-review-reminder': {
+        data: {
+            userId: string;
+            userName: string;
+            userEmail: string;
+            tripId: string;
+            tripOrigin: string;
+            tripDestination: string;
+            departureDate: string;
+            reviewType: 'DRIVER' | 'PASSENGER';
+            revieweeId: string;
+            revieweeName: string;
+        }
+    };
+    'review-received-notification': {
+        data: {
+            userId: string;
+            userName: string;
+            userEmail: string;
+            reviewerName: string;
+            rating: number;
+            tripId: string;
+        }
+    };
 };
 
 export const inngest = new Inngest({

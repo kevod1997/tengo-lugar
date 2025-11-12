@@ -4,10 +4,11 @@
 import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { logActionWithErrorHandling } from "@/services/logging/logging-service";
+import { logActionWithErrorHandling, logError } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import { TRIP_COMPLETION_CONFIG } from "@/lib/constants/trip-completion-config";
 import { processSystemCancellation } from "@/utils/helpers/cancellation-helper";
+import { inngest } from "@/lib/inngest";
 
 export async function completeTripAction(tripId: string, isAutomated = false) {
   try {
@@ -126,6 +127,111 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
       }
     );
 
+    // Trigger review reminder emails for all participants
+    try {
+      // Fetch complete trip data with driver and passengers
+      const tripWithDetails = await prisma.trip.findUnique({
+        where: { id: tripId },
+        include: {
+          driverCar: {
+            include: {
+              driver: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          passengers: {
+            where: { reservationStatus: 'COMPLETED' },
+            include: {
+              passenger: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (tripWithDetails) {
+        const departureDate = tripWithDetails.departureTime.toLocaleDateString('es-AR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+
+        // Send review reminders to each passenger (to review the driver)
+        for (const passenger of tripWithDetails.passengers) {
+          await inngest.send({
+            name: 'send-review-reminder',
+            data: {
+              userId: passenger.passenger.userId,
+              userName: passenger.passenger.user.name || 'Usuario',
+              userEmail: passenger.passenger.user.email,
+              tripId: tripWithDetails.id,
+              tripOrigin: `${tripWithDetails.originCity}, ${tripWithDetails.originProvince}`,
+              tripDestination: `${tripWithDetails.destinationCity}, ${tripWithDetails.destinationProvince}`,
+              departureDate,
+              reviewType: 'DRIVER' as const,
+              revieweeId: tripWithDetails.driverCar.driver.userId,
+              revieweeName: tripWithDetails.driverCar.driver.user.name || 'Conductor'
+            }
+          });
+        }
+
+        // Send review reminder to driver (to review passengers)
+        if (tripWithDetails.passengers.length > 0) {
+          await inngest.send({
+            name: 'send-review-reminder',
+            data: {
+              userId: tripWithDetails.driverCar.driver.userId,
+              userName: tripWithDetails.driverCar.driver.user.name || 'Conductor',
+              userEmail: tripWithDetails.driverCar.driver.user.email,
+              tripId: tripWithDetails.id,
+              tripOrigin: `${tripWithDetails.originCity}, ${tripWithDetails.originProvince}`,
+              tripDestination: `${tripWithDetails.destinationCity}, ${tripWithDetails.destinationProvince}`,
+              departureDate,
+              reviewType: 'PASSENGER' as const,
+              revieweeId: '', // Multiple passengers
+              revieweeName: `${tripWithDetails.passengers.length} pasajero${tripWithDetails.passengers.length > 1 ? 's' : ''}`
+            }
+          });
+        }
+
+        console.log(`[Trip Completion] Review reminders triggered for trip ${tripId}: ${tripWithDetails.passengers.length} passenger(s) + 1 driver`);
+      }
+    } catch (reviewReminderError) {
+      // Log error but DO NOT fail trip completion
+      await logError({
+        origin: 'Trip Completion - Review Reminders',
+        code: 'REVIEW_REMINDER_TRIGGER_ERROR',
+        message: 'Failed to trigger review reminder emails after trip completion',
+        details: JSON.stringify({
+          tripId,
+          error: reviewReminderError instanceof Error ? reviewReminderError.message : 'Unknown error',
+          stack: reviewReminderError instanceof Error ? reviewReminderError.stack : undefined
+        }),
+        fileName: 'complete-trip.ts',
+        functionName: 'completeTripAction'
+      });
+
+      console.error(`[Trip Completion] Failed to trigger review reminders for trip ${tripId}:`, reviewReminderError);
+    }
+
     // Create DriverPayout automatically after trip completion
     // This is done AFTER trip completion to avoid rollback if payout creation fails
     let payoutCreated = false;
@@ -164,7 +270,7 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
       {
         success: true,
         tripId,
-        status: 'COMPLETED',
+        status: 'SUCCESS',
         completedPassengers: trip.passengers.length,
         payoutCreated,
         payoutId

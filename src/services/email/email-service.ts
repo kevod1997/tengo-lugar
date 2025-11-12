@@ -5,13 +5,31 @@ import { ServiceError } from '@/lib/exceptions/service-error';
 import { ResendAPI } from '@/lib/email/resend';
 import { DocumentType } from '@/types/request/image-documents-validation';
 import { render } from '@react-email/render';
-import { DocumentVerified, DocumentFailed, PasswordReset, EmailVerification } from '@/emails';
+import { DocumentVerified, DocumentFailed, PasswordReset, EmailVerification, ReviewReminder, ReviewReceived } from '@/emails';
 
 export interface SendDocumentVerificationEmailParams {
   to: string;
   documentType: DocumentType;
   status: VerificationStatus;
   failureReason?: string;
+}
+
+export interface SendReviewReminderEmailParams {
+  to: string;
+  userName: string;
+  reviewUrl: string;
+  tripOrigin: string;
+  tripDestination: string;
+  departureDate: string;
+  reviewType: 'driver' | 'passenger';
+}
+
+export interface SendReviewReceivedEmailParams {
+  to: string;
+  userName: string;
+  reviewerName: string;
+  rating: number;
+  profileUrl: string;
 }
 
 export class EmailService {
@@ -103,6 +121,56 @@ export class EmailService {
         html: htmlContent,
       }).catch((error) => {
         throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendEmailVerificationEmail');
+      });
+
+      return ApiHandler.handleSuccess(undefined);
+    } catch (error) {
+      return ApiHandler.handleError(error);
+    }
+  }
+
+  async sendReviewReminderEmail(params: SendReviewReminderEmailParams): Promise<ApiResponse<void>> {
+    try {
+      const htmlContent = await render(ReviewReminder({
+        userName: params.userName,
+        reviewUrl: params.reviewUrl,
+        tripOrigin: params.tripOrigin,
+        tripDestination: params.tripDestination,
+        departureDate: params.departureDate,
+        reviewType: params.reviewType,
+      }));
+
+      await this.resendAPI.sendEmail({
+        from: "Tengo Lugar <info@tengolugar.store>",
+        to: [params.to],
+        subject: "¡Califica tu viaje en Tengo Lugar!",
+        html: htmlContent,
+      }).catch((error) => {
+        throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendReviewReminderEmail');
+      });
+
+      return ApiHandler.handleSuccess(undefined);
+    } catch (error) {
+      return ApiHandler.handleError(error);
+    }
+  }
+
+  async sendReviewReceivedEmail(params: SendReviewReceivedEmailParams): Promise<ApiResponse<void>> {
+    try {
+      const htmlContent = await render(ReviewReceived({
+        userName: params.userName,
+        reviewerName: params.reviewerName,
+        rating: params.rating,
+        profileUrl: params.profileUrl,
+      }));
+
+      await this.resendAPI.sendEmail({
+        from: "Tengo Lugar <info@tengolugar.store>",
+        to: [params.to],
+        subject: "¡Recibiste una nueva calificación!",
+        html: htmlContent,
+      }).catch((error) => {
+        throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendReviewReceivedEmail');
       });
 
       return ApiHandler.handleSuccess(undefined);

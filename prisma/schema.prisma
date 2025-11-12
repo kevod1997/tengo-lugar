@@ -386,6 +386,7 @@ model Review {
   @@index([tripId])
   @@index([reviewerId])
   @@index([reviewedId])
+  @@unique([tripId, reviewerId, reviewedId])
 }
 
 model Payment {
