@@ -50,6 +50,7 @@ import { UserProfileModal } from '@/components/user-profile-modal/UserProfileMod
 import { calculateAge } from '@/utils/helpers/calculate-age'
 import { useLoadingStore } from '@/store/loadingStore'
 import { PassengerTripInfo } from './PassengerTripInfo'
+import { DriverTripHub } from './DriverTripHub'
 
 interface TripDetailProps {
   trip: any;
@@ -226,6 +227,26 @@ export default function TripDetail({
                   (p: any) => ['CONFIRMED', 'APPROVED'].includes(p.reservationStatus) &&
                   p.passenger.userId !== passengerInfo.userId
                 )}
+                googleMapsUrl={trip.googleMapsUrl || '#'}
+                userId={userId}
+                autoOpenReview={autoOpenReview}
+              />
+            )}
+
+            {/* Driver Trip Hub - Collapsible section with trip summary and quick actions */}
+            {isDriver && (
+              <DriverTripHub
+                trip={{
+                  id: trip.id,
+                  status: trip.status,
+                  departureTime: new Date(trip.departureTime),
+                  origin: trip.originAddress,
+                  destination: trip.destinationAddress,
+                  chatRoomId: trip.chatRoomId,
+                  pricePerSeat: trip.pricePerSeat,
+                  confirmedPassengersCount: confirmedPassengers,
+                  availableSeats: trip.availableSeats
+                }}
                 googleMapsUrl={trip.googleMapsUrl || '#'}
                 userId={userId}
                 autoOpenReview={autoOpenReview}
