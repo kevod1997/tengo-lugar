@@ -17,7 +17,7 @@ import {
   updatePassengerRating
 } from "@/utils/helpers/rating-helper";
 import { inngest } from "@/lib/inngest";
-import { REVIEW_REMINDER_CONFIG } from "@/lib/constants/review-reminder-config";
+
 
 /**
  * Crea una review para un viaje completado
