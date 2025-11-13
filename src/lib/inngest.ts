@@ -36,6 +36,13 @@ export type Events = {
             tripId: string;
         }
     };
+    'payment-verified-notification': {
+        data: {
+            paymentId: string;
+            amount: number;
+            senderName: string;
+        }
+    };
 };
 
 export const inngest = new Inngest({

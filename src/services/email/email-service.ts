@@ -5,7 +5,7 @@ import { ServiceError } from '@/lib/exceptions/service-error';
 import { ResendAPI } from '@/lib/email/resend';
 import { DocumentType } from '@/types/request/image-documents-validation';
 import { render } from '@react-email/render';
-import { DocumentVerified, DocumentFailed, PasswordReset, EmailVerification, ReviewReminder, ReviewReceived } from '@/emails';
+import { DocumentVerified, DocumentFailed, PasswordReset, EmailVerification, ReviewReminder, ReviewReceived, PaymentVerifiedPassenger, PaymentVerifiedDriver } from '@/emails';
 
 export interface SendDocumentVerificationEmailParams {
   to: string;
@@ -30,6 +30,31 @@ export interface SendReviewReceivedEmailParams {
   reviewerName: string;
   rating: number;
   profileUrl: string;
+}
+
+export interface SendPaymentVerifiedEmailToPassengerParams {
+  to: string;
+  passengerName: string;
+  amount: number;
+  tripOrigin: string;
+  tripDestination: string;
+  departureDate: string;
+  departureTime: string;
+  seatsReserved: number;
+  tripUrl: string;
+}
+
+export interface SendPaymentVerifiedEmailToDriverParams {
+  to: string;
+  driverName: string;
+  passengerName: string;
+  amount: number;
+  tripOrigin: string;
+  tripDestination: string;
+  departureDate: string;
+  departureTime: string;
+  seatsReserved: number;
+  tripUrl: string;
 }
 
 export class EmailService {
@@ -171,6 +196,63 @@ export class EmailService {
         html: htmlContent,
       }).catch((error) => {
         throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendReviewReceivedEmail');
+      });
+
+      return ApiHandler.handleSuccess(undefined);
+    } catch (error) {
+      return ApiHandler.handleError(error);
+    }
+  }
+
+  async sendPaymentVerifiedEmailToPassenger(params: SendPaymentVerifiedEmailToPassengerParams): Promise<ApiResponse<void>> {
+    try {
+      const htmlContent = await render(PaymentVerifiedPassenger({
+        passengerName: params.passengerName,
+        amount: params.amount,
+        tripOrigin: params.tripOrigin,
+        tripDestination: params.tripDestination,
+        departureDate: params.departureDate,
+        departureTime: params.departureTime,
+        seatsReserved: params.seatsReserved,
+        tripUrl: params.tripUrl,
+      }));
+
+      await this.resendAPI.sendEmail({
+        from: "Tengo Lugar <info@tengolugar.store>",
+        to: [params.to],
+        subject: "¡Tu pago ha sido confirmado!",
+        html: htmlContent,
+      }).catch((error) => {
+        throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendPaymentVerifiedEmailToPassenger');
+      });
+
+      return ApiHandler.handleSuccess(undefined);
+    } catch (error) {
+      return ApiHandler.handleError(error);
+    }
+  }
+
+  async sendPaymentVerifiedEmailToDriver(params: SendPaymentVerifiedEmailToDriverParams): Promise<ApiResponse<void>> {
+    try {
+      const htmlContent = await render(PaymentVerifiedDriver({
+        driverName: params.driverName,
+        passengerName: params.passengerName,
+        amount: params.amount,
+        tripOrigin: params.tripOrigin,
+        tripDestination: params.tripDestination,
+        departureDate: params.departureDate,
+        departureTime: params.departureTime,
+        seatsReserved: params.seatsReserved,
+        tripUrl: params.tripUrl,
+      }));
+
+      await this.resendAPI.sendEmail({
+        from: "Tengo Lugar <info@tengolugar.store>",
+        to: [params.to],
+        subject: "Nuevo pasajero confirmado en tu viaje",
+        html: htmlContent,
+      }).catch((error) => {
+        throw ServiceError.FailedToSendEmail((error as Error).message, 'email-service.ts', 'sendPaymentVerifiedEmailToDriver');
       });
 
       return ApiHandler.handleSuccess(undefined);

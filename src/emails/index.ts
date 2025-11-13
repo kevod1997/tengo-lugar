@@ -5,6 +5,8 @@ export { default as PasswordReset } from './templates/PasswordReset';
 export { default as EmailVerification } from './templates/EmailVerification';
 export { default as ReviewReminder } from './templates/ReviewReminder';
 export { default as ReviewReceived } from './templates/ReviewReceived';
+export { default as PaymentVerifiedPassenger } from './templates/PaymentVerifiedPassenger';
+export { default as PaymentVerifiedDriver } from './templates/PaymentVerifiedDriver';
 
 // Components
 export { EmailLayout } from './components/EmailLayout';
