@@ -79,8 +79,21 @@ export async function getPendingPayments(params: GetPendingPaymentsParams = {}) 
     if (status !== 'ALL') {
       where.status = status;
     } else {
-      // Default: show pending and processing payments
-      where.status = { in: ['PENDING', 'PROCESSING'] };
+      // Default: show pending, processing, and completed payments without receipts
+      where.OR = [
+        { status: { in: ['PENDING', 'PROCESSING'] } },
+        {
+          AND: [
+            { status: 'COMPLETED' },
+            {
+              OR: [
+                { bankTransfer: null },
+                { bankTransfer: { proofFileKey: null } }
+              ]
+            }
+          ]
+        }
+      ];
     }
 
     // Filter by date range

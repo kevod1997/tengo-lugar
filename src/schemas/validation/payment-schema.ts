@@ -42,9 +42,27 @@ export const approvePaymentWithProofSchema = z.object({
 });
 
 /**
+ * Schema para subir comprobante a pago completado
+ */
+export const uploadReceiptToCompletedSchema = z.object({
+  paymentId: z.string().uuid("ID de pago inválido"),
+  proofFileKey: z.string().min(1, "El comprobante es obligatorio"),
+});
+
+/**
+ * Schema para rechazar pago
+ */
+export const rejectPaymentSchema = z.object({
+  paymentId: z.string().uuid("ID de pago inválido"),
+  failureReason: z.string().min(10, "La razón debe tener al menos 10 caracteres"),
+});
+
+/**
  * Type exports para TypeScript
  */
 export type GetPaymentDetailsInput = z.infer<typeof getPaymentDetailsSchema>;
 export type UpdatePaymentStatusInput = z.infer<typeof updatePaymentStatusSchema>;
 export type UploadPaymentProofInput = z.infer<typeof uploadPaymentProofSchema>;
 export type ApprovePaymentWithProofInput = z.infer<typeof approvePaymentWithProofSchema>;
+export type UploadReceiptToCompletedInput = z.infer<typeof uploadReceiptToCompletedSchema>;
+export type RejectPaymentInput = z.infer<typeof rejectPaymentSchema>;

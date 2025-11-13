@@ -6,10 +6,11 @@ import { PendingPayment } from '@/actions/payment/get-pending-payments'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { FileText, CheckCircle, XCircle, Eye } from 'lucide-react'
+import { FileText, CheckCircle, XCircle, Eye, Upload } from 'lucide-react'
 import { PaymentProofModal } from './PaymentProofModal'
 import { ApprovePaymentDialog } from './ApprovePaymentDialog'
 import { RejectPaymentDialog } from './RejectPaymentDialog'
+import { UploadReceiptDialog } from './UploadReceiptDialog'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -42,6 +43,7 @@ export function PaymentTable({ payments }: PaymentTableProps) {
   const [showProofModal, setShowProofModal] = useState(false)
   const [showApproveDialog, setShowApproveDialog] = useState(false)
   const [showRejectDialog, setShowRejectDialog] = useState(false)
+  const [showUploadReceiptDialog, setShowUploadReceiptDialog] = useState(false)
 
   const handleViewProof = (paymentId: string) => {
     setSelectedPaymentId(paymentId)
@@ -59,12 +61,18 @@ export function PaymentTable({ payments }: PaymentTableProps) {
     setShowRejectDialog(true)
   }
 
+  const handleUploadReceipt = (paymentId: string) => {
+    setSelectedPaymentId(paymentId)
+    setShowUploadReceiptDialog(true)
+  }
+
   const handleSuccess = () => {
     setSelectedPaymentId(null)
     setSelectedPaymentHasProof(false)
     setShowProofModal(false)
     setShowApproveDialog(false)
     setShowRejectDialog(false)
+    setShowUploadReceiptDialog(false)
     router.refresh()
   }
 
@@ -140,7 +148,9 @@ export function PaymentTable({ payments }: PaymentTableProps) {
                       Ver
                     </Button>
                   ) : (
-                    <span className="text-sm text-muted-foreground">Sin comprobante</span>
+                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                      Sin comprobante
+                    </Badge>
                   )}
                 </TableCell>
                 <TableCell>
@@ -169,6 +179,17 @@ export function PaymentTable({ payments }: PaymentTableProps) {
                           Rechazar
                         </Button>
                       </>
+                    )}
+                    {payment.status === 'COMPLETED' && !payment.hasProof && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUploadReceipt(payment.id)}
+                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                      >
+                        <Upload className="h-4 w-4 mr-1" />
+                        Subir comprobante
+                      </Button>
                     )}
                   </div>
                 </TableCell>
@@ -205,6 +226,15 @@ export function PaymentTable({ payments }: PaymentTableProps) {
             onSuccess={handleSuccess}
             onCancel={() => {
               setShowRejectDialog(false)
+              setSelectedPaymentId(null)
+            }}
+          />
+          <UploadReceiptDialog
+            paymentId={selectedPaymentId}
+            open={showUploadReceiptDialog}
+            onSuccess={handleSuccess}
+            onCancel={() => {
+              setShowUploadReceiptDialog(false)
               setSelectedPaymentId(null)
             }}
           />
