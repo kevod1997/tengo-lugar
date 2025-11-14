@@ -3,6 +3,7 @@ export { getNotifications } from './get-notifications'
 export { markNotificationRead } from './mark-notification-read'
 export { markAllNotificationsRead } from './mark-all-notifications-read'
 export { sendTargetedNotification } from './send-targeted-notification'
+export { sendSystemNotification } from './send-system-notification'
 
 // Export helper functions from utils module
 export {

@@ -361,6 +361,42 @@ export const sendVerificationEmail = inngest.createFunction(
 );
 ```
 
+### System Notification Pattern (Inngest Context)
+For background jobs that need to send notifications without user session:
+
+```typescript
+import { sendSystemNotification } from '@/actions/notifications/send-system-notification';
+
+// In Inngest functions - use sendSystemNotification instead of notifyUser
+const result = await sendSystemNotification(
+  userId,
+  'Notification Title',
+  'Notification message',
+  'payment_approved', // eventType
+  '/link/to/resource',
+  { additionalData: 'value' }
+);
+
+// Always check result
+if (!result.success) {
+  throw new Error(`Failed to send notification: ${result.error?.message}`);
+}
+```
+
+**Key differences from notifyUser:**
+- ✅ No authentication required (system context)
+- ✅ Validates userId exists in database
+- ✅ Designed for Inngest, webhooks, cron jobs
+- ✅ Returns ApiResponse for error handling
+
+**Email deliverability in Inngest:**
+When sending multiple emails in sequence, add delays to avoid spam classification:
+```typescript
+await step.run("send-email-1", async () => { /* send first email */ });
+await step.sleep("delay-between-emails", "45s"); // Avoid bulk sending pattern
+await step.run("send-email-2", async () => { /* send second email */ });
+```
+
 ### WebSocket Notification Service Pattern
 ```typescript
 import { websocketNotificationService } from '@/services/websocket/websocket-notification-service';
@@ -675,3 +711,5 @@ import { Button } from '@/components/ui/button';
 12. **Chat integration requires JWT tokens** - use proper token generation patterns
 13. **WebSocket notifications use singleton service** - import websocketNotificationService from services
 14. **WebSocket tokens cached in Redis** - use Server Actions for token management
+15. **System notifications in Inngest** - use `sendSystemNotification` for background jobs without user session
+16. **Email deliverability** - add 45s delays between emails in Inngest to avoid spam classification

@@ -1,7 +1,7 @@
 import { inngest } from "@/lib/inngest";
 import { EmailService } from "@/services/email/email-service";
 import { logError, logActionWithErrorHandling } from "@/services/logging/logging-service";
-import { notifyUser } from "@/utils/notifications/notification-helpers";
+import { sendSystemNotification } from "@/actions/notifications/send-system-notification";
 import prisma from "@/lib/prisma";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 
@@ -96,7 +96,7 @@ export const sendPaymentVerifiedNotifications = inngest.createFunction(
 
       // Step 2: Send WebSocket notification to passenger
       await step.run("notify-passenger-websocket", async () => {
-        await notifyUser(
+        const result = await sendSystemNotification(
           passenger.userId,
           '¡Pago verificado!',
           `Tu pago de $${amount.toFixed(2)} para el viaje de ${trip.originCity} a ${trip.destinationCity} ha sido verificado automáticamente. ¡Estás confirmado para viajar!`,
@@ -110,6 +110,10 @@ export const sendPaymentVerifiedNotifications = inngest.createFunction(
           }
         );
 
+        if (!result.success) {
+          throw new Error(`Failed to send notification to passenger: ${result.error?.message || 'Unknown error'}`);
+        }
+
         console.log(`[Inngest] WebSocket notification sent to passenger ${passenger.user.name}`);
 
         return { success: true };
@@ -117,7 +121,7 @@ export const sendPaymentVerifiedNotifications = inngest.createFunction(
 
       // Step 3: Send WebSocket notification to driver
       await step.run("notify-driver-websocket", async () => {
-        await notifyUser(
+        const result = await sendSystemNotification(
           driver.userId,
           'Nuevo pasajero confirmado',
           `${passenger.user.name} confirmó su pago de $${amount.toFixed(2)} para tu viaje de ${trip.originCity} a ${trip.destinationCity}`,
@@ -132,6 +136,10 @@ export const sendPaymentVerifiedNotifications = inngest.createFunction(
             seatsReserved: paymentData.tripPassenger.seatsReserved
           }
         );
+
+        if (!result.success) {
+          throw new Error(`Failed to send notification to driver: ${result.error?.message || 'Unknown error'}`);
+        }
 
         console.log(`[Inngest] WebSocket notification sent to driver ${driver.user.name}`);
 
@@ -168,6 +176,9 @@ export const sendPaymentVerifiedNotifications = inngest.createFunction(
         return { success: true };
       });
 
+      // Add delay to avoid bulk sending pattern (improves email deliverability)
+      await step.sleep("delay-before-driver-email", "45s");
+
       // Step 5: Send email to driver
       await step.run("send-driver-email", async () => {
         const tripDate = new Date(trip.date);
@@ -201,9 +212,10 @@ export const sendPaymentVerifiedNotifications = inngest.createFunction(
 
       // Step 6: Log successful notifications
       await step.run("log-notification-success", async () => {
+        // Log the action with passenger userId (the payment was made by the passenger)
         await logActionWithErrorHandling(
           {
-            userId: 'SYSTEM',
+            userId: passenger.userId,
             action: TipoAccionUsuario.PAGO_COMPLETADO,
             status: 'SUCCESS',
             details: {
