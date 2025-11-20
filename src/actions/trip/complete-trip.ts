@@ -301,13 +301,18 @@ export async function completeTripAction(tripId: string, isAutomated = false) {
 
 export async function completeExpiredTrips() {
   try {
-    const now = new Date();
+    // IMPORTANTE: Usar UTC para evitar problemas de timezone
+    // PostgreSQL almacena fechas en UTC, debemos comparar en la misma zona horaria
+    const nowUTC = new Date();
     const bufferSeconds = TRIP_COMPLETION_CONFIG.COMPLETION_BUFFER_SECONDS;
 
     // Query optimizada: La DB calcula y filtra directamente
     // Solo devuelve viajes que YA deben completarse
     // Lógica SQL: now >= (departureTime + durationSeconds + buffer)
     // Reescrito: (departureTime + INTERVAL durationSeconds + buffer) <= now
+    //
+    // FIX TIMEZONE: Usamos AT TIME ZONE 'UTC' para normalizar ambos lados de la comparación
+    // Esto previene bugs donde viajes después de las 21:00 no se completan hasta el día siguiente
     const tripsToComplete = await prisma.$queryRaw<
       Array<{ id: string; departureTime: Date; durationSeconds: number }>
     >`
@@ -316,7 +321,10 @@ export async function completeExpiredTrips() {
       WHERE status = 'ACTIVE'
         AND "durationSeconds" IS NOT NULL
         AND "durationSeconds" > 0
-        AND ("departureTime" + (("durationSeconds" + ${bufferSeconds}) * interval '1 second')) <= ${now}
+        AND (
+          ("departureTime" AT TIME ZONE 'UTC') +
+          (("durationSeconds" + ${bufferSeconds}) * interval '1 second')
+        ) <= (${nowUTC} AT TIME ZONE 'UTC')
     `;
 
     // Query separada para viajes sin duración (para logging)

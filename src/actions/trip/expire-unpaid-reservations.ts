@@ -17,17 +17,22 @@ import { shouldExpireUnpaidReservation, calculateHoursUntilDeparture } from "@/u
  */
 export async function expireUnpaidReservations() {
   try {
-    const now = new Date();
-    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    // IMPORTANTE: Usar UTC para evitar problemas de timezone
+    // JavaScript Date almacena internamente timestamps UTC
+    // Prisma automáticamente convierte a UTC cuando envía a PostgreSQL
+    const nowUTC = new Date();
+    const twoHoursInMs = 2 * 60 * 60 * 1000;
+    const twoHoursFromNowUTC = new Date(nowUTC.getTime() + twoHoursInMs);
 
     // Buscar reservas APPROVED o PENDING_APPROVAL con pago PENDING que salen en menos de 2 horas
+    // Nota: Prisma ORM maneja correctamente la conversión UTC, a diferencia de $queryRaw
     const reservationsToCheck = await prisma.tripPassenger.findMany({
       where: {
         reservationStatus: { in: ['PENDING_APPROVAL', 'APPROVED'] },
         trip: {
           departureTime: {
-            lte: twoHoursFromNow,
-            gt: now // No incluir viajes ya pasados
+            lte: twoHoursFromNowUTC,
+            gt: nowUTC // No incluir viajes ya pasados
           },
           status: {
             in: ['PENDING', 'ACTIVE'] // Solo viajes no completados/cancelados

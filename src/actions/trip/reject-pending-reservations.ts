@@ -49,8 +49,11 @@ export async function rejectPendingReservationsAction(reservationIds: string[], 
 
     // Verify all reservations are for active trips and within time constraint (for automated rejection)
     if (isAutomated) {
-      const twoHoursFromNow = new Date();
-      twoHoursFromNow.setHours(twoHoursFromNow.getHours() + 2);
+      // IMPORTANTE: Usar UTC para evitar problemas de timezone
+      // JavaScript Date almacena internamente timestamps UTC
+      const nowUTC = new Date();
+      const twoHoursInMs = 2 * 60 * 60 * 1000;
+      const twoHoursFromNowUTC = new Date(nowUTC.getTime() + twoHoursInMs);
 
       for (const reservation of reservations) {
         if (reservation.trip.status !== 'ACTIVE') {
@@ -61,7 +64,7 @@ export async function rejectPendingReservationsAction(reservationIds: string[], 
           );
         }
 
-        if (reservation.trip.departureTime > twoHoursFromNow) {
+        if (reservation.trip.departureTime > twoHoursFromNowUTC) {
           throw ServerActionError.ValidationFailed(
             'reject-pending-reservations.ts',
             'rejectPendingReservationsAction',
@@ -136,9 +139,12 @@ export async function rejectPendingReservationsAction(reservationIds: string[], 
 
 export async function rejectExpiredPendingReservations() {
   try {
-    // Find all pending reservations where trip departure time is less than 2 hours away
-    const twoHoursFromNow = new Date();
-    twoHoursFromNow.setHours(twoHoursFromNow.getHours() + 2);
+    // IMPORTANTE: Usar UTC para evitar problemas de timezone
+    // JavaScript Date almacena internamente timestamps UTC
+    // Prisma automáticamente convierte a UTC cuando envía a PostgreSQL
+    const nowUTC = new Date();
+    const twoHoursInMs = 2 * 60 * 60 * 1000;
+    const twoHoursFromNowUTC = new Date(nowUTC.getTime() + twoHoursInMs);
 
     const expiredReservations = await prisma.tripPassenger.findMany({
       where: {
@@ -146,7 +152,7 @@ export async function rejectExpiredPendingReservations() {
         trip: {
           status: 'ACTIVE',
           departureTime: {
-            lt: twoHoursFromNow
+            lt: twoHoursFromNowUTC
           }
         }
       },

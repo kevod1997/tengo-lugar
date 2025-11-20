@@ -6,6 +6,13 @@ import { completeExpiredTrips } from '../src/actions/trip/complete-trip';
 async function testCronJob() {
   console.log('🧪 Testing Cron Job: Complete Expired Trips\n');
 
+  // Mostrar información de timezone para debugging
+  const now = new Date();
+  console.log('🌍 Timezone Information:');
+  console.log(`   - Local time: ${now.toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`);
+  console.log(`   - UTC time: ${now.toISOString()}`);
+  console.log(`   - Timezone offset: UTC${now.getTimezoneOffset() > 0 ? '-' : '+'}${Math.abs(now.getTimezoneOffset() / 60)}\n`);
+
   try {
     console.log('⏳ Running complete expired trips...');
     const result = await completeExpiredTrips();
