@@ -60,62 +60,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```typescript
 import { requireAuthentication, requireAuthorization } from '@/utils/helpers/auth-helper';
 
-// Basic authentication check
-const session = await requireAuthentication('filename.ts', 'functionName');
-
-// Role-specific authorization
-const session = await requireAuthorization('admin', 'filename.ts', 'functionName');
+// Basic: requireAuthentication('filename.ts', 'functionName')
+// Role-based: requireAuthorization('admin', 'filename.ts', 'functionName')
+// Multi-role, middleware, route protection → See authentication.md
 ```
 
-**See**: [docs/agent/patterns/authentication.md](docs/agent/patterns/authentication.md)
+**Complete patterns**: [docs/agent/patterns/authentication.md](docs/agent/patterns/authentication.md)
 
-### 2. Server Actions Pattern (MANDATORY TEMPLATE)
+### 2. Server Actions Pattern (MANDATORY)
 
 ```typescript
 'use server'
-import { requireAuthentication } from "@/utils/helpers/auth-helper";
-import { ApiHandler } from "@/lib/api-handler";
-import { z } from "zod";
-import prisma from "@/lib/prisma";
-
-const schema = z.object({ /* ... */ });
-
 export async function myServerAction(data: any) {
-  try {
-    // 1. Authentication ALWAYS REQUIRED
-    const session = await requireAuthentication('filename.ts', 'myServerAction');
-
-    // 2. Validation with Zod
-    const validatedData = schema.parse(data);
-
-    // 3. Business logic with Prisma transactions
-    const result = await prisma.$transaction(async (tx) => {
-      return result;
-    });
-
-    // 4. Structured response
-    return ApiHandler.handleSuccess(result, 'Success message');
-  } catch (error) {
-    return ApiHandler.handleError(error);
-  }
+  // 1. Auth → 2. Validation → 3. Transaction → 4. Response
+  // Complete template with logging: server-actions.md
 }
 ```
 
-**See**: [docs/agent/patterns/server-actions.md](docs/agent/patterns/server-actions.md)
+**Pattern**: Auth (requireAuthentication) → Zod validation → Prisma transaction → ApiHandler response
+**Complete template**: [docs/agent/patterns/server-actions.md](docs/agent/patterns/server-actions.md)
 
-### 3. Error Handling Hierarchy
+### 3. Error Handling (MANDATORY)
 
-```typescript
-// In Server Actions
-throw ServerActionError.AuthenticationFailed('filename.ts', 'functionName');
-throw ServerActionError.ValidationFailed('filename.ts', 'functionName', 'details');
-
-// In Services
-throw ServiceError.ExternalApiError('details', 'filename.ts', 'functionName');
-
-// Handling
-return ApiHandler.handleError(error); // Auto-logs and consistent response
-```
+**Always use**: `ApiHandler.handleError(error)` - Auto-logs and returns consistent response
+**Hierarchy**: `ServerActionError` (actions) > `ServiceError` (services)
+**Details**: [docs/agent/patterns/server-actions.md](docs/agent/patterns/server-actions.md#error-handling)
 
 ---
 
@@ -155,6 +124,26 @@ npm run prisma:studio    # Database GUI
 
 ---
 
+## First Time Setup
+
+**Minimum required environment variables:**
+1. `DATABASE_URL` - PostgreSQL connection string
+2. `BETTER_AUTH_SECRET` - Session encryption key (generate: `openssl rand -base64 32`)
+3. `BETTER_AUTH_URL` - Application URL (local: `http://localhost:3000`)
+4. `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET_NAME`, `AWS_REGION` - S3 credentials
+
+**Full list**: [docs/agent/reference/environment-vars.md](docs/agent/reference/environment-vars.md)
+
+---
+
+## Common Issues & Tools
+
+**Hitting errors?** → [troubleshooting.md](docs/agent/operations/troubleshooting.md) - N+1 queries, hot reload, connection issues
+**Debugging queries?** → [monitoring.md](docs/agent/operations/monitoring.md) - Prisma Studio, Redis CLI, query logging
+**Need help?** → [INDEX.md](docs/agent/INDEX.md) - Problem-based navigation guide
+
+---
+
 ## Key Implementation Principles
 
 1. **Authentication**: Always use auth helpers before data operations
@@ -170,74 +159,41 @@ npm run prisma:studio    # Database GUI
 
 ---
 
-## Additional Documentation
+## Documentation Index
 
-Before implementing specific features, refer to detailed documentation in [docs/agent/](docs/agent/):
+**Before implementing features, read relevant docs in** [docs/agent/](docs/agent/):
 
-### Implementation Patterns (`/docs/agent/patterns/`)
+**Auth/Security:**
+- [authentication.md](docs/agent/patterns/authentication.md), [server-actions.md](docs/agent/patterns/server-actions.md)
 
-When working on these specific features, read the relevant pattern documentation:
+**Data Layer:**
+- [database-patterns.md](docs/agent/patterns/database-patterns.md), [caching-patterns.md](docs/agent/patterns/caching-patterns.md)
 
-- **[authentication.md](docs/agent/patterns/authentication.md)** - Auth helpers, middleware, session management
-- **[server-actions.md](docs/agent/patterns/server-actions.md)** - Complete Server Action pattern with logging
-- **[database-patterns.md](docs/agent/patterns/database-patterns.md)** - Prisma optimization, transactions, N+1 prevention
-- **[caching-patterns.md](docs/agent/patterns/caching-patterns.md)** - Redis patterns, TTL strategies, cache invalidation
-- **[data-fetching.md](docs/agent/patterns/data-fetching.md)** - React Query patterns, mutations, invalidation
-- **[state-management.md](docs/agent/patterns/state-management.md)** - Zustand patterns (client state only)
-- **[file-uploads.md](docs/agent/patterns/file-uploads.md)** - S3, Sharp image processing, Dropzone
-- **[background-jobs.md](docs/agent/patterns/background-jobs.md)** - Inngest patterns, workflows
-- **[notifications.md](docs/agent/patterns/notifications.md)** - System notifications, WebSocket integration
+**Frontend:**
+- [data-fetching.md](docs/agent/patterns/data-fetching.md), [state-management.md](docs/agent/patterns/state-management.md)
 
-### Feature Architecture (`/docs/agent/features/`)
+**Features:**
+- [file-uploads.md](docs/agent/patterns/file-uploads.md), [background-jobs.md](docs/agent/patterns/background-jobs.md), [notifications.md](docs/agent/patterns/notifications.md)
+- [realtime-chat.md](docs/agent/features/realtime-chat.md), [websocket-notifications.md](docs/agent/features/websocket-notifications.md)
 
-When working on real-time features:
+**Reference:**
+- [tech-stack.md](docs/agent/reference/tech-stack.md), [commands.md](docs/agent/reference/commands.md), [environment-vars.md](docs/agent/reference/environment-vars.md), [database-schema.md](docs/agent/reference/database-schema.md)
 
-- **[realtime-chat.md](docs/agent/features/realtime-chat.md)** - Chat integration, JWT tokens
-- **[websocket-notifications.md](docs/agent/features/websocket-notifications.md)** - WebSocket service, token caching
+**Debugging:**
+- [troubleshooting.md](docs/agent/operations/troubleshooting.md), [monitoring.md](docs/agent/operations/monitoring.md)
 
-### Reference Material (`/docs/agent/reference/`)
-
-For configuration and technical reference:
-
-- **[tech-stack.md](docs/agent/reference/tech-stack.md)** - Complete technology stack with versions
-- **[commands.md](docs/agent/reference/commands.md)** - All development commands
-- **[environment-vars.md](docs/agent/reference/environment-vars.md)** - Environment variable reference
-- **[database-schema.md](docs/agent/reference/database-schema.md)** - Database relationships overview
-
-### Operations (`/docs/agent/operations/`)
-
-For debugging and troubleshooting:
-
-- **[troubleshooting.md](docs/agent/operations/troubleshooting.md)** - Common issues and solutions
-- **[monitoring.md](docs/agent/operations/monitoring.md)** - Debugging tools and dashboards
-
-### Code Standards (`/docs/agent/standards/`)
-
-For code quality and consistency:
-
-- **[code-quality.md](docs/agent/standards/code-quality.md)** - TypeScript config, naming conventions
-- **[import-organization.md](docs/agent/standards/import-organization.md)** - Import ordering rules
+**Standards:**
+- [code-quality.md](docs/agent/standards/code-quality.md), [import-organization.md](docs/agent/standards/import-organization.md)
 
 ---
 
 ## How to Use This Documentation
 
-This CLAUDE.md contains MANDATORY rules and universal patterns that apply to all tasks.
+**This file** contains MANDATORY rules and universal patterns for all tasks.
 
-For specific implementation details:
+**Pattern docs** provide detailed implementation guides - read before implementing features.
 
-1. **Read the relevant docs** before implementing features
-2. **Don't memorize** - reference documentation as needed
-3. **Follow the patterns** shown in linked files
-4. **Ask questions** if patterns are unclear
-
-### Example Workflow
-
-- **Implementing Redis caching?** → Read [docs/agent/patterns/caching-patterns.md](docs/agent/patterns/caching-patterns.md)
-- **Troubleshooting WebSocket?** → Read [docs/agent/operations/troubleshooting.md](docs/agent/operations/troubleshooting.md)
-- **Need to know tech versions?** → Read [docs/agent/reference/tech-stack.md](docs/agent/reference/tech-stack.md)
-- **Creating Server Action?** → Read [docs/agent/patterns/server-actions.md](docs/agent/patterns/server-actions.md)
-- **Database queries slow?** → Read [docs/agent/patterns/database-patterns.md](docs/agent/patterns/database-patterns.md)
+**Quick lookup**: Use [INDEX.md](docs/agent/INDEX.md) for problem-based navigation.
 
 ---
 

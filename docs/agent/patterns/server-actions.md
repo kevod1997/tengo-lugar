@@ -291,14 +291,14 @@ When updating data, invalidate relevant caches:
 import { redis } from "@/lib/redis/redis-service";
 
 // After updating trip
-const cacheKey = `trip:${tripId}`;
-await redis.del(cacheKey);
-
-// Or invalidate pattern
-await redis.del(`trips:user:${userId}:*`);
+await redis.del(`trip:${tripId}`);
 ```
 
-See [caching-patterns.md](caching-patterns.md) for details.
+**For complete cache invalidation strategies**, see [caching-patterns.md](caching-patterns.md#cache-invalidation):
+- Pattern-based invalidation
+- Tag-based invalidation
+- Time-based expiration
+- Conditional invalidation
 
 ---
 

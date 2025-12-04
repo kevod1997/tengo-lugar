@@ -171,6 +171,12 @@ const currentUser = await prisma.user.findUnique({
 });
 ```
 
+**For more database query patterns**, see [database-patterns.md](../patterns/database-patterns.md):
+- Efficient query optimization with `select`
+- N+1 query prevention
+- Pagination patterns
+- Complex aggregations
+
 ---
 
 ## Security Rules

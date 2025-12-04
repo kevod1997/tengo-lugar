@@ -1,5 +1,34 @@
 # Environment Variables Reference
 
+## Quick Start - Minimum Required Variables
+
+**For local development, you MUST set these variables:**
+
+```bash
+# Database (Required)
+DATABASE_URL=postgresql://postgres:password@localhost:5432/tengo_lugar
+
+# Authentication (Required)
+BETTER_AUTH_SECRET=<generate with: openssl rand -base64 32>
+NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
+
+# AWS S3 (Required for file uploads)
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_BUCKET_NAME=your-bucket-name
+AWS_REGION=us-east-1
+```
+
+**Optional but recommended for full functionality:**
+- Redis/Upstash (caching)
+- MercadoPago (payments)
+- Inngest (background jobs)
+- Resend (emails)
+
+**Full configuration details below** ↓
+
+---
+
 ## Overview
 Environment variables configure the application for different environments (development, staging, production).
 
