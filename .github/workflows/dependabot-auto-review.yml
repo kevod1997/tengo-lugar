@@ -1,0 +1,179 @@
+name: Dependabot Auto Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependabot-review:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Get PR metadata
+        id: pr-metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            // Extract package name from PR title
+            // Format: "chore(deps-dev): bump @vitejs/plugin-react-swc from 3.11.0 to 4.1.0"
+            const titleMatch = pr.title.match(/bump (.+) from (.+) to (.+)/);
+
+            if (titleMatch) {
+              core.setOutput('package', titleMatch[1].trim());
+              core.setOutput('from_version', titleMatch[2].trim());
+              core.setOutput('to_version', titleMatch[3].trim());
+            }
+
+            // Check if it's a dev dependency
+            const isDevDep = pr.title.includes('deps-dev');
+            core.setOutput('is_dev_dependency', isDevDep);
+
+            // Check update type
+            const fromParts = titleMatch ? titleMatch[2].split('.') : [];
+            const toParts = titleMatch ? titleMatch[3].split('.') : [];
+
+            let updateType = 'unknown';
+            if (fromParts[0] !== toParts[0]) {
+              updateType = 'major';
+            } else if (fromParts[1] !== toParts[1]) {
+              updateType = 'minor';
+            } else {
+              updateType = 'patch';
+            }
+            core.setOutput('update_type', updateType);
+
+      - name: Create review comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const package = '${{ steps.pr-metadata.outputs.package }}';
+            const fromVersion = '${{ steps.pr-metadata.outputs.from_version }}';
+            const toVersion = '${{ steps.pr-metadata.outputs.to_version }}';
+            const updateType = '${{ steps.pr-metadata.outputs.update_type }}';
+            const isDevDep = '${{ steps.pr-metadata.outputs.is_dev_dependency }}' === 'true';
+            const prNumber = context.payload.pull_request.number;
+
+            // Emojis based on update type
+            const emoji = {
+              'major': '🚨',
+              'minor': '✨',
+              'patch': '🔧'
+            }[updateType] || '📦';
+
+            // Risk level
+            const riskLevel = {
+              'major': '**HIGH RISK** - Breaking changes expected',
+              'minor': '**MEDIUM RISK** - New features, test recommended',
+              'patch': '**LOW RISK** - Bug fixes only'
+            }[updateType] || 'Unknown';
+
+            // Critical packages that need extra attention
+            const criticalPackages = [
+              'next', 'react', 'react-dom', 'prisma', '@prisma/client',
+              'better-auth', 'zod', 'tailwindcss', '@tanstack/react-query'
+            ];
+
+            const isCritical = criticalPackages.some(pkg => package.includes(pkg));
+
+            let comment = `## ${emoji} Dependabot Auto-Review\n\n`;
+            comment += `### Package: \`${package}\`\n`;
+            comment += `**Update**: ${fromVersion} → ${toVersion} (${updateType})\n`;
+            comment += `**Type**: ${isDevDep ? 'Development Dependency' : 'Production Dependency'}\n`;
+            comment += `**Risk Level**: ${riskLevel}\n\n`;
+
+            if (isCritical) {
+              comment += `### ⚠️ Critical Package Alert\n\n`;
+              comment += `This is a **critical package** for the application. Extra caution required!\n\n`;
+            }
+
+            comment += `### 📋 Review Checklist\n\n`;
+            comment += `Before merging, ensure:\n\n`;
+            comment += `- [ ] ✅ All CI/CD checks pass\n`;
+            comment += `- [ ] 📖 Reviewed [CHANGELOG](https://github.com/${package.replace('@', '')}/blob/main/CHANGELOG.md) for breaking changes\n`;
+            comment += `- [ ] 🔨 Ran \`npm run build\` locally\n`;
+            comment += `- [ ] 🧪 Ran \`npm run lint\` locally\n`;
+
+            if (!isDevDep && updateType === 'major') {
+              comment += `- [ ] 🧪 Tested critical features:\n`;
+              comment += `  - [ ] Authentication flow\n`;
+              comment += `  - [ ] Database operations\n`;
+              comment += `  - [ ] Form validations\n`;
+              comment += `  - [ ] File uploads\n`;
+            }
+
+            if (updateType === 'patch' && isDevDep) {
+              comment += `\n### 🚀 Auto-Merge Candidate\n\n`;
+              comment += `This is a **patch update** for a **dev dependency**. `;
+              comment += `If CI passes, this is likely safe to auto-merge.\n`;
+            }
+
+            comment += `\n### 🔗 Useful Links\n\n`;
+            comment += `- [Package on npm](https://www.npmjs.com/package/${package})\n`;
+            comment += `- [View Diff](https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}/files)\n`;
+
+            if (updateType === 'major') {
+              comment += `\n### 🚨 Major Version Update\n\n`;
+              comment += `This is a **major version update** which may include breaking changes.\n`;
+              comment += `Please review the migration guide and test thoroughly before merging.\n\n`;
+              comment += `**Recommended Actions:**\n`;
+              comment += `1. Create a test branch\n`;
+              comment += `2. Run full test suite\n`;
+              comment += `3. Check for deprecated APIs\n`;
+              comment += `4. Review upgrade guide\n`;
+            }
+
+            comment += `\n---\n`;
+            comment += `*🤖 Auto-generated review by Dependabot Assistant*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: comment
+            });
+
+      - name: Label PR based on risk
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const updateType = '${{ steps.pr-metadata.outputs.update_type }}';
+            const isDevDep = '${{ steps.pr-metadata.outputs.is_dev_dependency }}' === 'true';
+            const prNumber = context.payload.pull_request.number;
+
+            const labels = ['dependencies', 'dependabot'];
+
+            if (updateType === 'major') {
+              labels.push('major-update', 'needs-review');
+            } else if (updateType === 'minor') {
+              labels.push('minor-update');
+            } else {
+              labels.push('patch-update');
+            }
+
+            if (isDevDep) {
+              labels.push('dev-dependency');
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: labels
+            });

@@ -1,0 +1,99 @@
+version: 2
+updates:
+  # NPM dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 10
+
+    # Group related dependencies together
+    groups:
+      # Group all Radix UI updates
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Group AWS SDK updates
+      aws-sdk:
+        patterns:
+          - "@aws-sdk/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Group React ecosystem (minor/patch only)
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-*"
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Group TypeScript types
+      typescript-types:
+        patterns:
+          - "@types/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Group development dependencies (linters, formatters)
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+    # Ignore major version updates for critical packages
+    # These require manual review and testing
+    ignore:
+      # Core framework - major updates require migration planning
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+
+      # Styling - Tailwind 4 is a complete rewrite
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+
+      # Database - requires migration strategy
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+
+      # Validation - schema changes can break everything
+      - dependency-name: "zod"
+        update-types: ["version-update:semver-major"]
+
+      # Auth - security critical, manual review required
+      - dependency-name: "better-auth"
+        update-types: ["version-update:semver-major"]
+
+      # React - framework updates need careful testing
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+
+    # Auto-merge configuration (optional, commented out for safety)
+    # Uncomment these lines if you want to auto-merge patch updates
+    # pull-request-branch-name:
+    #   separator: "/"
+    # commit-message:
+    #   prefix: "chore(deps)"
+
+    # Labels for PRs
+    labels:
+      - "dependencies"
+      - "dependabot"
