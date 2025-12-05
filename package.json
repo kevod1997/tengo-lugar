@@ -80,7 +80,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/uuid": "^10.0.0",
     "eslint": "^9.39.1",
-    "eslint-config-next": "15.5.7",
+    "eslint-config-next": "16.0.7",
     "eslint-plugin-import-x": "^4.16.1",
     "postcss": "^8",
     "prisma": "^6.19.0",
