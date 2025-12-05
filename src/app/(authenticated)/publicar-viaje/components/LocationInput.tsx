@@ -1,7 +1,8 @@
+import { Loader2 } from 'lucide-react'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LocationInfo } from '@/types/route-types'
-import { Loader2 } from 'lucide-react'
+import type { LocationInfo } from '@/types/route-types'
 
 interface LocationInputProps {
   label: string

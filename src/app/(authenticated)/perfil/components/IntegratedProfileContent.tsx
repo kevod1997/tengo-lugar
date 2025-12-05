@@ -1,30 +1,43 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useUserStore } from '@/store/user-store'
+
+import { useRouter } from 'next/navigation'
+
+import { AlertTriangle, Users, Car, TrendingUp, Settings } from 'lucide-react'
+import { AlertTriangleIcon } from "lucide-react"
+import { toast } from 'sonner'
+
+import { LoadingOverlay } from '@/components/loader/loading-overlay'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { StepId } from '@/types/registration-types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LoadingOverlay } from '@/components/loader/loading-overlay'
-import RegistrationFlow from './ui/registration/registration-flow'
-import { VerificationTab } from './ui/dashboard/VerificationTab'
-import { DriverTab } from './ui/dashboard/DriverTab'
-import { ProfileCard } from './ui/dashboard/ProfileCard'
-import { AlertTriangle, Users, Car, TrendingUp, Settings } from 'lucide-react'
-import { VerificationAlert } from './ui/dashboard/VerificationAlert'
 import { useApiResponse } from '@/hooks/ui/useApiResponse'
-import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
-import { toast } from 'sonner'
+import { useHydration } from "@/hooks/ui/useHydration"
 import { authClient } from '@/lib/auth-client'
+import { useUserStore } from '@/store/user-store'
+import type { StepId } from '@/types/registration-types'
 import { splitFullName } from '@/utils/format/user-formatter'
-import ProfileForm from "./ProfileForm"
+import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
+
 import AccountManagement from "./AccountManagement"
 import BankAccountWidget from "./BankAccountWidget"
-import { useHydration } from "@/hooks/ui/useHydration"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertTriangleIcon } from "lucide-react"
-import { useRouter } from 'next/navigation'
+import ProfileForm from "./ProfileForm"
+import { DriverTab } from './ui/dashboard/DriverTab'
+import { ProfileCard } from './ui/dashboard/ProfileCard'
+import { VerificationAlert } from './ui/dashboard/VerificationAlert'
+import { VerificationTab } from './ui/dashboard/VerificationTab'
+import RegistrationFlow from './ui/registration/registration-flow'
+
+
+
+
+
+
+
+
+
 
 type RegistrationMode = null | 'initial' | 'identity' | 'driver';
 

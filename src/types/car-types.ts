@@ -1,5 +1,6 @@
-import { FuelType } from "@prisma/client";
-import { ApiResponse } from "./api-types";
+import type { ApiResponse } from "./api-types";
+import type { FuelType } from "@prisma/client";
+
 
 export interface Brand {
   id: number;

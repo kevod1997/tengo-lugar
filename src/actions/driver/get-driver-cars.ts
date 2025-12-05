@@ -1,12 +1,12 @@
 'use server'
 
-import { requireAuthentication } from "@/utils/helpers/auth-helper";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { ApiHandler } from "@/lib/api-handler";
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import prisma from "@/lib/prisma";
-import { UserCar } from "@/types/user-types";
+import type { UserCar } from "@/types/user-types";
+import { requireAuthentication } from "@/utils/helpers/auth-helper";
 
 function formatDriverCars(driverCars: any[]): UserCar[] {
   return driverCars.map((driverCar) => {

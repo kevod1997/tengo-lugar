@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
+
 import { useGeocodingService } from '@/hooks/map/useGeocodingService'
-import { Coordinates, LocationInfo } from '@/types/route-types'
+import type { Coordinates, LocationInfo } from '@/types/route-types'
 
 interface UseLocationInputProps {
   initialValue: string

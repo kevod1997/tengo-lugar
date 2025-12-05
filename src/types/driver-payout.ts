@@ -1,4 +1,4 @@
-import { PayoutStatus, PaymentMethod } from '@prisma/client';
+import type { PayoutStatus, PaymentMethod } from '@prisma/client';
 
 /**
  * Driver Payout Calculation Details

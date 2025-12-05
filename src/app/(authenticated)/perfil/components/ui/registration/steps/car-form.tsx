@@ -1,21 +1,25 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useForm } from 'react-hook-form'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { ArrowRight, Car, Loader2 } from 'lucide-react'
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Skeleton } from '@/components/ui/skeleton'
-import { CarRegistrationInput, carRegistrationSchema } from '@/schemas/validation/car-schema'
-import { Brand, Group, Model } from '@/types/car-types'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+
 import { getBrands, getGroups, getModelDetails, getModels } from '@/actions/car-api/car-api-actions'
-import { getYearRange } from '@/utils/helpers/get-year-range'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from '@/components/ui/skeleton'
 import { usePlateValidation } from '@/hooks/registration/usePlateValidation'
+import type { CarRegistrationInput} from '@/schemas/validation/car-schema';
+import { carRegistrationSchema } from '@/schemas/validation/car-schema'
+import type { Brand, Group, Model } from '@/types/car-types'
+import { getYearRange } from '@/utils/helpers/get-year-range'
+
 import { PlateInput } from './components/car/PlateInput'
 
 interface CarFormProps {

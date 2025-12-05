@@ -1,5 +1,7 @@
 'use client'
 
+import { FileText, CreditCard, UserCircle, HelpCircle } from "lucide-react"
+
 import {
   Select,
   SelectContent,
@@ -7,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { FileText, CreditCard, UserCircle, HelpCircle } from "lucide-react"
 
 type TicketCategory = 'PAYMENT_ISSUE' | 'TRIP_ISSUE' | 'ACCOUNT_ISSUE' | 'OTHER'
 

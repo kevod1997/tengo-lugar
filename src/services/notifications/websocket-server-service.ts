@@ -1,4 +1,4 @@
-import { WebSocketNotificationPayload } from "@/types/notification-types"
+import type { WebSocketNotificationPayload } from "@/types/notification-types"
 
 /**
  * Server-side WebSocket notification service

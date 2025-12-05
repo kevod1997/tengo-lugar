@@ -1,5 +1,5 @@
-import { processPDFAction } from "@/actions/file/process-pdf";
 import { processImageAction } from "@/actions/file/process-image";
+import { processPDFAction } from "@/actions/file/process-pdf";
 import { AuxiliaryError } from "@/lib/exceptions/auxiliary-error";
 
 export interface ProcessedFile {

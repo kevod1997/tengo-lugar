@@ -77,16 +77,18 @@
 //   )
 // }
 
+import Link from "next/link"
+
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Trip } from '@/types/trip-types'
+import { MapPin, PlusCircle, ArrowRightCircle } from "lucide-react"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, PlusCircle, ArrowRightCircle } from "lucide-react"
-import Link from "next/link"
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from "@/components/ui/card"
+import { cn } from '@/lib/utils'
+import type { Trip } from '@/types/trip-types'
 import { utcToArgentina } from '@/utils/helpers/time/timezone-helper'
 
 interface TripCardProps {

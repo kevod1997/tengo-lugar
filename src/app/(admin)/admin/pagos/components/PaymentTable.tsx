@@ -1,18 +1,23 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
-import { PendingPayment } from '@/actions/payment/get-pending-payments'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { FileText, CheckCircle, XCircle, Eye, Upload } from 'lucide-react'
-import { PaymentProofModal } from './PaymentProofModal'
-import { ApprovePaymentDialog } from './ApprovePaymentDialog'
-import { RejectPaymentDialog } from './RejectPaymentDialog'
-import { UploadReceiptDialog } from './UploadReceiptDialog'
+
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { FileText, CheckCircle, XCircle, Eye, Upload } from 'lucide-react'
+
+import type { PendingPayment } from '@/actions/payment/get-pending-payments'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
+import { ApprovePaymentDialog } from './ApprovePaymentDialog'
+import { PaymentProofModal } from './PaymentProofModal'
+import { RejectPaymentDialog } from './RejectPaymentDialog'
+import { UploadReceiptDialog } from './UploadReceiptDialog'
+
 
 interface PaymentTableProps {
   payments: PendingPayment[]

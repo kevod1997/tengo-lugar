@@ -1,22 +1,28 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
+import { useRouter } from 'next/navigation'
+
 import { useQuery } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import { ChevronDown, ChevronUp, Users, Calendar, CreditCard, CheckCircle, InfoIcon, Star } from 'lucide-react'
-import { ParticipantsSection } from './ParticipantsSection'
-import { QuickActions } from './QuickActions'
-import { ReviewCard } from '@/components/reviews/ReviewCard'
-import { getReviewsForUser } from '@/actions/review/get-reviews-for-user'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { useRouter } from 'next/navigation'
+import { ChevronDown, ChevronUp, Users, Calendar, CreditCard, CheckCircle, InfoIcon, Star } from 'lucide-react'
+
+import { getReviewsForUser } from '@/actions/review/get-reviews-for-user'
+import { ReviewCard } from '@/components/reviews/ReviewCard'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+
+import { ParticipantsSection } from './ParticipantsSection'
+import { QuickActions } from './QuickActions'
+
+
 
 interface PassengerTripInfoProps {
   reservation: {

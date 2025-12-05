@@ -1,7 +1,5 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { useState } from "react"
+
 import { 
   Car, 
   CheckCircle, 
@@ -12,10 +10,16 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react'
-import { DriverRegistrationStatus } from './DriverRegistrationStatus'
-import { FormattedUser } from "@/types/user-types"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import type { FormattedUser } from "@/types/user-types"
 import { getDriverRegistrationState } from "@/utils"
-import { useState } from "react"
+
+import { DriverRegistrationStatus } from './DriverRegistrationStatus'
+
 
 interface DriverTabProps {
   user: FormattedUser

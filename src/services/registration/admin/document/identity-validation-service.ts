@@ -1,7 +1,9 @@
-import { s3Service } from '@/lib/s3/s3';
-import prisma from '@/lib/prisma';
-import { BaseDocumentValidationService } from './base-document-validation';
 import { handlePrismaError } from '@/lib/exceptions/prisma-error-handler';
+import prisma from '@/lib/prisma';
+import { s3Service } from '@/lib/s3/s3';
+
+import { BaseDocumentValidationService } from './base-document-validation';
+
 
 export class IdentityValidationService extends BaseDocumentValidationService {
     protected async getDocument(id: string) {

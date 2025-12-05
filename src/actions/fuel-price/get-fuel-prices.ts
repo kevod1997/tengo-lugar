@@ -1,11 +1,12 @@
 'use server'
 
-import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
-import { requireAuthorization } from "@/utils/helpers/auth-helper";
+import prisma from "@/lib/prisma";
 import { getFuelPricesSchema } from "@/schemas/validation/fuel-price-schema";
-import { FuelPricesResponse } from "@/types/fuel-price";
-import { Prisma } from "@prisma/client";
+import type { FuelPricesResponse } from "@/types/fuel-price";
+import { requireAuthorization } from "@/utils/helpers/auth-helper";
+
+import type { Prisma } from "@prisma/client";
 
 interface GetFuelPricesParams {
   page?: number;

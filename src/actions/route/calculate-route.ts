@@ -2,7 +2,7 @@
 
 import { ApiHandler } from "@/lib/api-handler";
 import { RoutesService } from "@/services/routes/routes-service";
-import { RouteCalculationRequest } from "@/types/route-types";
+import type { RouteCalculationRequest } from "@/types/route-types";
 
 
 export async function calculateRoute(routeData: RouteCalculationRequest) {

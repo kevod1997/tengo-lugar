@@ -1,9 +1,13 @@
-import { getUserTrips } from '@/actions/trip/get-user-trips';
-import { getUserReservations } from "@/actions/trip/get-user-reservations";
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
+import { getUserReservations } from "@/actions/trip/get-user-reservations";
+import { getUserTrips } from '@/actions/trip/get-user-trips';
 import Header from "@/components/header/header";
+import { auth } from "@/lib/auth";
+
+
+
 import TripsOverview from './components/TripsOverview';
 
 export default async function TripsPage() {

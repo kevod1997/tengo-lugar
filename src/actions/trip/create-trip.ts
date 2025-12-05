@@ -1,17 +1,22 @@
 'use server'
 
-import { auth, Session } from "@/lib/auth"
 import { headers } from "next/headers"
-import prisma from "@/lib/prisma"
-import { ApiHandler } from "@/lib/api-handler"
-import { ServerActionError } from "@/lib/exceptions/server-action-error"
-import { findDriver } from "../driver/find-driver"
-import { tripCreationSchema } from "@/schemas/validation/trip-schema"
-import { TripData } from "@/types/trip-types"
-import { ServiceError } from "@/lib/exceptions/service-error"
-import { logError } from "@/services/logging/logging-service"
-import { updateDriverStatus } from "../driver/driver-eligibility"
+
 import { z } from "zod"
+
+import { ApiHandler } from "@/lib/api-handler"
+import type { Session } from "@/lib/auth";
+import { auth } from "@/lib/auth"
+import { ServerActionError } from "@/lib/exceptions/server-action-error"
+import { ServiceError } from "@/lib/exceptions/service-error"
+import prisma from "@/lib/prisma"
+import { tripCreationSchema } from "@/schemas/validation/trip-schema"
+import { logError } from "@/services/logging/logging-service"
+import type { TripData } from "@/types/trip-types"
+
+import { updateDriverStatus } from "../driver/driver-eligibility"
+import { findDriver } from "../driver/find-driver"
+
 
 // Función para crear la sala de chat
 async function createChatRoom(tripId: string): Promise<string> {

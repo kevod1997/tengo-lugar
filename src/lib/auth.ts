@@ -1,8 +1,12 @@
-import { betterAuth, BetterAuthOptions } from "better-auth";
+import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, jwt } from "better-auth/plugins"
-import prisma from "./prisma";
+
 import { EmailService } from "@/services/email/email-service";
+
+import prisma from "./prisma";
+
+import type { BetterAuthOptions } from "better-auth";
 
 const emailService = new EmailService(process.env.RESEND_API_KEY!);
 

@@ -1,6 +1,6 @@
 import { createActionLogAction } from "@/actions/logs/create-action-log"
 import { createErrorLogAction } from "@/actions/logs/create-error-log"
-import { TipoAccionUsuario } from "@/types/actions-logs"
+import type { TipoAccionUsuario } from "@/types/actions-logs"
 
 // Tipos para los logs
 export interface ErrorLogData {

@@ -1,5 +1,7 @@
 "use client"
 
+import React from "react";
+
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import {
   Search,
@@ -25,7 +27,6 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import type { NavItem as AppNavItemType, IconName } from '@/types/navigation-types';
-import React from "react";
 
 const ICON_COMPONENTS: Record<IconName, LucideIcon> = {
   Search: Search,

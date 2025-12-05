@@ -1,18 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { ChevronDown, ChevronUp, Users, Calendar, DollarSign, Star } from 'lucide-react'
-import { QuickActions } from './QuickActions'
-import { ReviewCard } from '@/components/reviews/ReviewCard'
-import { getReviewsForUser } from '@/actions/review/get-reviews-for-user'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { ChevronDown, ChevronUp, Users, Calendar, DollarSign, Star } from 'lucide-react'
+
+import { getReviewsForUser } from '@/actions/review/get-reviews-for-user'
+import { ReviewCard } from '@/components/reviews/ReviewCard'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+
+import { QuickActions } from './QuickActions'
+
+
 
 interface DriverTripHubProps {
   trip: {

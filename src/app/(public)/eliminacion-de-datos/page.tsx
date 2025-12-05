@@ -1,9 +1,11 @@
+import Link from "next/link"
+
+import { InfoIcon, TrashIcon, ClockIcon, ShieldCheckIcon } from "lucide-react"
+
 import Header from "@/components/header/header"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { InfoIcon, TrashIcon, ClockIcon, ShieldCheckIcon } from "lucide-react"
-import Link from "next/link"
 
 export default function EliminacionDatosPage() {
   return (

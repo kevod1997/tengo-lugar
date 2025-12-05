@@ -1,10 +1,16 @@
-import { auth } from '@/lib/auth';
-import { notFound, redirect } from 'next/navigation';
-import Header from '@/components/header/header';
 import { headers } from 'next/headers';
-import { UserProfileView } from './components/UserProfileView';
-import { getUserProfileById } from '@/actions/user/get-user-profile-by-id';
+import { notFound, redirect } from 'next/navigation';
+
 import { toast } from 'sonner';
+
+import { getUserProfileById } from '@/actions/user/get-user-profile-by-id';
+import Header from '@/components/header/header';
+import { auth } from '@/lib/auth';
+
+
+import { UserProfileView } from './components/UserProfileView';
+
+
 
 export default async function TripPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({

@@ -1,12 +1,16 @@
-import { searchTrips, TripSearchParams } from '@/actions/trip/search-trips'
+import { FaExclamationTriangle } from 'react-icons/fa'
+
+import type { TripSearchParams } from '@/actions/trip/search-trips';
+import { searchTrips } from '@/actions/trip/search-trips'
 import Header from '@/components/header/header'
+import TechnicalProblemsPage from '@/components/TechnicalProblems'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FaExclamationTriangle } from 'react-icons/fa'
-import TripSearchForm from './components/TripSearchForm'
-import { SearchResults } from './components/SearchResults'
-import TechnicalProblemsPage from '@/components/TechnicalProblems'
 import { getGoogleMapsConfig } from '@/services/env/env-service'
+
+import { SearchResults } from './components/SearchResults'
+import TripSearchForm from './components/TripSearchForm'
+
 
 interface SearchTripsPageProps {
   searchParams: Promise<{

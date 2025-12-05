@@ -1,8 +1,9 @@
 // app/(public)/politica-de-privacidad/page.tsx
+import Link from "next/link"
+
 import Header from "@/components/header/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import Link from "next/link"
 
 export default function PoliticaPrivacidadPage() {
   return (

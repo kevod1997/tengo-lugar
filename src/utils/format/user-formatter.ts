@@ -1,4 +1,4 @@
-import { FormattedUser, FormattedUserForAdminDashboard, UserCar, UserCarForStore } from "@/types/user-types";
+import type { FormattedUser, FormattedUserForAdminDashboard, UserCar, UserCarForStore } from "@/types/user-types";
 
 export function getCars(user: any): UserCar[] {
   if (!user?.driver?.cars) {

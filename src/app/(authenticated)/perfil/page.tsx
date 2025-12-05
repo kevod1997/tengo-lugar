@@ -1,8 +1,11 @@
 import { Suspense } from 'react'
+
+import { headers } from 'next/headers';
+
 import Header from '@/components/header/header'
 import { LoadingOverlay } from '@/components/loader/loading-overlay'
 import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+
 import IntegratedProfileContent from './components/IntegratedProfileContent';
 
 export default async function UserProfilePage({

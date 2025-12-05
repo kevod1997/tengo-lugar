@@ -1,16 +1,9 @@
 'use client'
 
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Card, 
-  CardContent, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
+import { useRouter } from "next/navigation";
+
 import {
   MapPin,
   Calendar,
@@ -20,8 +13,9 @@ import {
   CreditCard,
   CheckCircle
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { formatDatetoLocaleDateString, formatDateLong, formatTime } from "@/utils/format/formatDate";
+import { toast } from "sonner";
+
+import { cancelReservation } from '@/actions/trip/cancel-reservation';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -32,10 +26,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import { cancelReservation } from '@/actions/trip/cancel-reservation';
-import { getStatusBadge } from '@/utils/helpers/reservation/reservation-helpers';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { 
+  Card, 
+  CardContent, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDatetoLocaleDateString, formatDateLong, formatTime } from "@/utils/format/formatDate";
 import { formatCurrency } from '@/utils/format/formateCurrency';
+import { getStatusBadge } from '@/utils/helpers/reservation/reservation-helpers';
 
 type ReservationsListProps = {
   activeReservations: any[];

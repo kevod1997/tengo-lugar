@@ -1,10 +1,11 @@
 'use client'
 
-import { SidebarProvider } from '../ui/sidebar'
 import React from 'react'
-import QueryProvider from './QueryProvider'
+
 import { AuthSessionProvider } from './AuthSessionProvider'
+import QueryProvider from './QueryProvider'
 import { WebSocketProvider } from './WebSocketProvider'
+import { SidebarProvider } from '../ui/sidebar'
 
 interface Props {
     children: React.ReactNode

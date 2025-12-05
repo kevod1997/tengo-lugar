@@ -1,10 +1,14 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { Button } from "@/components/ui/button"
+
+import Image from 'next/image'
+
 import { Upload, X, FileIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import Image from 'next/image'
+
+import { Button } from "@/components/ui/button"
+
 
 interface DocumentUploadProps {
   onCapture: (file: File, preview: string) => void

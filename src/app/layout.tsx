@@ -1,18 +1,24 @@
 // app/layout.tsx
 import type { Metadata } from "next";
+
 import "./globals.css";
-import { openSans } from "@/config/fonts";
-import { Providers } from "@/components/providers/Providers";
-import { AppSidebar } from "@/components/app-sidebar";
-import { Toaster } from "sonner";
+
 import { Suspense } from "react";
-import Loading from "./loading";
-import { NavigationProgress } from "@/components/navigation-progress";
-import { MobileBottomNavigationClient } from "@/components/MobileBottomNavigation";
-import { auth } from "@/lib/auth";
+
 import { headers } from "next/headers";
-import { AUTHENTICATED_NAV_ITEMS, UNAUTHENTICATED_NAV_ITEMS } from "@/config/constants";
+
+import { Toaster } from "sonner";
+
+import { AppSidebar } from "@/components/app-sidebar";
 import { LoadingOverlay } from "@/components/loader/loading-overlay";
+import { MobileBottomNavigationClient } from "@/components/MobileBottomNavigation";
+import { NavigationProgress } from "@/components/navigation-progress";
+import { Providers } from "@/components/providers/Providers";
+import { AUTHENTICATED_NAV_ITEMS, UNAUTHENTICATED_NAV_ITEMS } from "@/config/constants";
+import { openSans } from "@/config/fonts";
+import { auth } from "@/lib/auth";
+
+import Loading from "./loading";
 
 export const metadata: Metadata = {
   title: {

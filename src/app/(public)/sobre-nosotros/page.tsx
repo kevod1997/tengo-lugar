@@ -1,8 +1,10 @@
+import Link from "next/link"
+
+import { Shield, Users, Zap, Heart, MapPin, Phone, Mail } from "lucide-react"
+
 import Header from "@/components/header/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Shield, Users, Zap, Heart, MapPin, Phone, Mail } from "lucide-react"
-import Link from "next/link"
 
 export default function SobreNosotrosPage() {
   return (

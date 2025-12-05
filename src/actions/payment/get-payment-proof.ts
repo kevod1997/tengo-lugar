@@ -1,13 +1,13 @@
 // src/actions/payment/get-payment-proof.ts
 'use server'
 
-import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { requireAuthorization } from "@/utils/helpers/auth-helper";
+import prisma from "@/lib/prisma";
+import { s3Service } from "@/lib/s3/s3";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import { s3Service } from "@/lib/s3/s3";
+import { requireAuthorization } from "@/utils/helpers/auth-helper";
 
 export async function getPaymentProof(paymentId: string) {
   try {

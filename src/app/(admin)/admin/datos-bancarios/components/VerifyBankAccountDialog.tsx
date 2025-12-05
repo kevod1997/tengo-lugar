@@ -1,8 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
+import { Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
+
+import { verifyBankAccount } from '@/actions/admin/bank-account/verify-bank-account'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,8 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Loader2Icon } from 'lucide-react'
-import { verifyBankAccount } from '@/actions/admin/bank-account/verify-bank-account'
 
 interface VerifyBankAccountDialogProps {
   open: boolean

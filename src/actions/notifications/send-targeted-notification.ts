@@ -1,12 +1,12 @@
 'use server'
 
-import { requireAuthentication } from "@/utils/helpers/auth-helper"
 import { ApiHandler } from "@/lib/api-handler"
-import { logActionWithErrorHandling } from "@/services/logging/logging-service"
-import { TipoAccionUsuario } from "@/types/actions-logs"
 import { sendTargetedNotificationSchema } from "@/schemas/validation/notification-schema"
+import { logActionWithErrorHandling } from "@/services/logging/logging-service"
 import { notificationService } from "@/services/notifications/notification-service"
-import { TargetedNotificationData } from "@/types/notification-types"
+import { TipoAccionUsuario } from "@/types/actions-logs"
+import type { TargetedNotificationData } from "@/types/notification-types"
+import { requireAuthentication } from "@/utils/helpers/auth-helper"
 
 
 export async function sendTargetedNotification(data: TargetedNotificationData) {

@@ -2,19 +2,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Loader2Icon, KeyIcon, LinkIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { toast } from 'sonner'
+import { z } from 'zod'
+
+import { updatePassword, setPasswordForSocialAccount } from '@/actions/profile/update-password'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Loader2Icon, KeyIcon, LinkIcon } from 'lucide-react'
-import { updatePassword, setPasswordForSocialAccount } from '@/actions/profile/update-password'
-import { authClient } from '@/lib/auth-client'
 import { Skeleton } from '@/components/ui/skeleton'
+import { authClient } from '@/lib/auth-client'
 
 // Definimos el tipo para las cuentas
 interface Account {

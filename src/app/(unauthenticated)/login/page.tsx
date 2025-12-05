@@ -1,7 +1,22 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Suspense, useState } from "react";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, AlertCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { FaFacebook, FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
+
+
+import Header from "@/components/header/header";
+import LoadingButton from "@/components/loader/loading-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Form,
 	FormControl,
@@ -11,22 +26,12 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import Link from "next/link";
-import Image from "next/image";
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { ErrorContext } from "@better-fetch/fetch";
-import { signInSchema } from "@/schemas/validation/auth-schemas";
-import { authClient } from "@/lib/auth-client";
-import { toast } from "sonner";
-import LoadingButton from "@/components/loader/loading-button";
-import { FaFacebook, FaGoogle } from "react-icons/fa";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, AlertCircle } from "lucide-react";
-import Header from "@/components/header/header";
+import { authClient } from "@/lib/auth-client";
+import { signInSchema } from "@/schemas/validation/auth-schemas";
+
+import type { ErrorContext } from "@better-fetch/fetch";
+import type { z } from "zod";
 
 function SignIn() {
 	const [pendingCredentials, setPendingCredentials] = useState(false);

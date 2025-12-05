@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+
+import { Loader2, Upload } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { uploadReceiptToCompleted } from '@/actions/payment/upload-receipt-to-completed'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,10 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Loader2, Upload } from 'lucide-react'
-import { uploadReceiptToCompleted } from '@/actions/payment/upload-receipt-to-completed'
-import { toast } from 'sonner'
+
 import { PaymentProofUploader } from './PaymentProofUploader'
 
 interface UploadReceiptDialogProps {

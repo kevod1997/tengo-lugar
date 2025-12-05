@@ -1,18 +1,20 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { FormattedUserForAdminDashboard } from "@/types/user-types"
-import type { DocumentResponse } from "@/services/registration/admin/user-service"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useApiResponse } from "@/hooks/ui/useApiResponse"
 import { validateDocument } from "@/actions/register/admin/validate-document"
+import { StatusIndicator } from "@/components/status-indicator/StatusIndicator"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useApiResponse } from "@/hooks/ui/useApiResponse"
+import type { DocumentResponse } from "@/services/registration/admin/user-service"
+import type { FormattedUserForAdminDashboard } from "@/types/user-types"
+import { getVehicleStatus } from "@/utils/helpers/driver/get-vehicle-status"
+
 import { BasicInfo } from "./UserDetailModal/BasicInfo"
 import { IdentityTab } from "./UserDetailModal/IdentityTab"
 import { LicenseTab } from "./UserDetailModal/LicenseTab"
 import { VehicleTab } from "./UserDetailModal/VehicleTab"
-import { StatusIndicator } from "@/components/status-indicator/StatusIndicator"
-import { getVehicleStatus } from "@/utils/helpers/driver/get-vehicle-status"
+
 
 interface UserDetailsModalProps {
   user: FormattedUserForAdminDashboard & { documents?: DocumentResponse }

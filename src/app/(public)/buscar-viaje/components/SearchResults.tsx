@@ -1,8 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trip } from "@/types/trip-types"
-import { TripList } from "./TripList"
 import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import type { Trip } from "@/types/trip-types"
+
+import { TripList } from "./TripList"
 
 interface SearchResultsProps {
     originCity?: string

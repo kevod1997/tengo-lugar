@@ -1,10 +1,10 @@
 'use server'
 
-import { requireAuthentication } from "@/utils/helpers/auth-helper"
-import prisma from "@/lib/prisma"
 import { ApiHandler } from "@/lib/api-handler"
+import prisma from "@/lib/prisma"
 import { logActionWithErrorHandling } from "@/services/logging/logging-service"
 import { TipoAccionUsuario } from "@/types/actions-logs"
+import { requireAuthentication } from "@/utils/helpers/auth-helper"
 
 export async function markAllNotificationsRead() {
   try {

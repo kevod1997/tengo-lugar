@@ -1,8 +1,10 @@
-import Header from "@/components/header/header"
-import { getDriverCars } from '@/actions/driver/get-driver-cars'
-import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+import { getDriverCars } from '@/actions/driver/get-driver-cars'
+import Header from "@/components/header/header"
 import { auth } from '@/lib/auth'
+
 import VehiculosContent from './components/VehiculosContent'
 
 export default async function VehiculosPage() {

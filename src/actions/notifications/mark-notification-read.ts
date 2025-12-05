@@ -1,12 +1,14 @@
 'use server'
 
-import { requireAuthentication } from "@/utils/helpers/auth-helper"
-import prisma from "@/lib/prisma"
+import { z } from "zod"
+
 import { ApiHandler } from "@/lib/api-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
+import prisma from "@/lib/prisma"
 import { logActionWithErrorHandling } from "@/services/logging/logging-service"
 import { TipoAccionUsuario } from "@/types/actions-logs"
-import { z } from "zod"
+import { requireAuthentication } from "@/utils/helpers/auth-helper"
+
 
 const markNotificationReadSchema = z.object({
   notificationId: z.string().min(1, 'ID de notificación requerido')

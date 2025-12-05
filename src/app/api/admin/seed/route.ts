@@ -1,6 +1,7 @@
 // src/app/api/seed/route.ts
-import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+
+import prisma from "@/lib/prisma";
 // Import the JSON file directly
 import insuranceData from "@/seed/data/aseguradoras.json";
 

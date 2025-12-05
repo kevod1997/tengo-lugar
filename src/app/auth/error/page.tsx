@@ -1,13 +1,16 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Suspense } from "react";
+
+import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+
+import { AlertCircle, RefreshCw, Home } from "lucide-react";
+
+import Header from "@/components/header/header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, RefreshCw, Home } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense } from "react";
-import Link from "next/link";
-import Header from "@/components/header/header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function AuthError() {
   const searchParams = useSearchParams();

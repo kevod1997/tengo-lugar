@@ -1,13 +1,16 @@
-import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { redirect } from 'next/navigation';
+
 import { MessageSquareText, AlertCircle } from 'lucide-react';
+
+import type { ActiveChatInfo } from '@/actions/chat/get-active-user-chats';
+import { getActiveUserChats } from '@/actions/chat/get-active-user-chats'; 
 import Header from '@/components/header/header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { getActiveUserChats, ActiveChatInfo } from '@/actions/chat/get-active-user-chats'; 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { auth } from '@/lib/auth';
 
 export default async function MensajesPage() {
   const session = await auth.api.getSession({ headers: await headers() });

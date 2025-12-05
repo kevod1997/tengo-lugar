@@ -1,10 +1,13 @@
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+import NextLink from 'next/link' // Aliased to NextLink to avoid conflict with lucide-react's Link icon
+
 import { Camera, Loader2, Link as LinkIcon } from 'lucide-react' // Using Link from lucide-react as LinkIcon
-import { FormattedUser } from "@/types/user-types" // Assuming this type is correctly defined elsewhere
+
 import { ExpandableAvatar } from "@/components/avatar-modal/AvatarModal" // Assuming this component exists
 import { Button } from "@/components/ui/button"
-import NextLink from 'next/link' // Aliased to NextLink to avoid conflict with lucide-react's Link icon
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import type { FormattedUser } from "@/types/user-types" // Assuming this type is correctly defined elsewhere
+
 
 interface ProfileImageUploadButtonProps {
   onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;

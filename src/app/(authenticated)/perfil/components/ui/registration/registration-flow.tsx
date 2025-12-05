@@ -1,14 +1,17 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { useRegistrationFlow } from '@/hooks/registration/UseRegistrationFlow'
+
+import { usePathname, useRouter } from 'next/navigation'
+
+import { ConfirmationDialog } from '@/components/dialog/ConfirmationDialog'
+import ProgressBar from '@/components/progress-bar/progress-bar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import ProgressBar from '@/components/progress-bar/progress-bar'
-import { StepId, UserRole } from '@/types/registration-types'
-import { ConfirmationDialog } from '@/components/dialog/ConfirmationDialog'
+import { useRegistrationFlow } from '@/hooks/registration/UseRegistrationFlow'
 import { useScrollToTop } from '@/hooks/ui/useScrollToTop'
-import { usePathname, useRouter } from 'next/navigation'
+import type { StepId, UserRole } from '@/types/registration-types'
+
 
 type RegistrationFlowProps = {
   onComplete: () => void

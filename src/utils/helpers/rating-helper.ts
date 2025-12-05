@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 /**
  * Calcula el nuevo promedio de rating cuando se agrega una nueva calificación

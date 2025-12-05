@@ -1,11 +1,12 @@
 import { VerificationStatus } from '@prisma/client';
-import { ApiHandler } from '@/lib/api-handler';
-import { ApiResponse } from '@/types/api-types';
-import { ServiceError } from '@/lib/exceptions/service-error';
-import { ResendAPI } from '@/lib/email/resend';
-import { DocumentType } from '@/types/request/image-documents-validation';
 import { render } from '@react-email/render';
+
 import { DocumentVerified, DocumentFailed, PasswordReset, EmailVerification, ReviewReminder, ReviewReceived, PaymentVerifiedPassenger, PaymentVerifiedDriver } from '@/emails';
+import { ApiHandler } from '@/lib/api-handler';
+import { ResendAPI } from '@/lib/email/resend';
+import { ServiceError } from '@/lib/exceptions/service-error';
+import type { ApiResponse } from '@/types/api-types';
+import type { DocumentType } from '@/types/request/image-documents-validation';
 
 export interface SendDocumentVerificationEmailParams {
   to: string;

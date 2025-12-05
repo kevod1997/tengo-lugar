@@ -1,17 +1,21 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
+import { Loader2Icon, TrashIcon } from "lucide-react"
 import { toast } from 'sonner'
-import { useUserStore } from '@/store/user-store'
+
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Loader2Icon, TrashIcon } from "lucide-react"
-import PasswordManagement from './PasswordManagement'
 import { authClient } from '@/lib/auth-client'
 import { LoggingService } from '@/services/logging/logging-service'
+import { useUserStore } from '@/store/user-store'
 import { TipoAccionUsuario } from '@/types/actions-logs'
+
+import PasswordManagement from './PasswordManagement'
 
 export default function AccountManagement() {
   const { user, clearUser } = useUserStore()

@@ -1,12 +1,17 @@
 import { useCallback, useMemo, useState } from "react"
-import { useUserStore } from "@/store/user-store"
-import { allSteps, driverStepIds, FormData, StepId, travelerStepIds, UserRole } from "@/types/registration-types"
+
 import { VerificationStatus } from "@prisma/client"
+
+import { authClient } from "@/lib/auth-client"
 import { DriverRegistrationService } from "@/services/registration/driver-service"
 import { UserRegistrationService } from "@/services/registration/user-service"
-import { FormattedUser } from "@/types/user-types"
+import { useUserStore } from "@/store/user-store"
+import type { FormData, StepId, UserRole } from "@/types/registration-types";
+import { allSteps, driverStepIds, travelerStepIds } from "@/types/registration-types"
+import type { FormattedUser } from "@/types/user-types"
+
 import { useApiResponse } from "../ui/useApiResponse"
-import { authClient } from "@/lib/auth-client"
+
 
 export function useRegistrationFlow(initialStep: StepId, onComplete: () => void, onClose: (() => void) | undefined, initialRole?: UserRole) {
     // Estados

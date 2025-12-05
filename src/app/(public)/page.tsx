@@ -1,13 +1,18 @@
-import Header from "@/components/header/header"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { getGoogleMapsConfig } from '@/services/env/env-service'
-import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import TechnicalProblemsPage from '@/components/TechnicalProblems'
-import TripSearchForm from "./buscar-viaje/components/TripSearchForm"
-import { ArrowRight, Sparkles, Users, Shield, Zap } from "lucide-react"
 import Link from "next/link"
+
+import { ArrowRight, Sparkles, Users, Shield, Zap } from "lucide-react"
+
+import Header from "@/components/header/header"
+import TechnicalProblemsPage from '@/components/TechnicalProblems'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { auth } from "@/lib/auth"
+import { getGoogleMapsConfig } from '@/services/env/env-service'
+
+import TripSearchForm from "./buscar-viaje/components/TripSearchForm"
+
+
 
 export default async function HomePage() {
   const [googleMaps, session] = await Promise.all([

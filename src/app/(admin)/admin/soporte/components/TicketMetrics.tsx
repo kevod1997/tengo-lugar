@@ -1,7 +1,8 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LifeBuoy, CheckCircle2, Clock, User } from 'lucide-react'
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface TicketMetricsProps {
   metrics: {

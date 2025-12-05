@@ -1,11 +1,13 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { websocketNotificationService } from '@/services/websocket/websocket-notification-service'
-import { useUserStore } from '@/store/user-store'
+
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+
 import { handleUserStateUpdate } from '@/services/websocket/user-state-handler'
+import { websocketNotificationService } from '@/services/websocket/websocket-notification-service'
+import { useUserStore } from '@/store/user-store'
 
 // WebSocket connection states
 type WebSocketConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error' | 'reconnecting'

@@ -1,7 +1,7 @@
 'use server'
 
 import prisma from "@/lib/prisma"
-import { ErrorLogData } from "@/services/logging/logging-service"
+import type { ErrorLogData } from "@/services/logging/logging-service"
 
 export async function createErrorLogAction(errorData: ErrorLogData) {
     try {

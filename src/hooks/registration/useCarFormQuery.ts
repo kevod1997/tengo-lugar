@@ -1,8 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
-import { getBrands, getGroups, getModelDetails, getModels } from '@/actions/car-api/car-api-actions'
-import { Brand, Group, Model } from '@/types/car-types'
 import { useEffect } from 'react'
+
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
+
+import { getBrands, getGroups, getModelDetails, getModels } from '@/actions/car-api/car-api-actions'
+import type { Brand, Group, Model } from '@/types/car-types'
 
 export function useCarFormQueries(
   selectedBrand: Brand | null,

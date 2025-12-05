@@ -1,10 +1,12 @@
-import { getTripById } from "@/actions/trip/get-trip-by-id";
-import { checkTripAccess } from "@/actions/trip/check-trip-access";
-import { auth } from "@/lib/auth";
-import { notFound, redirect } from "next/navigation";
-import Header from "@/components/header/header";
 import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
+
+import { checkTripAccess } from "@/actions/trip/check-trip-access";
+import { getTripById } from "@/actions/trip/get-trip-by-id";
+import Header from "@/components/header/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { auth } from "@/lib/auth";
+
 import PassengersList from "./components/PassengerList";
 import TripManagement from "./components/TripManagement";
 

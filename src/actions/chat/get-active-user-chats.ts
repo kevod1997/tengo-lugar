@@ -1,12 +1,14 @@
 // src/actions/chat/get-active-user-chats.ts
 'use server';
 
-import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import prisma from '@/lib/prisma';
-import { ServerActionError } from '@/lib/exceptions/server-action-error';
+
 import { ApiHandler } from '@/lib/api-handler';
-import { ApiResponse } from '@/types/api-types';
+import { auth } from '@/lib/auth';
+import { ServerActionError } from '@/lib/exceptions/server-action-error';
+import prisma from '@/lib/prisma';
+import type { ApiResponse } from '@/types/api-types';
+
 import type { Trip, TripStatus, ReservationStatus } from '@prisma/client';
 
 export interface ActiveChatInfo {

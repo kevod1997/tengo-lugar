@@ -1,9 +1,12 @@
 'use server'
 
-import prisma from "@/lib/prisma";
+import { headers } from "next/headers";
+
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";;
-import { UpdateUserInput, userSchema } from "@/schemas";
+import prisma from "@/lib/prisma";
+;
+import type { UpdateUserInput} from "@/schemas";
+import { userSchema } from "@/schemas";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 

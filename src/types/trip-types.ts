@@ -1,5 +1,5 @@
 // src/types/trip-types.ts
-import { LuggageAllowance } from '@prisma/client'
+import type { LuggageAllowance } from '@prisma/client'
 
 export interface Coordinates {
   latitude: number;

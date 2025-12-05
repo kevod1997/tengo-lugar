@@ -1,10 +1,11 @@
 'use server'
 
+import { Redis } from '@upstash/redis'
+
 import { ApiHandler } from '@/lib/api-handler'
 import { ServerActionError } from '@/lib/exceptions/server-action-error'
 import { fetchFromCarApi } from '@/services/car-api/car-api-service'
-import { BrandsResponse, GroupsResponse, ModelsResponse, DetailedModelResponse } from '@/types/car-types'
-import { Redis } from '@upstash/redis'
+import type { BrandsResponse, GroupsResponse, ModelsResponse, DetailedModelResponse } from '@/types/car-types'
 
 const redis = Redis.fromEnv()
 

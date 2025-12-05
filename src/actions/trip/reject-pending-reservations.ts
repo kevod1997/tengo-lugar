@@ -1,9 +1,9 @@
 // src/actions/trip/reject-pending-reservations.ts
 'use server'
 
-import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 

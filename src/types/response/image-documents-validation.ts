@@ -1,4 +1,4 @@
-import { VerificationStatus } from "@prisma/client";
+import type { VerificationStatus } from "@prisma/client";
 
 export interface DocumentValidationResponse {
     documentId: string;

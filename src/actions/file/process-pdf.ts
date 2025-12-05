@@ -1,7 +1,7 @@
 'use server'
 
-import { analyzePDF } from "@/lib/file/pdf/analyze-pdf";
 import { AuxiliaryError } from "@/lib/exceptions/auxiliary-error";
+import { analyzePDF } from "@/lib/file/pdf/analyze-pdf";
 
 export async function processPDFAction(file: File) {
   try {

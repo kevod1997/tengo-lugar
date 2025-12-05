@@ -1,13 +1,15 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from 'next/link'
+
+import { PlusCircle, AlertCircle, CheckCircle2, Clock } from "lucide-react"
+import { toast } from 'sonner'
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, AlertCircle, CheckCircle2, Clock } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import Link from 'next/link'
-import { toast } from 'sonner'
-import { UserCar } from "@/types/user-types"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type { UserCar } from "@/types/user-types"
 
 interface VehiculosContentProps {
   cars: UserCar[];

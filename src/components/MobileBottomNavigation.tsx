@@ -2,7 +2,9 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
+
 import { User, CarFrontIcon, MessageSquare, Search, PlusCircleIcon } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 const navItems = [

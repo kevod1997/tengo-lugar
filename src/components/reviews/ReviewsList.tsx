@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
-import { ReviewCard } from './ReviewCard';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Info, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
 import { getReviewsForUser } from '@/actions/review/get-reviews-for-user';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+import { ReviewCard } from './ReviewCard';
 
 interface ReviewsListProps {
   userId: string;

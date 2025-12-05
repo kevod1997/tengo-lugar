@@ -1,8 +1,11 @@
 // src/lib/redis/redis-service.ts
-import { Redis as UpstashRedis, SetCommandOptions } from '@upstash/redis'
+import { Redis as UpstashRedis } from '@upstash/redis'
 import Redis from 'ioredis'
+
 import { ConfigurationError } from '@/lib/exceptions/configuration-error'
 import { getServiceConfig } from '@/services/env/env-service'
+
+import type { SetCommandOptions } from '@upstash/redis';
 
 interface RedisClients {
   restClient: UpstashRedis | null

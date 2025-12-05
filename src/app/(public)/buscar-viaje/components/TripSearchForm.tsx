@@ -1,23 +1,28 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { CalendarIcon, ArrowLeftRight, Search } from 'lucide-react'
+
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { CalendarIcon, ArrowLeftRight, Search } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { LoadingButton } from '@/components/ui/loading-button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useSearchLocationInput } from '@/hooks/map/useSearchLocationInput'
+import { useAsyncLoading } from '@/hooks/ui/useAsyncLoading'
+import { useGoogleMapsScript } from '@/hooks/ui/useGoogleMapsScripts'
 import { cn } from '@/lib/utils'
 import { disabledDays, maxDate, today } from '@/utils/helpers/time/calendar-preferences'
-import { LoadingButton } from '@/components/ui/loading-button'
-import { useAsyncLoading } from '@/hooks/ui/useAsyncLoading'
-import { toast } from 'sonner'
-import { useGoogleMapsScript } from '@/hooks/ui/useGoogleMapsScripts'
-import { useSearchLocationInput } from '@/hooks/map/useSearchLocationInput'
+
+
 
 interface TripSearchFormProps {
     apiKey: string

@@ -1,5 +1,7 @@
 import { useState } from 'react'
+
 import Image from 'next/image'
+
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
 interface ExpandableImageProps {

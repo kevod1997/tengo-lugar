@@ -1,15 +1,21 @@
-import type { DocumentResponse } from "@/services/registration/admin/user-service"
+import { useState } from "react"
+
+import { FileText } from "lucide-react"
+
+import { updateFuelInfo } from "@/actions/car/update-fuel-info"
+import { StatusIndicator } from "@/components/status-indicator/StatusIndicator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useApiResponse } from "@/hooks/ui/useApiResponse"
+import type { DocumentResponse } from "@/services/registration/admin/user-service"
 import { formatDatetoLocaleDateString } from "@/utils/format/formatDate"
+
 import { ValidationControls } from "./ValidationControls"
 import { ExpandableImage } from "../ExpandableImage"
-import { FileText } from "lucide-react"
-import { StatusIndicator } from "@/components/status-indicator/StatusIndicator"
 import { VehicleFuelForm } from "./VehicleFuelForm"
-import { updateFuelInfo } from "@/actions/car/update-fuel-info"
-import { useApiResponse } from "@/hooks/ui/useApiResponse"
-import { useState } from "react"
-import { FuelType } from "@prisma/client"
+
+
+
+import type { FuelType } from "@prisma/client"
 
 interface VehicleTabProps {
   cars: DocumentResponse["cars"]

@@ -1,5 +1,5 @@
-import { inngest } from "@/lib/inngest";
 import { rejectExpiredPendingReservations } from "@/actions/trip/reject-pending-reservations";
+import { inngest } from "@/lib/inngest";
 import { logError } from "@/services/logging/logging-service";
 
 export const rejectPendingReservationsFunction = inngest.createFunction(

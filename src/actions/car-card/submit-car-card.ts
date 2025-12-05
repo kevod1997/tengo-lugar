@@ -1,15 +1,18 @@
 'use server'
 
-import { ServerActionError } from "@/lib/exceptions/server-action-error"
-import prisma from "@/lib/prisma"
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+
 import { FileType } from "@prisma/client"
 import { z } from "zod"
+
+import { auth } from "@/lib/auth";
+import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import { uploadDocuments } from "@/lib/file/upload-documents"
+import prisma from "@/lib/prisma"
 import { vehicleCardSchema } from "@/schemas/validation/car-card-schema"
-import { getUserById } from "../register/user/get-user"
 import { splitFullName } from "@/utils/format/user-formatter";
+
+import { getUserById } from "../register/user/get-user"
 
 export async function submitCardCarInfo(userId: string, cardCarInfo: any) {
     try {

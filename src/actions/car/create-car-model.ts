@@ -1,12 +1,14 @@
 'use server'
 
+import { headers } from "next/headers";
+
 import { ApiHandler } from "@/lib/api-handler"
+import { auth } from "@/lib/auth";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import prisma from "@/lib/prisma"
 import { carRegistrationSchema } from "@/schemas/validation/car-schema"
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+
 import { findDriver } from "../driver/find-driver"
 import { getUserById } from "../register/user/get-user"
 

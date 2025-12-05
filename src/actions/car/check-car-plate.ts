@@ -1,7 +1,7 @@
 'use server'
 
-import prisma from "@/lib/prisma"
 import { ApiHandler } from "@/lib/api-handler"
+import prisma from "@/lib/prisma"
 
 export async function checkPlateExists(plate: string) {
   try {

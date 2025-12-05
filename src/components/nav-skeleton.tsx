@@ -1,5 +1,5 @@
-import { Skeleton } from '@/components/ui/skeleton'
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu } from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function NavMainSkeletonClient() {
   

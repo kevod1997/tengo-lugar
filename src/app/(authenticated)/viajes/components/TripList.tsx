@@ -1,14 +1,16 @@
 'use client'
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+
+import { Calendar, Clock, Users, Info, UserCog } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDatetoLocaleDateString } from "@/utils/format/formatDate";
-import { Calendar, Clock, Users, Info, UserCog } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { getStatusBadgeColor, getStatusText } from "@/utils/helpers/trip/trip-helpers";
 import { useLoadingStore } from "@/store/loadingStore";
+import { formatDatetoLocaleDateString } from "@/utils/format/formatDate";
+import { getStatusBadgeColor, getStatusText } from "@/utils/helpers/trip/trip-helpers";
 
 type TripsListProps = {
   trips: any[];

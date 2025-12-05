@@ -2,10 +2,10 @@
 
 import { ApiHandler } from "@/lib/api-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
+import prisma from "@/lib/prisma"
 import { basicNotificationSchema } from "@/schemas/validation/notification-schema"
 import { notificationService } from "@/services/notifications/notification-service"
-import { eventType } from "@/types/websocket-events"
-import prisma from "@/lib/prisma"
+import type { eventType } from "@/types/websocket-events"
 
 /**
  * Send a notification to a specific user from a system context (Inngest, webhooks, etc.)

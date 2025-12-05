@@ -2,11 +2,12 @@
 'use client'
 
 import React from 'react'
+
 import Link from 'next/link'
+
 import { Home } from 'lucide-react'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
+
+import { NotificationButton } from '@/components/notification'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,13 +16,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { NotificationButton } from '@/components/notification'
 
 type BreadcrumbItem = {
   label: string

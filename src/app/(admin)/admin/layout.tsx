@@ -1,6 +1,7 @@
 // app/admin/layout.tsx
-import { requireAuthorization, UserRoles } from "@/utils/helpers/auth-helper";
 import { redirect } from "next/navigation";
+
+import { requireAuthorization, UserRoles } from "@/utils/helpers/auth-helper";
 
 export default async function AdminLayout({
   children,

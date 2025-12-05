@@ -1,13 +1,17 @@
+
 import { uploadDriverLicense } from "@/actions"
 import { createCarModel } from "@/actions/car/create-car-model";
-import { ApiHandler } from "@/lib/api-handler";
-import { submitInsuranceInfo } from "@/actions/insurance/submit-insurance";
-import { processFile } from "@/lib/file/file-processor";
-import { VerificationStatus } from "@prisma/client";
-import { logActionWithErrorHandling } from "../logging/logging-service";
-import { TipoAccionUsuario } from "@/types/actions-logs";
 import { submitCardCarInfo } from "@/actions/car-card/submit-car-card";
-import { VehicleCardInput } from "@/schemas/validation/car-card-schema";
+import { submitInsuranceInfo } from "@/actions/insurance/submit-insurance";
+import { ApiHandler } from "@/lib/api-handler";
+import { processFile } from "@/lib/file/file-processor";
+import type { VehicleCardInput } from "@/schemas/validation/car-card-schema";
+import { TipoAccionUsuario } from "@/types/actions-logs";
+
+import { logActionWithErrorHandling } from "../logging/logging-service";
+
+
+import type { VerificationStatus } from "@prisma/client";
 
 const fileAndFunctionName = {
   fileName: 'driver-service.ts',

@@ -1,12 +1,16 @@
 
 
-import { Metadata } from 'next'
+import { CalendarDays, Users, Car, DollarSign, Leaf, Star } from 'lucide-react'
+
+
+import Header from '@/components/header/header'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CalendarDays, Users, Car, DollarSign, Leaf, Star } from 'lucide-react'
-import Header from '@/components/header/header'
+
 import { AdminMetricCard } from './components/AdminMetricCard'
 import { AdminNav } from './components/AdminNav'
+
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 

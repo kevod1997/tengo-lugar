@@ -59,6 +59,7 @@
 // }
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+
 import { checkPlateExists } from '@/actions/car/check-car-plate'
 
 export function usePlateValidation(initialPlate = '') {

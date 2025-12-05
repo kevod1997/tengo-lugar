@@ -1,6 +1,7 @@
-import { SendDocumentVerificationEmailParams } from '@/services/email/email-service';
 import { Inngest } from 'inngest';
 import { EventSchemas } from 'inngest';
+
+import type { SendDocumentVerificationEmailParams } from '@/services/email/email-service';
 
 export type Events = {
     'document-verification-email': {

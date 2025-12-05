@@ -1,14 +1,18 @@
 import { Suspense } from 'react'
-import { Metadata } from 'next'
-import Header from '@/components/header/header'
-import { DashboardShell } from '../usuarios/components/DashboardShell'
-import { DashboardHeader } from '../usuarios/components/DashboardHeader'
-import { Pagination } from '../usuarios/components/Pagination'
-import { PaymentTable } from './components/PaymentTable'
-import { PaymentFilters } from './components/PaymentFilters'
-import Loading from './loading'
+
+
 import { getPendingPayments } from '@/actions/payment/get-pending-payments'
-import { PaymentStatus } from '@prisma/client'
+import Header from '@/components/header/header'
+
+import { PaymentFilters } from './components/PaymentFilters'
+import { PaymentTable } from './components/PaymentTable'
+import Loading from './loading'
+import { DashboardHeader } from '../usuarios/components/DashboardHeader'
+import { DashboardShell } from '../usuarios/components/DashboardShell'
+import { Pagination } from '../usuarios/components/Pagination'
+
+import type { PaymentStatus } from '@prisma/client'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

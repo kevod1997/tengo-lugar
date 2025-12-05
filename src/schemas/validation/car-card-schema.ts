@@ -1,6 +1,7 @@
-import { z } from "zod";
-import { fileSchema } from "./file-schema";
 import { CardType } from "@prisma/client";
+import { z } from "zod";
+
+import { fileSchema } from "./file-schema";
 
 export const vehicleCardSchema = z.object({
   cardType: z.nativeEnum(CardType, {

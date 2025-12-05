@@ -1,9 +1,11 @@
 // app/api/auth-redirect/route.ts - VERSIÓN OPTIMAL PARA UX
-import { auth } from '@/lib/auth'
-import { getUserById } from '@/actions'
 import { redirect } from 'next/navigation'
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
+
 import { VerificationStatus } from '@prisma/client'
+
+import { getUserById } from '@/actions'
+import { auth } from '@/lib/auth'
 import { LoggingService } from '@/services/logging/logging-service'
 import { TipoAccionUsuario } from '@/types/actions-logs'
 

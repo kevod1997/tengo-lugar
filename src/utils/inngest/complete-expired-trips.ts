@@ -1,5 +1,5 @@
-import { inngest } from "@/lib/inngest";
 import { completeExpiredTrips } from "@/actions/trip/complete-trip";
+import { inngest } from "@/lib/inngest";
 import { logError } from "@/services/logging/logging-service";
 
 export const completeExpiredTripsFunction = inngest.createFunction(

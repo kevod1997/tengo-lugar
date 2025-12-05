@@ -1,6 +1,10 @@
-import { Button, ButtonProps } from '@/components/ui/button';
-import { useLoadingStore, LoadingOperation } from '@/store/loadingStore';
 import { Loader2 } from 'lucide-react';
+
+import type { ButtonProps } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
+import type { LoadingOperation } from '@/store/loadingStore';
+import { useLoadingStore } from '@/store/loadingStore';
+
 
 interface LoadingButtonProps extends ButtonProps {
   operation: LoadingOperation;

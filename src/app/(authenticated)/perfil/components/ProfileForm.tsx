@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+
+import { AlertTriangleIcon, CalendarIcon, Loader2Icon } from "lucide-react"
+import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { useForm, SubmitHandler } from 'react-hook-form'
+
 import { PhoneVerification } from '@/components/phone-verification/PhoneVerification'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -10,10 +13,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertTriangleIcon, CalendarIcon, Loader2Icon } from "lucide-react"
 import { authClient } from '@/lib/auth-client'
 import { splitFullName } from '@/utils/format/user-formatter'
-import { CountryCode } from 'libphonenumber-js'
+
+import type { CountryCode } from 'libphonenumber-js'
+import type { SubmitHandler } from 'react-hook-form';
 
 interface ProfileFormProps {
   isIdentityVerified: boolean

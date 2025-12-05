@@ -1,12 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+
+import Link from 'next/link'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createTicketSchema, type CreateTicketInput } from '@/schemas/validation/support-ticket-schema'
+import { Loader2, Send, AlertCircle } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+
 import { createSupportTicket } from '@/actions/support/create-support-ticket'
-import { TicketCategorySelect } from './TicketCategorySelect'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -19,10 +24,11 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { toast } from 'sonner'
-import { Loader2, Send, AlertCircle } from 'lucide-react'
-import Link from 'next/link'
+import { createTicketSchema, type CreateTicketInput } from '@/schemas/validation/support-ticket-schema'
+
+import { TicketCategorySelect } from './TicketCategorySelect'
+
+
 
 interface CreateTicketFormProps {
   onSuccess?: () => void

@@ -1,5 +1,6 @@
-import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE } from "@/config/constants";
 import { z } from "zod";
+
+import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE } from "@/config/constants";
 
 
 export const fileSchema = z.object({

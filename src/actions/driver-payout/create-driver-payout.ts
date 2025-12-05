@@ -1,13 +1,16 @@
 // src/actions/driver-payout/create-driver-payout.ts
 'use server'
 
-import prisma from "@/lib/prisma";
+import { PayoutStatus, PaymentMethod, TripStatus } from "@prisma/client";
+
 import { ApiHandler } from "@/lib/api-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
+
 import { calculateDriverPayout } from "./calculate-driver-payout";
-import { PayoutStatus, PaymentMethod, TripStatus } from "@prisma/client";
+
 
 /**
  * Creates a DriverPayout for a completed trip

@@ -1,5 +1,9 @@
-import { s3Service, UserInfo } from './s3';
 import { v4 as uuidv4 } from 'uuid';
+
+import { s3Service } from './s3';
+
+import type { UserInfo } from './s3';
+
 
 export class StorageService {
   static async getProfileImageUploadUrl(

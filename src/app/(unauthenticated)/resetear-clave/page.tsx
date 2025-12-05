@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+
 import { useSearchParams, useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import LoadingButton from "@/components/loader/loading-button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -15,11 +19,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { resetPasswordSchema } from "@/schemas/validation/auth-schemas";
+import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import { toast } from "sonner";
-import LoadingButton from "@/components/loader/loading-button";
-import { Loader2 } from "lucide-react";
+import { resetPasswordSchema } from "@/schemas/validation/auth-schemas";
+
+import type { z } from "zod";
+
+
+
 
 function ResetPasswordContent() {
   const router = useRouter();

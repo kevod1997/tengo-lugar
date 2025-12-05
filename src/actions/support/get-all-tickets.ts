@@ -1,9 +1,10 @@
 'use server'
 
-import { requireAuthorization } from "@/utils/helpers/auth-helper";
 import { ApiHandler } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
-import { TicketStatus, TicketCategory, Prisma } from "@prisma/client";
+import { requireAuthorization } from "@/utils/helpers/auth-helper";
+
+import type { TicketStatus, TicketCategory, Prisma } from "@prisma/client";
 
 interface GetAllTicketsFilters {
   status?: TicketStatus;

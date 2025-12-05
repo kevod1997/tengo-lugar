@@ -1,8 +1,8 @@
 'use server';
 
-import { ServiceError } from '@/lib/exceptions/service-error';
 import { ApiHandler } from '@/lib/api-handler';
-import { ApiResponse } from '@/types/api-types';
+import { ServiceError } from '@/lib/exceptions/service-error';
+import type { ApiResponse } from '@/types/api-types';
 
 const WEBSOCKET_SERVER_URL = process.env.WEBSOCKET_SERVER_URL || 'http://localhost:8080';
 const WEBSOCKET_USERNAME = process.env.WEBSOCKET_USERNAME || 'demo';

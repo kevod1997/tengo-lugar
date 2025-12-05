@@ -1,6 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+
+import Link from 'next/link'
+
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { Calendar, MapPin, User, Building, CreditCard, AlertCircle, AlertTriangle } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,17 +17,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { DriverPayoutWithDetails } from '@/types/driver-payout'
+import { Separator } from '@/components/ui/separator'
+import type { DriverPayoutWithDetails } from '@/types/driver-payout'
+import { formatCurrency } from '@/utils/format/formateCurrency'
+
+import { CompletePayoutDialog } from './CompletePayoutDialog'
 import { DriverPayoutStatusBadge } from './DriverPayoutStatusBadge'
 import { ProcessPayoutDialog } from './ProcessPayoutDialog'
-import { CompletePayoutDialog } from './CompletePayoutDialog'
-import { Separator } from '@/components/ui/separator'
-import { formatCurrency } from '@/utils/format/formateCurrency'
-import { Calendar, MapPin, User, Building, CreditCard, AlertCircle, AlertTriangle } from 'lucide-react'
-import Link from 'next/link'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+
+
+
 
 interface DriverPayoutDetailsModalProps {
   payout: DriverPayoutWithDetails | null

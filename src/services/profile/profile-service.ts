@@ -1,8 +1,9 @@
 import { uploadProfileImage } from "@/actions/profile/profile-image";
 import { ApiHandler } from "@/lib/api-handler";
 import { processFile } from "@/lib/file/file-processor";
-import { logActionWithErrorHandling } from "../logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
+
+import { logActionWithErrorHandling } from "../logging/logging-service";
 
 export class ProfileService {
   async updateProfileImage(file: File, userId: string) {

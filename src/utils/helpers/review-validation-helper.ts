@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 /**
  * Verifica si la review está dentro de la ventana de tiempo permitida (10 días)

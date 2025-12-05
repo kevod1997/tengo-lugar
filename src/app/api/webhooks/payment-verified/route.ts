@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { inngest } from '@/lib/inngest';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+
 import { z } from 'zod';
+
+import { inngest } from '@/lib/inngest';
 
 const paymentVerifiedWebhookSchema = z.object({
   paymentId: z.string().min(1, 'Payment ID es requerido'),

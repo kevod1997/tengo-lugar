@@ -1,4 +1,4 @@
-import { eventType } from "./websocket-events"
+import type { eventType } from "./websocket-events"
 
 export interface TargetedNotificationData {
   title: string

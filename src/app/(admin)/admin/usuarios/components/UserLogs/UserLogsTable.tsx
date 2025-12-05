@@ -1,9 +1,12 @@
-import { formatDate } from "@/utils/format/formatDate"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import type { JsonValue } from "@prisma/client/runtime/library"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { formatDate } from "@/utils/format/formatDate"
+
+
 import { JSONDisplay } from "./JSONDisplay"
+
+import type { JsonValue } from "@prisma/client/runtime/library"
 
 interface UserLog {
   id: string

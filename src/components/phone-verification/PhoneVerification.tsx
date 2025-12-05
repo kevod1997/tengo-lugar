@@ -376,18 +376,25 @@
 
 'use client'
 
-import { useState, useEffect, Dispatch, SetStateAction } from 'react'
+import type { Dispatch, SetStateAction } from 'react';
+import { useState, useEffect } from 'react'
+
+import { AsYouType } from 'libphonenumber-js';
+import { BadgeCheck, Clock, AlertCircle, Send, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { initiatePhoneVerification, verifyPhoneWithOTP } from '@/actions/profile/verify-phone' // Assuming action paths are correct
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { BadgeCheck, Clock, AlertCircle, Send, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
-import { initiatePhoneVerification, verifyPhoneWithOTP } from '@/actions/profile/verify-phone' // Assuming action paths are correct
-import { AsYouType, CountryCode } from 'libphonenumber-js';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select' // Assuming path to ui/select is correct
 import { formatNumberForWhatsApp } from '@/utils/format/format-whatsapp-phone' // Assuming path is correct
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select' // Assuming path to ui/select is correct
+
+import type { CountryCode } from 'libphonenumber-js';
+
 
 const COUNTRY_CODES = [
   { code: 'AR', name: 'Argentina (+54)', callingCode: '54' },

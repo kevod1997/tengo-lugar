@@ -1,7 +1,7 @@
 'use server'
 
-import { processImage } from "@/lib/file/images/process-image";
 import { AuxiliaryError } from "@/lib/exceptions/auxiliary-error";
+import { processImage } from "@/lib/file/images/process-image";
 
 export async function processImageAction(file: File) {
   try {

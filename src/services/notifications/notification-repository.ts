@@ -1,6 +1,6 @@
-import prisma from "@/lib/prisma"
-import { NotificationRole } from "@/types/notification-types"
 import { ServiceError } from "@/lib/exceptions/service-error"
+import prisma from "@/lib/prisma"
+import type { NotificationRole } from "@/types/notification-types"
 
 export class NotificationRepository {
   

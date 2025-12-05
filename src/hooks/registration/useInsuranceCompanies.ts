@@ -1,5 +1,6 @@
-import { getInsuranceCompanies } from '@/actions/insurance/get-insurance';
 import { create } from 'zustand'
+
+import { getInsuranceCompanies } from '@/actions/insurance/get-insurance';
 
 interface InsuranceState {
   companies: Array<{ id: string; name: string }>

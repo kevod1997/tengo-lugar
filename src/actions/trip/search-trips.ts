@@ -1,9 +1,11 @@
 'use server'
 
+
 import { ApiHandler } from "@/lib/api-handler"
-import prisma from "@/lib/prisma"
 import { TRIP_COMPLETION_CONFIG } from "@/lib/constants/trip-completion-config"
-import { TripStatus } from "@prisma/client"
+import prisma from "@/lib/prisma"
+
+import type { TripStatus } from "@prisma/client"
 
 export interface TripSearchParams {
     page?: number

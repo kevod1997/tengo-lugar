@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+
+import { Loader2, AlertTriangle, CheckCircle } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { processDriverPayout } from '@/actions/driver-payout/process-driver-payout'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,10 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Loader2, AlertTriangle, CheckCircle } from 'lucide-react'
-import { processDriverPayout } from '@/actions/driver-payout/process-driver-payout'
-import { toast } from 'sonner'
 
 interface ProcessPayoutDialogProps {
   payoutId: string

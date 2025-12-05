@@ -1,14 +1,18 @@
 "use client"
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Search, X } from "lucide-react"
-import { TicketStatus, TicketCategory } from "@prisma/client"
 import { useState, useTransition } from "react"
+
+import { useRouter, useSearchParams } from "next/navigation"
+
+import { TicketStatus, TicketCategory } from "@prisma/client"
+import { Search, X } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
 
 const statusOptions = [
   { value: "all", label: "Todos los estados" },

@@ -1,8 +1,9 @@
 'use server';
 
-import { redisService } from '@/lib/redis/redis-service';
 import { ApiHandler } from '@/lib/api-handler';
-import { ApiResponse } from '@/types/api-types';
+import { redisService } from '@/lib/redis/redis-service';
+import type { ApiResponse } from '@/types/api-types';
+
 import { authenticateWebSocket, refreshWebSocketToken } from './authenticate-websocket';
 
 export interface CachedTokens {

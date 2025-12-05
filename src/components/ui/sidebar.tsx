@@ -1,10 +1,12 @@
 "use client"
 
 import * as React from "react"
+
+import { DialogTitle } from "@radix-ui/react-dialog"
 import { Slot } from "@radix-ui/react-slot"
-import { VariantProps, cva } from "class-variance-authority"
+import { cva } from "class-variance-authority"
 import { Menu, PanelLeft } from "lucide-react"
-import { cn } from "@/lib/utils"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -16,8 +18,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { DialogTitle } from "@radix-ui/react-dialog"
 import { useIsMobile } from "@/hooks/ui/useMobile"
+import { cn } from "@/lib/utils"
+
+import type { VariantProps} from "class-variance-authority";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7

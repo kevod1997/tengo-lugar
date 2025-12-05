@@ -1,6 +1,8 @@
-import { Button } from '@/components/ui/button'
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import Link from 'next/link'
+
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 
 interface PaginationProps {
   total: number

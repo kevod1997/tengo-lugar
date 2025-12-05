@@ -1,6 +1,8 @@
 // src/utils/helpers/cancellation-helper.ts
 import prisma from "@/lib/prisma";
-import { ReservationStatus, CancelledBy, RefundType } from "@prisma/client";
+
+import type { ReservationStatus, CancelledBy, RefundType } from "@prisma/client";
+
 
 /**
  * Calcula los detalles de una cancelación basándose en el tiempo antes de la salida

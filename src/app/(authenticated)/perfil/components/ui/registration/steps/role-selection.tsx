@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
+
+import { Car, User as UserIcon, ArrowRight } from 'lucide-react'
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Car, User as UserIcon, ArrowRight } from 'lucide-react'
 
 type UserRole = 'traveler' | 'driver'
 

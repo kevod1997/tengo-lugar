@@ -1,11 +1,12 @@
 'use server'
 
-import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
-import { requireAuthorization } from "@/utils/helpers/auth-helper";
+import prisma from "@/lib/prisma";
+import type { CreateFuelPriceInput } from "@/schemas/validation/fuel-price-schema";
+import { createFuelPriceSchema } from "@/schemas/validation/fuel-price-schema";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import { createFuelPriceSchema, CreateFuelPriceInput } from "@/schemas/validation/fuel-price-schema";
+import { requireAuthorization } from "@/utils/helpers/auth-helper";
 
 export async function createFuelPrice(data: CreateFuelPriceInput) {
   try {

@@ -1,6 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton'
-import { DashboardShell } from '../usuarios/components/DashboardShell'
+
 import { DashboardHeader } from '../usuarios/components/DashboardHeader'
+import { DashboardShell } from '../usuarios/components/DashboardShell'
 
 export default function Loading() {
   return (

@@ -1,7 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { DriverPayoutWithDetails } from '@/types/driver-payout'
+
+import { format, differenceInDays } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { Eye, AlertCircle, Clock, AlertTriangle } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -10,15 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Eye, AlertCircle, Clock, AlertTriangle } from 'lucide-react'
-import { DriverPayoutStatusBadge } from './DriverPayoutStatusBadge'
-import { DriverPayoutDetailsModal } from './DriverPayoutDetailsModal'
-import { format, differenceInDays } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { formatCurrency } from '@/utils/format/formateCurrency'
 import { cn } from '@/lib/utils'
+import type { DriverPayoutWithDetails } from '@/types/driver-payout'
+import { formatCurrency } from '@/utils/format/formateCurrency'
+
+import { DriverPayoutDetailsModal } from './DriverPayoutDetailsModal'
+import { DriverPayoutStatusBadge } from './DriverPayoutStatusBadge'
 
 interface DriverPayoutTableProps {
   payouts: DriverPayoutWithDetails[]

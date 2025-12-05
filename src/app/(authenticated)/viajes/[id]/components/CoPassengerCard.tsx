@@ -1,10 +1,12 @@
 'use client'
 
+import Image from 'next/image'
+
+import { UserIcon, Star } from 'lucide-react'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { UserProfileModal } from '@/components/user-profile-modal/UserProfileModal'
 import { calculateAge } from '@/utils/helpers/calculate-age'
-import { UserIcon, Star } from 'lucide-react'
-import Image from 'next/image'
 
 interface CoPassengerCardProps {
   passenger: {

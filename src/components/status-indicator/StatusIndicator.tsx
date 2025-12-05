@@ -1,5 +1,6 @@
-import { VerificationStatus } from "@prisma/client";
 import { CheckCircle, Clock, XCircle } from "lucide-react";
+
+import type { VerificationStatus } from "@prisma/client";
 
 interface StatusIndicatorProps {
     status?: string | null;

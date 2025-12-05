@@ -1,7 +1,9 @@
-import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Loader2 } from "lucide-react";
+
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoggingService } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 

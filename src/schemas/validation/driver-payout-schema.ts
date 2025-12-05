@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { PayoutStatus, PaymentMethod } from '@prisma/client';
+import { z } from 'zod';
 
 /**
  * Schema for creating a new driver payout

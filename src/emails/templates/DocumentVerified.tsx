@@ -5,10 +5,11 @@ import {
   Row,
   Column,
 } from '@react-email/components';
-import { EmailLayout } from '../components/EmailLayout';
-import { EmailHeader } from '../components/EmailHeader';
-import { EmailFooter } from '../components/EmailFooter';
+
 import { EmailButton } from '../components/EmailButton';
+import { EmailFooter } from '../components/EmailFooter';
+import { EmailHeader } from '../components/EmailHeader';
+import { EmailLayout } from '../components/EmailLayout';
 
 interface DocumentVerifiedProps {
   documentType: string;

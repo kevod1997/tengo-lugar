@@ -1,6 +1,7 @@
-import { FormattedUser } from '@/types/user-types'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+
+import type { FormattedUser } from '@/types/user-types'
 
 
 interface UserState {

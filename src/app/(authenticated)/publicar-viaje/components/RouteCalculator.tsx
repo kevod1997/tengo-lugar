@@ -1,31 +1,35 @@
 'use client'
 
 import { useState } from 'react'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { calculateRoute } from '@/actions/route/calculate-route'
-import { toast } from 'sonner'
+
 import { useRouter } from 'next/navigation'
+
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+
+import { calculateRoute } from '@/actions/route/calculate-route'
 import { createTrip } from '@/actions/trip/create-trip'
-import { LuggageAllowance } from '@prisma/client'
-import { TripData } from '@/types/trip-types'
-import { RouteResponse } from '@/types/route-types'
-import { getGoogleMapsUrl } from '@/utils/helpers/getGoogleMapsUrl'
-import { formatDuration } from '@/utils/format/formatDuration'
-import { UserCar } from '@/types/user-types'
-
-import { useGoogleMapsScript } from '@/hooks/ui/useGoogleMapsScripts'
+import { Card } from '@/components/ui/card'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { useLocationInput } from '@/hooks/map/useLocationInput'
+import { useAsyncLoading } from '@/hooks/ui/useAsyncLoading'
+import { useGoogleMapsScript } from '@/hooks/ui/useGoogleMapsScripts'
+import { useLoadingStore } from '@/store/loadingStore'
+import { useTripPreferencesStore } from '@/store/trip-preferences-store'
+import type { RouteResponse } from '@/types/route-types'
+import type { TripData } from '@/types/trip-types'
+import type { UserCar } from '@/types/user-types'
+import { formatDuration } from '@/utils/format/formatDuration'
+import { getGoogleMapsUrl } from '@/utils/helpers/getGoogleMapsUrl'
 
-import LocationInput from './LocationInput'
 import DateTimePicker from './DateTimePicker'
+import LocationInput from './LocationInput'
 import RouteInfoCard from './RouteInfoCard'
 import TravelCostCalculator from './TravelCostCalculator'
 import TripPreferencesForm from './TripPreferencesForm'
-import { useTripPreferencesStore } from '@/store/trip-preferences-store'
-import { useLoadingStore } from '@/store/loadingStore'
-import { useAsyncLoading } from '@/hooks/ui/useAsyncLoading'
-import { LoadingButton } from '@/components/ui/loading-button'
-import { Card } from '@/components/ui/card'
+
+import type { LuggageAllowance } from '@prisma/client'
+import type { SubmitHandler} from 'react-hook-form';
 
 
 interface RouteCalculatorProps {

@@ -1,12 +1,15 @@
+
 import { updateUser, getUserById, uploadIdentityCard, updateUserProfile } from "@/actions";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServiceError } from "@/lib/exceptions/service-error";
 import { processFile } from "@/lib/file/file-processor";
-import { ApiResponse } from "@/types/api-types";
-import { FormattedUser } from "@/types/user-types";
-import { logActionWithErrorHandling } from "../logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import { VerificationStatus } from "@prisma/client";
+import type { ApiResponse } from "@/types/api-types";
+import type { FormattedUser } from "@/types/user-types";
+
+import { logActionWithErrorHandling } from "../logging/logging-service";
+
+import type { VerificationStatus } from "@prisma/client";
 
 export class UserRegistrationService {
     async createBaseProfile(userId: string, personalInfo: any): Promise<ApiResponse<FormattedUser>> {

@@ -1,12 +1,18 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Download, Loader2, AlertCircle } from 'lucide-react'
-import { getPaymentProof } from '@/actions/payment/get-payment-proof'
-import { toast } from 'sonner'
+
 import Image from 'next/image'
+
+import { Download, Loader2, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { getPaymentProof } from '@/actions/payment/get-payment-proof'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+
+
+
 
 interface PaymentProofModalProps {
   paymentId: string

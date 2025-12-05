@@ -1,13 +1,17 @@
 import { Suspense } from 'react'
-import { Metadata } from 'next'
-import Header from '@/components/header/header'
-import { DashboardShell } from '../usuarios/components/DashboardShell'
-import { DashboardHeader } from '../usuarios/components/DashboardHeader'
-import { Pagination } from '../usuarios/components/Pagination'
-import { BankAccountTable } from './components/BankAccountTable'
-import { BankAccountFilters } from './components/BankAccountFilters'
-import Loading from './loading'
+
+
 import { getBankAccounts } from '@/actions/admin/bank-account/get-bank-accounts'
+import Header from '@/components/header/header'
+
+import { BankAccountFilters } from './components/BankAccountFilters'
+import { BankAccountTable } from './components/BankAccountTable'
+import Loading from './loading'
+import { DashboardHeader } from '../usuarios/components/DashboardHeader'
+import { DashboardShell } from '../usuarios/components/DashboardShell'
+import { Pagination } from '../usuarios/components/Pagination'
+
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

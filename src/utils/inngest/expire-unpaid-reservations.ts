@@ -1,5 +1,5 @@
-import { inngest } from "@/lib/inngest";
 import { expireUnpaidReservations } from "@/actions/trip/expire-unpaid-reservations";
+import { inngest } from "@/lib/inngest";
 
 /**
  * Inngest cron job para expirar reservas APPROVED sin pago

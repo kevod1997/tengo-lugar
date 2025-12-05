@@ -1,13 +1,16 @@
-import { Control, Controller, FieldErrors, useWatch } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { CalendarIcon, Clock } from 'lucide-react'
 import { addDays, addHours, format, isBefore, isSameDay, parse } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { CalendarIcon, Clock } from 'lucide-react'
+import { Controller, useWatch } from 'react-hook-form'
+
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Label } from '@/components/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { generateTimeOptions } from '@/utils/helpers/time/generate-time-options'
+
+import type { Control, FieldErrors} from 'react-hook-form';
 
 interface DateTimePickerProps {
   control: Control<any>

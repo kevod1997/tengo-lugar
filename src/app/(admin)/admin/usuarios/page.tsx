@@ -1,12 +1,14 @@
 import { Suspense } from 'react'
-import { UserTable } from './components/UserTable'
-import { Pagination } from './components/Pagination'
+
+import { getUsers } from '@/actions'
+import Header from '@/components/header/header'
+
 import { DashboardHeader } from './components/DashboardHeader'
 import { DashboardShell } from './components/DashboardShell'
-import Loading from './loading'
-import Header from '@/components/header/header'
-import { getUsers } from '@/actions'
+import { Pagination } from './components/Pagination'
 import { UserFilter } from './components/UserFilter'
+import { UserTable } from './components/UserTable'
+import Loading from './loading'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

@@ -1,7 +1,8 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react'
-import { FormattedUser } from "@/types/user-types"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import type { FormattedUser } from "@/types/user-types"
 
 interface VerificationTabProps {
   user: FormattedUser

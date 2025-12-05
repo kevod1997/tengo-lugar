@@ -1,5 +1,5 @@
 import { ServiceError } from "@/lib/exceptions/service-error";
-import { RouteCalculationRequest, RouteResponse } from "@/types/route-types";
+import type { RouteCalculationRequest, RouteResponse } from "@/types/route-types";
 
 export class RoutesService {
   private readonly baseUrl = 'https://routes.googleapis.com/directions/v2:computeRoutes';

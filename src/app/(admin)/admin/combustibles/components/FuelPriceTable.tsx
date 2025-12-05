@@ -1,14 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
-import { FuelPriceListItem, fuelTypeLabels, fuelTypeColors } from '@/types/fuel-price'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Edit, Power, Fuel } from 'lucide-react'
+
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { Edit, Power, Fuel } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { fuelTypeLabels, fuelTypeColors } from '@/types/fuel-price'
+import type { FuelPriceListItem} from '@/types/fuel-price';
+
 import { EditFuelPriceDialog } from './EditFuelPriceDialog'
 import { ToggleStatusDialog } from './ToggleStatusDialog'
 

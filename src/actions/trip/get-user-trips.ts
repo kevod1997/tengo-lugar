@@ -1,7 +1,7 @@
 'use server'
 
-import prisma from "@/lib/prisma";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
 import { requireAuthentication } from "@/utils/helpers/auth-helper";
 
 export async function getUserTrips() {

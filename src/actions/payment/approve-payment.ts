@@ -1,14 +1,14 @@
 // src/actions/payment/approve-payment.ts
 'use server'
 
-import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { requireAuthorization } from "@/utils/helpers/auth-helper";
+import prisma from "@/lib/prisma";
+import { approvePaymentWithProofSchema } from "@/schemas/validation/payment-schema";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
+import { requireAuthorization } from "@/utils/helpers/auth-helper";
 import { notifyUser } from "@/utils/notifications/notification-helpers";
-import { approvePaymentWithProofSchema } from "@/schemas/validation/payment-schema";
 
 export async function approvePayment(paymentId: string, proofFileKey: string) {
   try {

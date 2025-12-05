@@ -1,7 +1,7 @@
+import { REVIEW_REMINDER_CONFIG } from "@/lib/constants/review-reminder-config";
 import { inngest } from "@/lib/inngest";
 import { EmailService } from "@/services/email/email-service";
 import { logError } from "@/services/logging/logging-service";
-import { REVIEW_REMINDER_CONFIG } from "@/lib/constants/review-reminder-config";
 
 const emailService = new EmailService(process.env.RESEND_API_KEY!);
 

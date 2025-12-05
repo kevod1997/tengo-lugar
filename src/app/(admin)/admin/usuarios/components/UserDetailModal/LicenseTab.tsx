@@ -1,7 +1,8 @@
 import type { DocumentResponse } from "@/services/registration/admin/user-service"
+import { formatDatetoLocaleDateString } from "@/utils/format/formatDate"
+
 import { ExpandableImage } from "../ExpandableImage"
 import { ValidationControls } from "./ValidationControls"
-import { formatDatetoLocaleDateString } from "@/utils/format/formatDate"
 
 
 interface LicenseTabProps {

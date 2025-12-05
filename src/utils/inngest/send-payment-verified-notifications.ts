@@ -1,8 +1,8 @@
+import { sendSystemNotification } from "@/actions/notifications/send-system-notification";
 import { inngest } from "@/lib/inngest";
+import prisma from "@/lib/prisma";
 import { EmailService } from "@/services/email/email-service";
 import { logError, logActionWithErrorHandling } from "@/services/logging/logging-service";
-import { sendSystemNotification } from "@/actions/notifications/send-system-notification";
-import prisma from "@/lib/prisma";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 
 const emailService = new EmailService(process.env.RESEND_API_KEY!);

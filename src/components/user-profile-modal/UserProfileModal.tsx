@@ -198,6 +198,10 @@
 //   )
 // }
 
+import Link from "next/link"
+
+import { StarIcon, CarIcon, UserIcon, ExternalLinkIcon } from "lucide-react"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -207,8 +211,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { StarIcon, CarIcon, UserIcon, ExternalLinkIcon } from "lucide-react"
-import Link from "next/link"
 
 // Type definitions for the component props
 interface UserProfileProps {

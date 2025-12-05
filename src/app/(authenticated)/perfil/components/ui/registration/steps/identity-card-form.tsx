@@ -1,17 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+
+import Image from 'next/image'
+
 import { zodResolver } from '@hookform/resolvers/zod'
+import { X, ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { X, ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import type { IdentityCardInput} from '@/schemas';
+import { identityCardSchema } from '@/schemas'
 import { useUserStore } from '@/store/user-store'
-import { IdentityCardInput, identityCardSchema } from '@/schemas'
+
 import { ImageCapture } from '../utils/image-capture'
-import Image from 'next/image'
+
 
 interface IdentityCardFormProps {
   onSubmit: (data: IdentityCardInput) => any

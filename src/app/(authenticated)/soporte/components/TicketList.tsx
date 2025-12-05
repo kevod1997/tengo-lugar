@@ -1,13 +1,15 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getUserTickets } from '@/actions/support/get-user-tickets'
-import { TicketCard } from './TicketCard'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Inbox } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+import { getUserTickets } from '@/actions/support/get-user-tickets'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+import { TicketCard } from './TicketCard'
 
 type TicketStatus = 'OPEN' | 'RESOLVED'
 

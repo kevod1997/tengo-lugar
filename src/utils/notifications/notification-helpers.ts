@@ -1,6 +1,6 @@
-import { TargetedNotificationData, NotificationRole } from "@/types/notification-types"
-import { eventType } from "@/types/websocket-events"
 import { sendTargetedNotification } from "@/actions/notifications/send-targeted-notification"
+import type { TargetedNotificationData, NotificationRole } from "@/types/notification-types"
+import type { eventType } from "@/types/websocket-events"
 
 // Helper functions for common notification patterns
 export async function notifyUser(

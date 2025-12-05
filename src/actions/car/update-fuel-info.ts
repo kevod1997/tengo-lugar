@@ -1,12 +1,14 @@
 'use server'
 
+
 import { ApiHandler } from "@/lib/api-handler"
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import prisma from "@/lib/prisma"
 import { fetchFromCarApi } from "@/services/car-api/car-api-service"
 import { logError } from "@/services/logging/logging-service"
-import { FuelType } from "@prisma/client"
+
+import type { FuelType } from "@prisma/client"
 
 interface UpdateFuelInfoInput {
     carModel: string

@@ -1,19 +1,22 @@
 'use client'
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useState } from 'react'
+
+import { Eye, FileText } from 'lucide-react'
+
+import { getUserDocuments } from '@/actions'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
-import { UserDetailsModal } from './UserDetailsModal'
-import { useApiResponse } from '@/hooks/ui/useApiResponse'
-import { FormattedUserForAdminDashboard } from '@/types/user-types'
-import { getUserDocuments } from '@/actions'
-import { DocumentResponse } from '@/services/registration/admin/user-service'
-import { Eye, FileText } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { UserLogsView } from './UserLogs/UserLogsDetail'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useApiResponse } from '@/hooks/ui/useApiResponse'
+import type { DocumentResponse } from '@/services/registration/admin/user-service'
+import type { FormattedUserForAdminDashboard } from '@/types/user-types'
 import { getVehicleStatus } from '@/utils/helpers/driver/get-vehicle-status'
+
+import { UserDetailsModal } from './UserDetailsModal'
+import { UserLogsView } from './UserLogs/UserLogsDetail'
 
 interface UserTableProps {
   users: FormattedUserForAdminDashboard[]

@@ -1,6 +1,6 @@
 // src/schemas/validation/trip-schema.ts
-import { z } from 'zod'
 import { LuggageAllowance } from '@prisma/client'
+import { z } from 'zod'
 
 // Base coordinates validation
 const coordinatesSchema = z.object({

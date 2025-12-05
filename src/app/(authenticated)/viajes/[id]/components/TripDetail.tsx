@@ -1,8 +1,39 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import {
+  CarIcon,
+  ArrowRightIcon,
+  LuggageIcon,
+  PawPrintIcon,
+  BabyIcon,
+  CigaretteOffIcon,
+  InfoIcon,
+  UserIcon,
+} from 'lucide-react'
+import { toast } from 'sonner'
+
+import { cancelTrip } from '@/actions/trip/cancel-trip'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Avatar } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -17,40 +48,15 @@ import {
   TabsList,
   TabsTrigger
 } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Avatar } from '@/components/ui/avatar'
-import {
-  CarIcon,
-  ArrowRightIcon,
-  LuggageIcon,
-  PawPrintIcon,
-  BabyIcon,
-  CigaretteOffIcon,
-  InfoIcon,
-  UserIcon,
-} from 'lucide-react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { TripReservationModal } from './TripReservationModal'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { cancelTrip } from '@/actions/trip/cancel-trip'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { UserProfileModal } from '@/components/user-profile-modal/UserProfileModal'
-import { calculateAge } from '@/utils/helpers/calculate-age'
 import { useLoadingStore } from '@/store/loadingStore'
-import { PassengerTripInfo } from './PassengerTripInfo'
+import { calculateAge } from '@/utils/helpers/calculate-age'
+
 import { DriverTripHub } from './DriverTripHub'
+import { PassengerTripInfo } from './PassengerTripInfo'
+import { TripReservationModal } from './TripReservationModal'
+
+
 
 interface TripDetailProps {
   trip: any;

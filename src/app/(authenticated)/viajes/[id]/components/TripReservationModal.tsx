@@ -1,9 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
+import { createTripReservation } from '@/actions/trip/create-trip-reservation'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -21,8 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { LoadingButton } from '@/components/ui/loading-button'
 import {
   Select,
   SelectContent,
@@ -31,10 +35,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { toast } from 'sonner'
-import { createTripReservation } from '@/actions/trip/create-trip-reservation'
+import { Textarea } from '@/components/ui/textarea'
 import { useAsyncLoading } from '@/hooks/ui/useAsyncLoading'
-import { LoadingButton } from '@/components/ui/loading-button'
 
 // Define the schema for trip reservation
 const reservationSchema = z.object({

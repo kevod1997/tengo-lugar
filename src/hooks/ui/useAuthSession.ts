@@ -1,10 +1,13 @@
 // hooks/auth/useAuthSession.ts
 import { useEffect, useRef } from 'react'
+
 import { useSearchParams, useRouter } from 'next/navigation'
+
+import { toast } from 'sonner'
+
 import { getUserById } from "@/actions"
 import { useLoadingStore } from "@/store/loadingStore"
 import { useUserStore } from "@/store/user-store"
-import { toast } from 'sonner'
 
 export function useAuthSession(initialSession: any) {
     const userStore = useUserStore()

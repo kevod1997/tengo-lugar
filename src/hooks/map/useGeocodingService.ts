@@ -1,6 +1,8 @@
 import { useState } from 'react';
+
 import { toast } from 'sonner';
-import { Coordinates, LocationInfo } from '@/types/route-types';
+
+import type { Coordinates, LocationInfo } from '@/types/route-types';
 
 export function useGeocodingService(isGoogleMapsLoaded: boolean) {
   const [isGeocoding, setIsGeocoding] = useState(false);

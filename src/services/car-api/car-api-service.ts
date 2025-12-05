@@ -1,7 +1,8 @@
-import { getCarApiConfig } from '../env/env-service';
-import { redisService } from '@/lib/redis/redis-service';
 import { ConfigurationError } from '@/lib/exceptions/configuration-error';
 import { ServiceError } from '@/lib/exceptions/service-error';
+import { redisService } from '@/lib/redis/redis-service';
+
+import { getCarApiConfig } from '../env/env-service';
 
 interface AuthResponse {
   access_token: string;

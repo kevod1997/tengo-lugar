@@ -1,18 +1,20 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { InfoIcon, Loader2Icon, Building2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+import { getBankAccount, createOrUpdateBankAlias } from '@/actions/user/bank-account'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { InfoIcon, Loader2Icon, Building2 } from 'lucide-react'
-import { getBankAccount, createOrUpdateBankAlias } from '@/actions/user/bank-account'
-import { bankAccountSchema, BankAccountFormData } from '@/schemas/validation/bank-account-schema'
+import type { BankAccountFormData } from '@/schemas/validation/bank-account-schema';
+import { bankAccountSchema } from '@/schemas/validation/bank-account-schema'
 
 interface BankAccountWidgetProps {
   phoneNumber: string | null | undefined

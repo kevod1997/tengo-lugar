@@ -1,13 +1,19 @@
 'use client'
 
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { useRouter } from 'next/navigation';
+
+import { Users, Car, Filter, PlusCircle, Calendar } from "lucide-react"
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Car, Filter, PlusCircle, Calendar } from "lucide-react"
-import { useRouter } from 'next/navigation';
-import TripsList from './TripList';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+
+
 import ReservationsList from './ReservationList';
+import TripsList from './TripList';
 
 type TripsOverviewProps = {
   activeDriverTrips: any[];

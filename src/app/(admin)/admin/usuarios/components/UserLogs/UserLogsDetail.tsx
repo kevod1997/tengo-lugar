@@ -1,13 +1,15 @@
 "use client";
 
-import { getUserLogs } from "@/actions/logs/get-user-logs";
 import { useEffect, useState } from "react";
+
+import { getUserLogs } from "@/actions/logs/get-user-logs";
+import { LoadingOverlay } from "@/components/loader/loading-overlay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LoadingOverlay } from "@/components/loader/loading-overlay";
-import { UserLogsTable } from "./UserLogsTable";
 import { TipoAccionUsuario } from "@/types/actions-logs";
+
+import { UserLogsTable } from "./UserLogsTable";
 import { Pagination } from "../Pagination";
 
 interface UserLogsViewProps {

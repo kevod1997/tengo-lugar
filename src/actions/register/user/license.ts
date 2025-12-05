@@ -1,16 +1,21 @@
 'use server'
 
+import { headers } from "next/headers";
+
 import { FileType } from "@prisma/client";
-import prisma from "@/lib/prisma";
-import { DriverLicenseInput, serverDriverLicenseSchema } from "@/schemas";
+
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";;
+;
+import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { ServiceError } from "@/lib/exceptions/service-error";
-import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import { uploadDocuments } from "@/lib/file/upload-documents";
-import { getUserById } from "./get-user";
+import prisma from "@/lib/prisma";
+import { serverDriverLicenseSchema } from "@/schemas";
+import type { DriverLicenseInput} from "@/schemas";
 import { splitFullName } from "@/utils/format/user-formatter";
+
+import { getUserById } from "./get-user";
 
 export async function uploadDriverLicense(
   userId: string,

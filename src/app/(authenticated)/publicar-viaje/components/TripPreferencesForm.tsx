@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { 
   Select, 
@@ -10,8 +10,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
 import { useTripPreferencesStore } from '@/store/trip-preferences-store'
 
 const TripPreferencesForm = () => {

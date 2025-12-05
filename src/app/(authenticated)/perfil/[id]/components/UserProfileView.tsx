@@ -1,11 +1,8 @@
 // src/components/profile/user-profile-view.tsx
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/utils/format/formatDate";
+import Link from "next/link";
+
 import { 
   AlertCircle, 
   CarFront, 
@@ -14,9 +11,14 @@ import {
   Star, 
   Calendar 
 } from "lucide-react";
-import Link from "next/link";
+
+import type { UserProfileData } from "@/actions/user/get-user-profile-by-id";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UserProfileData } from "@/actions/user/get-user-profile-by-id";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDate } from "@/utils/format/formatDate";
 
 interface UserProfileViewProps {
   profile: UserProfileData;

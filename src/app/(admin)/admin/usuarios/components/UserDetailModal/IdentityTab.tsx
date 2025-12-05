@@ -1,6 +1,7 @@
 import type { DocumentResponse } from "@/services/registration/admin/user-service"
-import { ExpandableImage } from "../ExpandableImage"
 import { formatDatetoLocaleDateString } from "@/utils/format/formatDate"
+
+import { ExpandableImage } from "../ExpandableImage"
 import { ValidationControls } from "./ValidationControls"
 
 

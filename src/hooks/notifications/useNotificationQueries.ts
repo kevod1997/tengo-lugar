@@ -1,11 +1,13 @@
+import { useEffect } from 'react'
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+
 import { 
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
 } from '@/actions/notifications'
-import { useEffect } from 'react'
-import { toast } from 'sonner'
 
 export function useNotificationQueries() {
   const queryClient = useQueryClient()

@@ -1,7 +1,8 @@
 // app/(public)/viajes/components/trip-list.tsx
-import { Trip } from '@/types/trip-types'
-import { Pagination } from '../../../(admin)/admin/usuarios/components/Pagination'
+import type { Trip } from '@/types/trip-types'
+
 import { TripCard } from './TripCard'
+import { Pagination } from '../../../(admin)/admin/usuarios/components/Pagination'
 
 interface TripListProps {
   trips: Trip[]

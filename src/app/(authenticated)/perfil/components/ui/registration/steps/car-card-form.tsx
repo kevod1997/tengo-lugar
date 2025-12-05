@@ -1,18 +1,22 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
-import { useUserStore } from "@/store/user-store"
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowRight, AlertTriangle } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+
+import { DocumentUpload } from '@/components/document-upload/DocumentUpload'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, AlertTriangle } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DocumentUpload } from '@/components/document-upload/DocumentUpload'
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE } from '@/config/constants'
-import { CardType } from '@prisma/client'
-import { VehicleCardInput, vehicleCardSchema } from '@/schemas/validation/car-card-schema'
+import type { VehicleCardInput} from '@/schemas/validation/car-card-schema';
+import { vehicleCardSchema } from '@/schemas/validation/car-card-schema'
+import { useUserStore } from "@/store/user-store"
+
+import type { CardType } from '@prisma/client'
+
 
 interface CarCardFormProps {
     onSubmit: (data: VehicleCardInput) => Promise<void>

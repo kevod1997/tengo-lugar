@@ -1,13 +1,16 @@
 'use server'
 
+import { headers } from "next/headers";
+
+import { auth } from "@/lib/auth";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { FileInput, uploadDocuments } from "@/lib/file/upload-documents";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";;
+import type { FileInput} from "@/lib/file/upload-documents";
+import { uploadDocuments } from "@/lib/file/upload-documents";
+;
+import prisma from "@/lib/prisma";
 import { s3Service } from "@/lib/s3/s3";
 import { splitFullName } from "@/utils/format/user-formatter";
-import prisma from "@/lib/prisma";
 
 //la imagen es publica por eso usamos frontFileUrl
 

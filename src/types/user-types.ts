@@ -1,4 +1,4 @@
-import { CardType, FileType, FuelType, Gender, VerificationStatus } from "@prisma/client"
+import type { CardType, FileType, FuelType, Gender, VerificationStatus } from "@prisma/client"
 
 interface CarInsurance {
   status: VerificationStatus | null;

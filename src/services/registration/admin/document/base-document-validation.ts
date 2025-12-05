@@ -1,8 +1,8 @@
 import { ApiHandler } from '@/lib/api-handler';
 import { ServiceError } from '@/lib/exceptions/service-error';
-import { ApiResponse } from '@/types/api-types';
-import { BaseDocument, DocumentValidationRequest, } from '@/types/request/image-documents-validation';
-import { DocumentValidationResponse } from '@/types/response/image-documents-validation';
+import type { ApiResponse } from '@/types/api-types';
+import type { BaseDocument, DocumentValidationRequest, } from '@/types/request/image-documents-validation';
+import type { DocumentValidationResponse } from '@/types/response/image-documents-validation';
 
 export abstract class BaseDocumentValidationService {
   protected abstract getDocument(id: string): Promise<BaseDocument | null>;

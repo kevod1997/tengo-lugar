@@ -1,12 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { ExternalLink } from 'lucide-react'
 import Link from 'next/link'
-import { formatDuration } from '@/utils/format/formatDuration'
+
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { ExternalLink } from 'lucide-react'
+
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import type { RouteResponse } from '@/types/route-types'
+import type { LocationInfo, Coordinates } from '@/types/route-types'
+import { formatDuration } from '@/utils/format/formatDuration'
 import { getGoogleMapsUrl } from '@/utils/helpers/getGoogleMapsUrl'
-import { RouteResponse } from '@/types/route-types'
-import { LocationInfo, Coordinates } from '@/types/route-types'
 
 interface RouteInfoCardProps {
   routeInfo: RouteResponse

@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+
+import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+
 import { toggleFuelPriceStatus } from '@/actions/fuel-price/toggle-fuel-price-status'
-import { FuelPriceListItem, fuelTypeLabels } from '@/types/fuel-price'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,8 +16,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import type { FuelPriceListItem} from '@/types/fuel-price';
+import { fuelTypeLabels } from '@/types/fuel-price'
 
 interface ToggleStatusDialogProps {
   fuelPrice: FuelPriceListItem

@@ -1,13 +1,18 @@
 import { Suspense } from 'react'
+
+import { TicketStatus } from '@prisma/client'
+
 import { getAllTickets } from '@/actions/support/get-all-tickets'
-import { TicketMetrics } from './components/TicketMetrics'
+import Header from '@/components/header/header'
+
 import { TicketFilters } from './components/TicketFilters'
+import { TicketMetrics } from './components/TicketMetrics'
 import { TicketTable } from './components/TicketTable'
-import { Pagination } from '../usuarios/components/Pagination'
 import { DashboardHeader } from '../usuarios/components/DashboardHeader'
 import { DashboardShell } from '../usuarios/components/DashboardShell'
-import Header from '@/components/header/header'
-import { TicketStatus, TicketCategory } from '@prisma/client'
+import { Pagination } from '../usuarios/components/Pagination'
+
+import type { TicketCategory } from '@prisma/client';
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

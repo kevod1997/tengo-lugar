@@ -1,16 +1,25 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Calendar, User, Mail, Phone, CheckCircle2, Clock } from "lucide-react"
+import { useState } from "react"
+
+import { useRouter } from "next/navigation"
+
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { assignTicketToSelf } from "@/actions/support/resolve-ticket"
+import { Calendar, User, Mail, Phone, CheckCircle2, Clock } from "lucide-react"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+
+import { assignTicketToSelf } from "@/actions/support/resolve-ticket"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+
+
+
+
+
+
 import type { TicketStatus, TicketCategory } from "@prisma/client"
 
 interface TicketDetailCardProps {

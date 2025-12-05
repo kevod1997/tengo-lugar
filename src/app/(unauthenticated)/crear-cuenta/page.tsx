@@ -1,5 +1,20 @@
 "use client";
 
+import { useState } from "react";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { FaFacebook, FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
+
+import Header from "@/components/header/header";
+import LoadingButton from "@/components/loader/loading-button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Form,
@@ -10,25 +25,15 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import Image from "next/image";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useState } from "react";
+import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
 import { signUpSchema } from "@/schemas/validation/auth-schemas";
-import { toast } from "sonner";
-import LoadingButton from "@/components/loader/loading-button";
-import { useRouter } from "next/navigation";
 import { LoggingService } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import Header from "@/components/header/header";
-import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
-import { FaFacebook, FaGoogle } from "react-icons/fa";
-import { Separator } from "@/components/ui/separator";
-import { ErrorContext } from "better-auth/react";
+
+
+import type { ErrorContext } from "better-auth/react";
+import type { z } from "zod";
 
 
 export default function SignUp() {

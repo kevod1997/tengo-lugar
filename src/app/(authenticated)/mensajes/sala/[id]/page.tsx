@@ -1,13 +1,16 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+
 import { useParams, useSearchParams } from 'next/navigation';
-import { authClient } from '@/lib/auth-client';
-import Header from '@/components/header/header';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+
 import { Send, MessageSquareDashed, AlertCircle } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+
+import Header from '@/components/header/header';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { authClient } from '@/lib/auth-client';
 
 // Asegúrate que estas variables de entorno estén disponibles en el cliente (prefijo NEXT_PUBLIC_)
 const NEXT_PUBLIC_CHAT_WEBSOCKET_URL = process.env.NEXT_PUBLIC_CHAT_WEBSOCKET_URL;

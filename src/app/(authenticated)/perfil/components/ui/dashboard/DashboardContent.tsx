@@ -1,22 +1,25 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useUserStore } from '@/store/user-store'
+
+import { AlertTriangle } from 'lucide-react'
+import { toast } from 'sonner'
+
 import { Button } from "@/components/ui/button"
-import { StepId } from '@/types/registration-types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import RegistrationFlow from '../registration/registration-flow'
-import { VerificationTab } from './VerificationTab'
+import { useApiResponse } from '@/hooks/ui/useApiResponse'
+import { authClient } from '@/lib/auth-client'
+import { useUserStore } from '@/store/user-store'
+import type { StepId } from '@/types/registration-types'
+import { splitFullName } from '@/utils/format/user-formatter'
+import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
+
 import { DriverTab } from './DriverTab'
 import { ProfileCard } from './ProfileCard'
-import { AlertTriangle } from 'lucide-react'
 import { VerificationAlert } from './VerificationAlert'
-import { useApiResponse } from '@/hooks/ui/useApiResponse'
-import { handleProfileImageUpload } from '@/utils/helpers/profile/profile-image-handler'
-import { toast } from 'sonner'
-import { authClient } from '@/lib/auth-client'
-import { splitFullName } from '@/utils/format/user-formatter'
+import { VerificationTab } from './VerificationTab'
+import RegistrationFlow from '../registration/registration-flow'
 
 type RegistrationMode = null | 'initial' | 'identity' | 'driver';
 

@@ -1,7 +1,9 @@
 // src/app/(admin)/admin/pagos-conductores/components/DriverPayoutStatusBadge.tsx
+
 import { Badge } from "@/components/ui/badge";
-import { PayoutStatus } from "@prisma/client";
 import { PAYOUT_STATUS_CONFIG } from "@/types/driver-payout";
+
+import type { PayoutStatus } from "@prisma/client";
 
 interface DriverPayoutStatusBadgeProps {
   status: PayoutStatus;

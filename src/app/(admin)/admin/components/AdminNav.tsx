@@ -1,8 +1,9 @@
 "use client"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { BarChart3, Users, FileText, Settings, Bell, LifeBuoy, CreditCard, Wallet, HandCoins } from 'lucide-react'
+
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface NavItem {
   title: string

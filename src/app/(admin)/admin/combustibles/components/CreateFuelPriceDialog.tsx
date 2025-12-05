@@ -1,17 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createFuelPriceSchema, CreateFuelPriceInput } from '@/schemas/validation/fuel-price-schema'
+import { Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+
 import { createFuelPrice } from '@/actions/fuel-price/create-fuel-price'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { createFuelPriceSchema } from '@/schemas/validation/fuel-price-schema'
+import type { CreateFuelPriceInput } from '@/schemas/validation/fuel-price-schema';
 import { fuelTypeLabels } from '@/types/fuel-price'
 
 interface CreateFuelPriceDialogProps {

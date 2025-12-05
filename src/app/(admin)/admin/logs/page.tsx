@@ -1,7 +1,9 @@
 import { Suspense } from 'react'
-import Header from '@/components/header/header'
-import { ErrorLogTable } from './components/error-log-table'
+
 import { fetchErrorLogs } from '@/actions/logs/error-logs'
+import Header from '@/components/header/header'
+
+import { ErrorLogTable } from './components/error-log-table'
 
 export const dynamic = 'force-dynamic'
 

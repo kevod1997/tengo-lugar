@@ -1,19 +1,24 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+
 import { zodResolver } from '@hookform/resolvers/zod'
-import { updateFuelPriceSchema, UpdateFuelPriceInput } from '@/schemas/validation/fuel-price-schema'
+import { Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+
 import { updateFuelPrice } from '@/actions/fuel-price/update-fuel-price'
-import { FuelPriceListItem, fuelTypeLabels } from '@/types/fuel-price'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import type { UpdateFuelPriceInput } from '@/schemas/validation/fuel-price-schema';
+import { updateFuelPriceSchema } from '@/schemas/validation/fuel-price-schema'
+import type { FuelPriceListItem} from '@/types/fuel-price';
+import { fuelTypeLabels } from '@/types/fuel-price'
+
 
 interface EditFuelPriceDialogProps {
   fuelPrice: FuelPriceListItem

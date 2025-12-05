@@ -1,14 +1,18 @@
 import { Suspense } from 'react'
-import { Metadata } from 'next'
+
+
+import { getFuelPrices } from '@/actions/fuel-price/get-fuel-prices'
 import Header from '@/components/header/header'
+
+import { CreateFuelPriceButton } from './components/CreateFuelPriceButton'
+import { FuelPriceFilters } from './components/FuelPriceFilters'
+import { FuelPriceTable } from './components/FuelPriceTable'
+import Loading from './loading'
 import { DashboardShell } from '../usuarios/components/DashboardShell'
 import { Pagination } from '../usuarios/components/Pagination'
-import { FuelPriceTable } from './components/FuelPriceTable'
-import { FuelPriceFilters } from './components/FuelPriceFilters'
-import { CreateFuelPriceButton } from './components/CreateFuelPriceButton'
-import Loading from './loading'
-import { getFuelPrices } from '@/actions/fuel-price/get-fuel-prices'
-import { FuelType } from '@prisma/client'
+
+import type { FuelType } from '@prisma/client'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

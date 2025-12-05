@@ -1,10 +1,12 @@
 // src/actions/driver-payout/calculate-driver-payout.ts
 'use server'
 
-import prisma from "@/lib/prisma";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { DriverPayoutCalculation } from "@/types/driver-payout";
 import { PaymentStatus, ReservationStatus } from "@prisma/client";
+
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
+import type { DriverPayoutCalculation } from "@/types/driver-payout";
+
 
 /**
  * Calculates the payout amount for a driver based on trip data

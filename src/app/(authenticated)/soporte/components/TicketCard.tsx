@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ChevronDown, ChevronUp, FileText, CreditCard, UserCircle, HelpCircle, Clock, CheckCircle2, Calendar } from 'lucide-react'
+
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { ChevronDown, ChevronUp, FileText, CreditCard, UserCircle, HelpCircle, Clock, CheckCircle2, Calendar } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
 type TicketStatus = 'OPEN' | 'RESOLVED'

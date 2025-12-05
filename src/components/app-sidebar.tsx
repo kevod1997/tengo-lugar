@@ -1,8 +1,10 @@
 'use client'
 
 import * as React from "react"
+
 import Image from "next/image"
 import Link from "next/link"
+
 import { NavMain } from "@/components/nav-main"
 import {
   Sidebar,
@@ -13,6 +15,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import type { NavItem } from '@/types/navigation-types';
+
 import { NavUser } from "./nav-user"
 
 export const AppSidebar = React.memo(function AppSidebar({

@@ -1,5 +1,6 @@
-import { ApiResponse } from '@/types/api-types';
 import { toast } from 'sonner';
+
+import type { ApiResponse } from '@/types/api-types';
 
 export function useApiResponse() {
   const handleResponse = <T>(response: ApiResponse<T>) => {

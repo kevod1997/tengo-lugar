@@ -1,11 +1,13 @@
 'use server'
 
+import { headers } from "next/headers";
+
+import { auth } from "@/lib/auth";
+import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import prisma from "@/lib/prisma";
 import { formatUserResponse } from "@/utils/format/user-formatter";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+
 
 export async function getUserById(userId?: string) {
 

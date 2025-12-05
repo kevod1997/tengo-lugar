@@ -1,10 +1,12 @@
 'use server'
 
-import { auth, Session } from "@/lib/auth"
 import { headers } from "next/headers"
-import prisma from "@/lib/prisma"
+
 import { ApiHandler } from "@/lib/api-handler"
+import type { Session } from "@/lib/auth";
+import { auth } from "@/lib/auth"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
+import prisma from "@/lib/prisma"
 import { logActionWithErrorHandling } from "@/services/logging/logging-service"
 import { TipoAccionUsuario } from "@/types/actions-logs"
 

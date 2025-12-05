@@ -1,6 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { Loader2, CalendarIcon, CheckCircle } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { completeDriverPayout } from '@/actions/driver-payout/complete-driver-payout'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
   Dialog,
   DialogContent,
@@ -9,18 +18,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Loader2, CalendarIcon, CheckCircle } from 'lucide-react'
-import { completeDriverPayout } from '@/actions/driver-payout/complete-driver-payout'
-import { toast } from 'sonner'
-import { DriverPayoutProofUploader } from './DriverPayoutProofUploader'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+
+import { DriverPayoutProofUploader } from './DriverPayoutProofUploader'
+
 
 interface CompletePayoutDialogProps {
   payoutId: string

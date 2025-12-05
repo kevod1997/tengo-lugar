@@ -2,6 +2,35 @@
 'use client'
 
 import { useState } from 'react'
+
+import { useRouter } from 'next/navigation'
+
+import {
+  User,
+  MessageSquare,
+  Check,
+  X,
+  AlertCircle,
+  Calendar,
+  Clock
+} from 'lucide-react'
+import { toast } from 'sonner'
+
+import { managePassenger } from '@/actions/trip/manage-passenger'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { 
   Card, 
   CardContent, 
@@ -16,33 +45,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import {
-  User,
-  MessageSquare,
-  Check,
-  X,
-  AlertCircle,
-  Calendar,
-  Clock
-} from 'lucide-react'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { formatDatetoLocaleDateString } from '@/utils/format/formatDate'
-import { managePassenger } from '@/actions/trip/manage-passenger'
 
 type PassengersListProps = {
   trip: any

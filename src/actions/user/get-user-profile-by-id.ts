@@ -1,10 +1,12 @@
 // src/actions/user/get-user-profile.ts
 'use server'
 
-import prisma from "@/lib/prisma";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { splitFullName } from "@/utils/format/user-formatter";
 import { VerificationStatus } from "@prisma/client";
+
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
+import { splitFullName } from "@/utils/format/user-formatter";
+
 
 export interface UserProfileData {
   id: string;

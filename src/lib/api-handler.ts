@@ -1,10 +1,11 @@
-import { ApiResponse } from "@/types/api-types";
-import { ServiceError } from "./exceptions/service-error";
-import { ServerActionError } from "./exceptions/server-action-error";
-import { BaseError } from "./exceptions/base-error";
-import { AuxiliaryError } from "./exceptions/auxiliary-error";
-import { S3ServiceError } from "./exceptions/s3-service-error";
 import { logError } from "@/services/logging/logging-service";
+import type { ApiResponse } from "@/types/api-types";
+
+import { AuxiliaryError } from "./exceptions/auxiliary-error";
+import { BaseError } from "./exceptions/base-error";
+import { S3ServiceError } from "./exceptions/s3-service-error";
+import { ServerActionError } from "./exceptions/server-action-error";
+import { ServiceError } from "./exceptions/service-error";
 
 export class ApiHandler {
     static handleSuccess<T>(data: T, message?: string): ApiResponse<T> {

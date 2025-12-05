@@ -1,8 +1,10 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+
+import type { DriverPayoutWithDetails } from '@/types/driver-payout'
+
 import { DriverPayoutTable } from './DriverPayoutTable'
-import { DriverPayoutWithDetails } from '@/types/driver-payout'
 
 interface DriverPayoutTableWrapperProps {
   payouts: DriverPayoutWithDetails[]

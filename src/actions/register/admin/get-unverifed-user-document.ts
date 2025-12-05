@@ -4,7 +4,7 @@ import { ApiHandler } from "@/lib/api-handler";
 import { ServiceError } from "@/lib/exceptions/service-error";
 import prisma from "@/lib/prisma";
 import { AdminDocumentService } from "@/services/registration/admin/user-service";
-import { ApiResponse } from "@/types/api-types";
+import type { ApiResponse } from "@/types/api-types";
 
 export async function getUserDocuments(userId: string): Promise<ApiResponse<any>> {
   try {

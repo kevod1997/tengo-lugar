@@ -1,15 +1,20 @@
+import { headers } from 'next/headers'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+
+import { ArrowLeft } from 'lucide-react'
+
 import { getTicketDetailAdmin } from '@/actions/support/get-all-tickets'
-import { TicketDetailCard } from './components/TicketDetailCard'
-import { ResolveTicketForm } from './components/ResolveTicketForm'
-import { DashboardHeader } from '../../usuarios/components/DashboardHeader'
-import { DashboardShell } from '../../usuarios/components/DashboardShell'
 import Header from '@/components/header/header'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
 import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
+
+import { ResolveTicketForm } from './components/ResolveTicketForm'
+import { TicketDetailCard } from './components/TicketDetailCard'
+import { DashboardHeader } from '../../usuarios/components/DashboardHeader'
+import { DashboardShell } from '../../usuarios/components/DashboardShell'
+
+
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0

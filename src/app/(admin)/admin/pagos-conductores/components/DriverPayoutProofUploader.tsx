@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { Upload, FileText, Image as ImageIcon, X, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { uploadDriverPayoutProof } from '@/actions/driver-payout/upload-driver-payout-proof'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+
 import Image from 'next/image'
+
+import { Upload, FileText, Image as ImageIcon, X, Loader2 } from 'lucide-react'
+import { useDropzone } from 'react-dropzone'
+import { toast } from 'sonner'
+
+import { uploadDriverPayoutProof } from '@/actions/driver-payout/upload-driver-payout-proof'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
 
 interface DriverPayoutProofUploaderProps {
   payoutId: string

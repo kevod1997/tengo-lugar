@@ -1,17 +1,23 @@
 'use client'
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { useState } from "react"
+
+import { useRouter } from "next/navigation"
+
 import { 
   AlertTriangle, 
   RefreshCw, 
   Home, 
   Mail, 
 } from "lucide-react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+
+
+
 
 interface TechnicalProblemsPageProps {
   reason?: string

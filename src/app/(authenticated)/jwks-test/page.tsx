@@ -2,9 +2,11 @@
 'use client';
 
 import { useState } from 'react';
+
+import { useRouter } from 'next/navigation';
+
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
 
 export default function JwksTestPage() {
   const [jwksData, setJwksData] = useState<any>(null);

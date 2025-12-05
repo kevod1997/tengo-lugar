@@ -1,15 +1,19 @@
-import { getFuels } from '@/actions/fuel/get-fuels'
-import RouteCalculator from './components/RouteCalculator'
-import Header from '@/components/header/header'
-import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
+import { AlertTriangle } from 'lucide-react';
+
 import { getDriverEligibility } from '@/actions/driver/driver-eligibility';
 import { getEnabledDriverCars } from '@/actions/driver/get-driver-cars';
+import { getFuels } from '@/actions/fuel/get-fuels'
+import Header from '@/components/header/header'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { auth } from '@/lib/auth';
+
+import RouteCalculator from './components/RouteCalculator'
+
 
 export default async function RouteSimulatorPage() {
   const session = await auth.api.getSession({

@@ -1,5 +1,5 @@
 // src/utils/helpers/payment/payment-helpers.ts
-import { PaymentStatus } from "@prisma/client";
+import type { PaymentStatus } from "@prisma/client";
 
 /**
  * Obtener texto legible del estado de pago

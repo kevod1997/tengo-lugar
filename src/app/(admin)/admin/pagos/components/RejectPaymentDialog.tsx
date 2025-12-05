@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+
+import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { rejectPayment } from '@/actions/payment/reject-payment'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,12 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Loader2 } from 'lucide-react'
-import { rejectPayment } from '@/actions/payment/reject-payment'
-import { toast } from 'sonner'
+import { Textarea } from '@/components/ui/textarea'
+
+
+
 
 interface RejectPaymentDialogProps {
   paymentId: string

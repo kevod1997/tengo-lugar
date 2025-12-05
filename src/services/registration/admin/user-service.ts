@@ -1,7 +1,7 @@
 import { ApiHandler } from '@/lib/api-handler';
 import { StorageService } from '@/lib/s3/storage';
-import { ApiResponse } from '@/types/api-types';
-import { UserCar } from '@/types/user-types';
+import type { ApiResponse } from '@/types/api-types';
+import type { UserCar } from '@/types/user-types';
 
 export type DocumentUrls = {
   front?: string | null;

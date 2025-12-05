@@ -1,14 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { BankAccountForAdmin } from '@/actions/admin/bank-account/get-bank-accounts'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CheckCircle, Wallet } from 'lucide-react'
-import { VerifyBankAccountDialog } from './VerifyBankAccountDialog'
+
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { CheckCircle, Wallet } from 'lucide-react'
+
+import type { BankAccountForAdmin } from '@/actions/admin/bank-account/get-bank-accounts'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
+import { VerifyBankAccountDialog } from './VerifyBankAccountDialog'
+
 
 interface BankAccountTableProps {
   bankAccounts: BankAccountForAdmin[]

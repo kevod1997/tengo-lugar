@@ -1,12 +1,15 @@
 "use client"
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
+
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { Eye } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
 import type { TicketStatus, TicketCategory } from "@prisma/client"
 
 interface TicketTableProps {

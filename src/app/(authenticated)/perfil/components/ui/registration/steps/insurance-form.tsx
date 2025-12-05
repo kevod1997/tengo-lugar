@@ -1,19 +1,22 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowRight, AlertTriangle } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+
+import Loading from '@/app/loading'
+import { DocumentUpload } from '@/components/document-upload/DocumentUpload'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, AlertTriangle } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { InsuranceInput, insuranceSchema } from '@/schemas/validation/insurance-schema'
-import { DocumentUpload } from '@/components/document-upload/DocumentUpload'
-import Loading from '@/app/loading'
 import { ACCEPTED_FILE_TYPES, MAX_FILE_SIZE } from '@/config/constants'
 import { useInsuranceStore } from '@/hooks/registration/useInsuranceCompanies'
+import type { InsuranceInput} from '@/schemas/validation/insurance-schema';
+import { insuranceSchema } from '@/schemas/validation/insurance-schema'
 import { useUserStore } from '@/store/user-store'
 
 interface InsuranceFormProps {

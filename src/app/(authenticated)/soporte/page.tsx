@@ -1,9 +1,11 @@
+import { MessageCircle, TicketIcon } from 'lucide-react'
+
 import Header from '@/components/header/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 import { CreateTicketForm } from './components/CreateTicketForm'
 import { TicketList } from './components/TicketList'
-import { MessageCircle, TicketIcon } from 'lucide-react'
 
 export const metadata = {
   title: 'Centro de Soporte | Tengo Lugar',

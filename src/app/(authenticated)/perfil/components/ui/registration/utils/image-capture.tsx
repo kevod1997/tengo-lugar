@@ -1,11 +1,14 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+
 import { Camera, SwitchCamera, X, Upload } from 'lucide-react'
 import Cropper from 'react-easy-crop'
+
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+
 import { isMobileDevice } from './device-detection'
 
 interface ImageCaptureProps {

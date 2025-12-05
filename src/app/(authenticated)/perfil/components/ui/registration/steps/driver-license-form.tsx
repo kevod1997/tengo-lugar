@@ -1,21 +1,26 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+
+import Image from 'next/image'
+
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
 import { X, ArrowRight, AlertTriangle, CheckCircle2 } from "lucide-react"
+import { useForm } from 'react-hook-form'
+
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
-import { DriverLicenseInput, driverLicenseSchema } from '@/schemas'
-import { ImageCapture } from '../utils/image-capture'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import type { DriverLicenseInput} from '@/schemas';
+import { driverLicenseSchema } from '@/schemas'
 import { useUserStore } from '@/store/user-store'
-import Image from 'next/image'
+
+import { ImageCapture } from '../utils/image-capture'
 
 interface DriverLicenseFormProps {
   onSubmit: (data: DriverLicenseInput) => any

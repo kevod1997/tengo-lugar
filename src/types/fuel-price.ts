@@ -1,4 +1,4 @@
-import { FuelType } from '@prisma/client';
+import type { FuelType } from '@prisma/client';
 
 export interface FuelPriceListItem {
   id: string;

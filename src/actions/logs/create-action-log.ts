@@ -1,7 +1,7 @@
 'use server'
 
 import prisma from "@/lib/prisma"
-import { ActionLogData } from "@/services/logging/logging-service"
+import type { ActionLogData } from "@/services/logging/logging-service"
 import { getRequestMetadata } from "@/utils/helpers/logging/get-request-metadata"
 
 export async function createActionLogAction(actionData: ActionLogData) {

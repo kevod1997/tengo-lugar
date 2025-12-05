@@ -1,5 +1,8 @@
-import { useLoadingStore, LoadingOperation } from '@/store/loadingStore';
 import { toast } from 'sonner';
+
+import type { LoadingOperation } from '@/store/loadingStore';
+import { useLoadingStore } from '@/store/loadingStore';
+
 
 export function useAsyncLoading() {
   const { startLoading, stopLoading } = useLoadingStore();

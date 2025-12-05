@@ -1,14 +1,14 @@
 // src/actions/trip/complete-trip.ts
 'use server'
 
-import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
+import { TRIP_COMPLETION_CONFIG } from "@/lib/constants/trip-completion-config";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import { inngest } from "@/lib/inngest";
+import prisma from "@/lib/prisma";
 import { logActionWithErrorHandling, logError } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import { TRIP_COMPLETION_CONFIG } from "@/lib/constants/trip-completion-config";
 import { processSystemCancellation } from "@/utils/helpers/cancellation-helper";
-import { inngest } from "@/lib/inngest";
 
 export async function completeTripAction(tripId: string, isAutomated = false) {
   try {

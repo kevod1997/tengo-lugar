@@ -1,8 +1,10 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CoPassengerCard } from './CoPassengerCard'
 import { UserIcon } from 'lucide-react'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+import { CoPassengerCard } from './CoPassengerCard'
 
 interface ParticipantsSectionProps {
   coPassengers: any[]

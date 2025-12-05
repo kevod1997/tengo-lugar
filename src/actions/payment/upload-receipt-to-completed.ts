@@ -1,13 +1,13 @@
 // src/actions/payment/upload-receipt-to-completed.ts
 'use server'
 
-import prisma from "@/lib/prisma";
 import { ApiHandler } from "@/lib/api-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { requireAuthorization } from "@/utils/helpers/auth-helper";
+import prisma from "@/lib/prisma";
+import { uploadReceiptToCompletedSchema } from "@/schemas/validation/payment-schema";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import { uploadReceiptToCompletedSchema } from "@/schemas/validation/payment-schema";
+import { requireAuthorization } from "@/utils/helpers/auth-helper";
 
 export async function uploadReceiptToCompleted(paymentId: string, proofFileKey: string) {
   try {

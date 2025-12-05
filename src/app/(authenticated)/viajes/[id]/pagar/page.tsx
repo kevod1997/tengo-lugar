@@ -2,17 +2,9 @@
 'use client'
 
 import { useEffect, useState } from 'react';
+
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
+
 import {
   ArrowLeft,
   Copy,
@@ -21,7 +13,18 @@ import {
   MessageCircle,
   CheckCircle2,
 } from 'lucide-react';
+import { toast } from 'sonner';
+
 import { getPaymentDetails, type PaymentDetails } from '@/actions/payment/get-payment-details';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { PAYMENT_CONFIG, generateWhatsAppMessage, getWhatsAppUrl } from '@/lib/constants/payment-config';
 import { copyToClipboard, formatPaymentDate } from '@/utils/helpers/payment/payment-helpers';
 

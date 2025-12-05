@@ -1,16 +1,20 @@
 'use server'
 
+import { headers } from "next/headers";
+
+import { FileType } from "@prisma/client"
+import { z } from "zod"
+
+import { auth } from "@/lib/auth";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler"
 import { ServerActionError } from "@/lib/exceptions/server-action-error"
-import prisma from "@/lib/prisma"
-import { InsuranceInput, insuranceSchema } from "@/schemas/validation/insurance-schema"
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { FileType } from "@prisma/client"
 import { uploadDocuments } from "@/lib/file/upload-documents"
-import { z } from "zod"
-import { getUserById } from "../register/user/get-user"
+import prisma from "@/lib/prisma"
+import type { InsuranceInput} from "@/schemas/validation/insurance-schema";
+import { insuranceSchema } from "@/schemas/validation/insurance-schema"
 import { splitFullName } from "@/utils/format/user-formatter"
+
+import { getUserById } from "../register/user/get-user"
 
 export async function submitInsuranceInfo(userId: string, insuranceInfo: InsuranceInput) {
     try {

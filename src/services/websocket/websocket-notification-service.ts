@@ -1,13 +1,13 @@
 'use client';
 
-import { ServiceError } from '@/lib/exceptions/service-error';
-import { getCachedAccessToken, refreshCachedAccessToken } from '@/actions/websocket/websocket-token-cache';
 import { getUserId } from '@/actions/websocket/get-user-id';
+import { getCachedAccessToken, refreshCachedAccessToken } from '@/actions/websocket/websocket-token-cache';
+import { ServiceError } from '@/lib/exceptions/service-error';
 
 const WEBSOCKET_SERVER_URL = process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8080';
 
 // Types for WebSocket messages
-import { WebSocketNotificationPayload } from '@/types/notification-types';
+import type { WebSocketNotificationPayload } from '@/types/notification-types';
 
 interface WebSocketMessage {
   type: string;

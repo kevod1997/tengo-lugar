@@ -1,9 +1,11 @@
 'use server'
 
-import prisma from "@/lib/prisma";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+
+import { auth } from "@/lib/auth";
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
+
 
 export async function getTripById(tripId: string) {
   try {

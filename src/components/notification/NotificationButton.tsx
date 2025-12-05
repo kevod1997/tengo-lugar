@@ -1,7 +1,11 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+
 import { Bell, BellRing } from 'lucide-react'
+
+import { useAuth } from '@/components/providers/AuthSessionProvider'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -11,10 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
-import { useWebSocket } from '@/hooks/websocket/useWebSocket'
 import { useNotifications } from '@/hooks/notifications/useNotifications'
-import { useAuth } from '@/components/providers/AuthSessionProvider'
+import { useWebSocket } from '@/hooks/websocket/useWebSocket'
 
 interface NotificationButtonProps {
   className?: string

@@ -1,9 +1,10 @@
 'use server'
 
+import { Prisma } from "@prisma/client";
+
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import prisma from "@/lib/prisma";
 import { formatUserForAdminDashboard } from "@/utils/format/user-formatter";
-import { Prisma } from "@prisma/client";
 
 type GetUsersParams = {
   page?: number;

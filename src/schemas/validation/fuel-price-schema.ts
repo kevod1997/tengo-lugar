@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { FuelType } from '@prisma/client';
+import { z } from 'zod';
 
 export const createFuelPriceSchema = z.object({
   name: z.string()

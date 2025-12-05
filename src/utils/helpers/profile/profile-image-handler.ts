@@ -1,8 +1,9 @@
-import { ProfileService } from "@/services/profile/profile-service"
-import { FormattedUser } from "@/types/user-types"
-import { ApiResponse } from "@/types/api-types"
 import { toast } from "sonner"
+
 import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from "@/config/constants"
+import { ProfileService } from "@/services/profile/profile-service"
+import type { ApiResponse } from "@/types/api-types"
+import type { FormattedUser } from "@/types/user-types"
 
 
 interface ValidationResult {

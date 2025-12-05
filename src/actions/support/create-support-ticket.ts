@@ -1,14 +1,14 @@
 'use server'
 
-import { requireAuthentication } from "@/utils/helpers/auth-helper";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { ApiHandler } from "@/lib/api-handler";
-import { logActionWithErrorHandling } from "@/services/logging/logging-service";
-import { TipoAccionUsuario } from "@/types/actions-logs";
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import prisma from "@/lib/prisma";
 import { createTicketSchema, type CreateTicketInput } from "@/schemas/validation/support-ticket-schema";
-import { generateTicketNumber } from "@/utils/helpers/ticket-helpers";
+import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { notificationService } from "@/services/notifications/notification-service";
+import { TipoAccionUsuario } from "@/types/actions-logs";
+import { requireAuthentication } from "@/utils/helpers/auth-helper";
+import { generateTicketNumber } from "@/utils/helpers/ticket-helpers";
 
 /**
  * Crea un ticket de soporte

@@ -1,7 +1,9 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
+
+import { usePathname, useSearchParams } from 'next/navigation'
+
 import { Progress } from './ui/progress'
 
 function NavigationProgressContent() {

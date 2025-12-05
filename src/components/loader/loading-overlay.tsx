@@ -19,7 +19,9 @@
 // ✅ LoadingOverlay.tsx - Optimizado para LoadingStore
 'use client'
 
-import { useLoadingStore, LoadingOperation } from '@/store/loadingStore'
+import type { LoadingOperation } from '@/store/loadingStore';
+import { useLoadingStore } from '@/store/loadingStore'
+
 import { Spinner } from "./spinner"
 
 interface LoadingOverlayProps {

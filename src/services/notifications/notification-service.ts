@@ -1,11 +1,12 @@
-import { NotificationRepository } from "./notification-repository"
-import { 
+import { ServiceError } from "@/lib/exceptions/service-error"
+import type { 
   TargetedNotificationData, 
   NotificationResult, 
   WebSocketNotificationPayload,
   NotificationTargeting 
 } from "@/types/notification-types"
-import { ServiceError } from "@/lib/exceptions/service-error"
+
+import { NotificationRepository } from "./notification-repository"
 
 export class NotificationService {
   private repository: NotificationRepository

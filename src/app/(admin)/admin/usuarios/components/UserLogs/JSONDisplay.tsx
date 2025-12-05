@@ -1,9 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Button } from "@/components/ui/button"
+
 import { ChevronDown, ChevronUp } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+
 import type { JsonValue } from "@prisma/client/runtime/library"
 
 interface JSONDisplayProps {

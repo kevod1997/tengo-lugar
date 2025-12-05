@@ -1,12 +1,13 @@
 'use server'
 
-import { requireAuthentication } from "@/utils/helpers/auth-helper";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { ApiHandler } from "@/lib/api-handler";
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
+import type { BankAccountFormData } from "@/schemas/validation/bank-account-schema";
+import { bankAccountSchema } from "@/schemas/validation/bank-account-schema";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import prisma from "@/lib/prisma";
-import { bankAccountSchema, BankAccountFormData } from "@/schemas/validation/bank-account-schema";
+import { requireAuthentication } from "@/utils/helpers/auth-helper";
 
 /**
  * Obtiene la cuenta bancaria del usuario autenticado

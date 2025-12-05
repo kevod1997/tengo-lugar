@@ -1,8 +1,8 @@
 'use server'
 
-import { requireAuthentication } from "@/utils/helpers/auth-helper";
 import { ApiHandler } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
+import { requireAuthentication } from "@/utils/helpers/auth-helper";
 
 /**
  * Obtiene todos los tickets de soporte del usuario autenticado

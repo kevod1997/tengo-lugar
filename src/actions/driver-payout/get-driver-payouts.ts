@@ -1,13 +1,14 @@
 // src/actions/driver-payout/get-driver-payouts.ts
 'use server'
 
-import prisma from "@/lib/prisma";
+import { PayoutStatus } from "@prisma/client";
+
 import { ApiHandler } from "@/lib/api-handler";
-import { requireAuthorization } from "@/utils/helpers/auth-helper";
+import prisma from "@/lib/prisma";
 import { logActionWithErrorHandling } from "@/services/logging/logging-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
-import { PayoutStatus } from "@prisma/client";
-import { GetDriverPayoutsParams, GetDriverPayoutsResponse, DriverPayoutWithDetails } from "@/types/driver-payout";
+import type { GetDriverPayoutsParams, GetDriverPayoutsResponse, DriverPayoutWithDetails } from "@/types/driver-payout";
+import { requireAuthorization } from "@/utils/helpers/auth-helper";
 
 /**
  * Retrieves driver payouts with filtering and pagination

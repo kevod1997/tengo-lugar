@@ -1,6 +1,10 @@
 // // components/nav-user.tsx
 "use client"
 
+import React, { useMemo, useCallback } from "react"
+
+import Link from "next/link"
+
 import {
   ChevronsUpDown,
   LogOut,
@@ -12,7 +16,9 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,17 +35,17 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useUserStore } from "@/store/user-store"
 import { authClient } from "@/lib/auth-client"
 import { LoggingService } from "@/services/logging/logging-service"
+import { useLoadingStore } from "@/store/loadingStore"
+import { useUserStore } from "@/store/user-store"
 import { TipoAccionUsuario } from "@/types/actions-logs"
 import { splitFullName } from "@/utils/format/user-formatter"
-import Link from "next/link"
+
 import { NavUserSkeletonClient } from "./nav-skeleton"
-import { useLoadingStore } from "@/store/loadingStore"
-import React, { useMemo, useCallback } from "react"
+
+
 
 export const NavUser = React.memo(function NavUser({ open, initialSession }: { open: boolean, initialSession: any }) {
   const { isLoading, startLoading, stopLoading } = useLoadingStore()

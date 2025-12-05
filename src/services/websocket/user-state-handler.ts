@@ -1,8 +1,10 @@
 'use client'
 
-import { VerificationStatus } from "@prisma/client"
-import { eventType } from "@/types/websocket-events"
-import { UserCarForStore } from "@/types/user-types"
+
+import type { UserCarForStore } from "@/types/user-types"
+import type { eventType } from "@/types/websocket-events"
+
+import type { VerificationStatus } from "@prisma/client"
 
 /**
  * Helper function to recalculate aggregated fields based on updated cars array

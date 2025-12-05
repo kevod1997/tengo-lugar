@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+
+import { Loader2, CheckCircle } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { approvePayment } from '@/actions/payment/approve-payment'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,10 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Loader2, CheckCircle } from 'lucide-react'
-import { approvePayment } from '@/actions/payment/approve-payment'
-import { toast } from 'sonner'
+
 import { PaymentProofUploader } from './PaymentProofUploader'
 
 interface ApprovePaymentDialogProps {

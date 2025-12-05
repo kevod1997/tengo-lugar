@@ -1,4 +1,4 @@
-import { FormattedUser } from "@/types/user-types";
+import type { FormattedUser } from "@/types/user-types";
 
 interface DriverRegistrationState {
   isButtonDisabled: boolean;

@@ -1,7 +1,10 @@
 import { useState } from "react"
+
 import Image from "next/image"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+
 import { X } from "lucide-react"
+
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 
 interface ExpandableAvatarProps {
   imageUrl?: string

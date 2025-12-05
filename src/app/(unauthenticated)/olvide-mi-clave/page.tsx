@@ -1,6 +1,13 @@
 "use client";
 
 import { useState } from "react";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import Header from "@/components/header/header";
+import LoadingButton from "@/components/loader/loading-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Form,
@@ -11,14 +18,10 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import LoadingButton from "@/components/loader/loading-button";
-import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { forgotPasswordSchema } from "@/schemas/validation/auth-schemas";
-import Header from "@/components/header/header";
+
+import type { z } from "zod";
 
 
 export default function ForgotPassword() {

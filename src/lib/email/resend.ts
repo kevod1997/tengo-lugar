@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+
 import { ServiceError } from "../exceptions/service-error";
 
 export interface SendEmailParams {

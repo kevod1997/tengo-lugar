@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
 import { AlertCircle } from 'lucide-react'
+
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -10,8 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { FormattedUser } from '@/types/user-types'
+import type { FormattedUser } from '@/types/user-types'
 
 interface VerificationAlertProps {
   user: FormattedUser

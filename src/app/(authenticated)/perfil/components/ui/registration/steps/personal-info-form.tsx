@@ -1,22 +1,26 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowRight } from 'lucide-react'
+import { useForm, Controller } from 'react-hook-form'
+import { toast } from 'sonner'
+
+import { PhoneVerification } from '@/components/phone-verification/PhoneVerification'
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
-import { ArrowRight } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useUserStore } from '@/store/user-store'
-import { userSchema } from '@/schemas'
-import { PhoneVerification } from '@/components/phone-verification/PhoneVerification'
-import { toast } from 'sonner'
-import { formatNumberForWhatsApp } from '@/utils/format/format-whatsapp-phone'
-import { CountryCode } from 'libphonenumber-js'
 import { authClient } from '@/lib/auth-client'
+import { userSchema } from '@/schemas'
+import { useUserStore } from '@/store/user-store'
+import { formatNumberForWhatsApp } from '@/utils/format/format-whatsapp-phone'
 import { splitFullName } from '@/utils/format/user-formatter'
+
+import type { CountryCode } from 'libphonenumber-js'
+
 
 interface PersonalInfoFormProps {
   data?: {
