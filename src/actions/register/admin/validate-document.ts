@@ -13,7 +13,7 @@ import { InsuranceValidationService } from "@/services/registration/admin/docume
 import { LicenceValidationService } from "@/services/registration/admin/document/licence-validation-service";
 import { TipoAccionUsuario } from "@/types/actions-logs";
 import type { DocumentValidationRequest } from "@/types/request/image-documents-validation";
-import type { eventType } from "@/types/websocket-events";
+import type { EventType } from "@/types/websocket-events";
 import { requireAuthorization } from "@/utils/helpers/auth-helper";
 
 const identityService = new IdentityValidationService();
@@ -50,8 +50,8 @@ function translateDocumentStatus(status: string): string {
   }
 }
 
-function getEventTypeFromDocumentValidation(documentType: string, status: 'VERIFIED' | 'FAILED'): eventType | undefined {
-  const eventMap: Record<string, eventType> = {
+function getEventTypeFromDocumentValidation(documentType: string, status: 'VERIFIED' | 'FAILED'): EventType | undefined {
+  const eventMap: Record<string, EventType> = {
     'IDENTITY_VERIFIED': 'identity_card_verified',
     'IDENTITY_FAILED': 'identity_card_rejected',
     'LICENCE_VERIFIED': 'license_verified',
@@ -157,7 +157,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
     const status: 'VERIFIED' | 'FAILED' =
       validateDocumentResult.data?.status as 'VERIFIED' | 'FAILED';
 
-    const eventType = getEventTypeFromDocumentValidation(
+    const EventType = getEventTypeFromDocumentValidation(
       request.documentType,
       status
     );
@@ -174,7 +174,7 @@ export async function validateDocument(request: DocumentValidationRequest, userE
     userId,
     'Verificación de Documento',
     `${translateDocumentType(request.documentType)}: ${translateDocumentStatus(validateDocumentResult.data?.status || '')}.`,
-    eventType ?? undefined,
+    EventType ?? undefined,
     undefined,
     additionalData ?? undefined
   );

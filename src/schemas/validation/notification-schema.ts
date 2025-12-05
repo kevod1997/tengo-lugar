@@ -1,7 +1,7 @@
 import { z } from "zod"
 
-// Create a Zod enum for eventType validation
-const eventTypeValues = [
+// Create a Zod enum for EventType validation
+const EventTypeValues = [
   // Document Verification Events
   'identity_card_verified',
   'identity_card_rejected',
@@ -51,12 +51,12 @@ const eventTypeValues = [
   'notification_created'
 ] as const
 
-const eventTypeSchema = z.enum(eventTypeValues)
+const EventTypeSchema = z.enum(EventTypeValues)
 
 export const sendTargetedNotificationSchema = z.object({
   title: z.string().min(1, 'Título requerido').max(200, 'Título muy largo'),
   message: z.string().min(1, 'Mensaje requerido'),
-  eventType: eventTypeSchema.optional(), // Optional eventType for user store updates
+  EventType: EventTypeSchema.optional(), // Optional EventType for user store updates
   link: z.string().optional().or(z.literal('')),
   additionalData: z.any().optional(),
   // Targeting options (only one should be provided)
@@ -78,7 +78,7 @@ export const notificationRoleSchema = z.enum(['driver', 'passenger', 'admin'])
 export const basicNotificationSchema = z.object({
   title: z.string().min(1, 'Título requerido').max(200, 'Título muy largo'),
   message: z.string().min(1, 'Mensaje requerido'),
-  eventType: eventTypeSchema.optional(),
+  EventType: EventTypeSchema.optional(),
   link: z.string().optional().or(z.literal('')),
   additionalData: z.any().optional()
 })

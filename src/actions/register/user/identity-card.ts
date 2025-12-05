@@ -1,21 +1,20 @@
 'use server'
 
-import type { IdentityCardInput} from "@/schemas";
-import prisma from "@/lib/prisma";
-
 import { headers } from "next/headers";
 
 import { FileType } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
-;
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
 import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { uploadDocuments } from "@/lib/file/upload-documents";
+import prisma from "@/lib/prisma";
 import { serverIdentityCardSchema } from "@/schemas";
+import type { IdentityCardInput } from "@/schemas";
 import { splitFullName } from "@/utils/format/user-formatter";
 
 import { getUserById } from "./get-user";
+
 
 export async function uploadIdentityCard(
   userId: string,

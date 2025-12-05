@@ -143,13 +143,13 @@ export async function getActiveUserChats(): Promise<ApiResponse<ActiveChatInfo[]
 
         // Ordenar por fecha de salida
         activeChatsResult.sort((a, b) => {
-            const tripA_departureTime = tripsForChatMap.get(a.tripId)?.departureTime;
-            const tripB_departureTime = tripsForChatMap.get(b.tripId)?.departureTime;
-            if (tripA_departureTime && tripB_departureTime) {
-                return new Date(tripA_departureTime).getTime() - new Date(tripB_departureTime).getTime();
+            const tripADepartureTime = tripsForChatMap.get(a.tripId)?.departureTime;
+            const tripBDepartureTime = tripsForChatMap.get(b.tripId)?.departureTime;
+            if (tripADepartureTime && tripBDepartureTime) {
+                return new Date(tripADepartureTime).getTime() - new Date(tripBDepartureTime).getTime();
             }
-            if (tripA_departureTime) return -1;
-            if (tripB_departureTime) return 1;
+            if (tripADepartureTime) return -1;
+            if (tripBDepartureTime) return 1;
             return 0;
         });
 

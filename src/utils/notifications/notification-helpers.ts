@@ -1,20 +1,20 @@
 import { sendTargetedNotification } from "@/actions/notifications/send-targeted-notification"
 import type { TargetedNotificationData, NotificationRole } from "@/types/notification-types"
-import type { eventType } from "@/types/websocket-events"
+import type { EventType } from "@/types/websocket-events"
 
 // Helper functions for common notification patterns
 export async function notifyUser(
   userId: string, 
   title: string, 
   message: string, 
-  eventType?: eventType, 
+  EventType?: EventType, 
   link?: string,
   additionalData?: any
 ) {
   const data: TargetedNotificationData = {
     title,
     message,
-    eventType,
+    EventType,
     link,
     additionalData,
     targetUserId: userId
@@ -26,14 +26,14 @@ export async function notifyMultipleUsers(
   userIds: string[], 
   title: string, 
   message: string, 
-  eventType?: eventType,
+  EventType?: EventType,
   link?: string,
   additionalData?: any
 ) {
   const data: TargetedNotificationData = {
     title,
     message,
-    eventType,
+    EventType,
     link,
     additionalData,
     targetUserIds: userIds
@@ -44,14 +44,14 @@ export async function notifyMultipleUsers(
 export async function notifyAllUsers(
   title: string, 
   message: string, 
-  eventType?: eventType,
+  EventType?: EventType,
   link?: string,
   additionalData?: any
 ) {
   const data: TargetedNotificationData = {
     title,
     message,
-    eventType,
+    EventType,
     link,
     additionalData,
     broadcast: true
@@ -63,14 +63,14 @@ export async function notifyByRole(
   role: NotificationRole, 
   title: string, 
   message: string, 
-  eventType?: eventType,
+  EventType?: EventType,
   link?: string,
   additionalData?: any
 ) {
   const data: TargetedNotificationData = {
     title,
     message,
-    eventType,
+    EventType,
     link,
     additionalData,
     targetRole: role
@@ -82,31 +82,31 @@ export async function notifyByRole(
 export async function notifyDrivers(
   title: string, 
   message: string, 
-  eventType?: eventType,
+  EventType?: EventType,
   link?: string,
   additionalData?: any
 ) {
-  return notifyByRole('driver', title, message, eventType, link, additionalData)
+  return notifyByRole('driver', title, message, EventType, link, additionalData)
 }
 
 export async function notifyPassengers(
   title: string, 
   message: string, 
-  eventType?: eventType,
+  EventType?: EventType,
   link?: string,
   additionalData?: any
 ) {
-  return notifyByRole('passenger', title, message, eventType, link, additionalData)
+  return notifyByRole('passenger', title, message, EventType, link, additionalData)
 }
 
 export async function notifyAdmins(
   title: string, 
   message: string, 
-  eventType?: eventType,
+  EventType?: EventType,
   link?: string,
   additionalData?: any
 ) {
-  return notifyByRole('admin', title, message, eventType, link, additionalData)
+  return notifyByRole('admin', title, message, EventType, link, additionalData)
 }
 
 // Trip-related notification helpers
@@ -114,12 +114,12 @@ export async function notifyTripParticipants(
   userIds: string[],
   title: string,
   message: string,
-  eventType?: eventType,
+  EventType?: EventType,
   additionalData?: any,
   tripId?: string
 ) {
   const link = tripId ? `/trip/${tripId}` : undefined
-  return notifyMultipleUsers(userIds, title, message, eventType, link, additionalData)
+  return notifyMultipleUsers(userIds, title, message, EventType, link, additionalData)
 }
 
 export async function notifyTripStatusChange(

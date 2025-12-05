@@ -1,9 +1,9 @@
-import type { eventType } from "./websocket-events"
+import type { EventType } from "./websocket-events"
 
 export interface TargetedNotificationData {
   title: string
   message: string
-  eventType?: eventType           // Optional eventType for user store updates
+  EventType?: EventType           // Optional EventType for user store updates
   link?: string
   additionalData?: any            // Optional additional data to include in the notification
   // Targeting options (only one should be used)
@@ -24,14 +24,14 @@ export interface NotificationPayload {
   title: string
   message: string
   link?: string
-  eventType?: eventType
+  EventType?: EventType
   additionalData?: any
   targeting: NotificationTargeting
 }
 
 export interface WebSocketNotificationPayload {
   type: 'notification_created'
-  eventType?: eventType
+  EventType?: EventType
   data: {
     senderId: string
     timestamp: string

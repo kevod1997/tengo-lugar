@@ -75,9 +75,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         // 2. Invalidate notifications cache (better than direct refetch)
         queryClient.invalidateQueries({ queryKey: ['notifications'] })
         
-        // 3. Update user state based on eventType
-        if (data.eventType) {
-          console.log('WebSocket event received:', data.eventType, data.payload)
+        // 3. Update user state based on EventType
+        if (data.EventType) {
+          console.log('WebSocket event received:', data.EventType, data.payload)
           handleUserStateUpdate(data, updateUser, user)
         }
       }

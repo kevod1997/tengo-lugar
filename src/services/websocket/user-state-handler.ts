@@ -2,7 +2,7 @@
 
 
 import type { UserCarForStore } from "@/types/user-types"
-import type { eventType } from "@/types/websocket-events"
+import type { EventType } from "@/types/websocket-events"
 
 import type { VerificationStatus } from "@prisma/client"
 
@@ -54,12 +54,12 @@ function updateCarByPlate(
  */
 export function handleUserStateUpdate(data: any, updateUser: (userData: any) => void, currentUser?: any) {
   console.log('[WS USER HANDLER] Received data:', data);
-  if (!data.eventType || !data.payload) {
-    console.warn('[WS USER HANDLER] Missing eventType or payload:', data);
+  if (!data.EventType || !data.payload) {
+    console.warn('[WS USER HANDLER] Missing EventType or payload:', data);
     return
   }
 
-  switch (data.eventType as eventType) {
+  switch (data.EventType as EventType) {
     // 📄 Document Verification Events
     case 'identity_card_verified':
       updateUser({
@@ -189,7 +189,7 @@ export function handleUserStateUpdate(data: any, updateUser: (userData: any) => 
       break
 
     default:
-      console.warn(`[WS USER HANDLER] Unhandled event type: ${data.eventType}`)
+      console.warn(`[WS USER HANDLER] Unhandled event type: ${data.EventType}`)
       break
   }
 }

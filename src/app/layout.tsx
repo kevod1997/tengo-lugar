@@ -1,8 +1,6 @@
 // app/layout.tsx
+/* eslint-disable import-x/order */
 import type { Metadata } from "next";
-
-import "./globals.css";
-
 import { Suspense } from "react";
 
 import { headers } from "next/headers";
@@ -19,6 +17,9 @@ import { openSans } from "@/config/fonts";
 import { auth } from "@/lib/auth";
 
 import Loading from "./loading";
+
+import "./globals.css";
+/* eslint-enable import-x/order */
 
 export const metadata: Metadata = {
   title: {

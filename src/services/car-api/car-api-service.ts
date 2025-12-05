@@ -42,15 +42,15 @@ export async function getAccessToken(): Promise<string> {
       )
     }
 
-    const { access_token, refresh_token }: AuthResponse = await response.json();
+    const { access_token: accessToken, refresh_token: refreshToken }: AuthResponse = await response.json();
 
     // Intentar cachear tokens (no crítico si falla)
     await Promise.all([
-      redisService.set('car_api_access_token', access_token, { ex: 3000 }, false),
-      redisService.set('car_api_refresh_token', refresh_token, { ex: 86400 }, false)
+      redisService.set('car_api_access_token', accessToken, { ex: 3000 }, false),
+      redisService.set('car_api_refresh_token', refreshToken, { ex: 86400 }, false)
     ]);
 
-    return access_token;
+    return accessToken;
   } catch (error) {
     throw error;
   }
@@ -106,8 +106,8 @@ export async function refreshAccessToken(): Promise<void> {
       )
     }
 
-    const { access_token }: AuthResponse = await response.json();
-    await redisService.set('car_api_access_token', access_token, { ex: 3000 }, false)
+    const { access_token: accessToken }: AuthResponse = await response.json();
+    await redisService.set('car_api_access_token', accessToken, { ex: 3000 }, false)
   } catch (error) {
     throw error;
   }

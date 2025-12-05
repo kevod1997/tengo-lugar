@@ -68,6 +68,8 @@ const eslintConfig = [
         {
           selector: 'variable',
           format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+          // Allow variables starting with _ (unused/private convention)
+          leadingUnderscore: 'allow',
         },
         {
           selector: 'function',

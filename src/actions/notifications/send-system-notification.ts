@@ -5,7 +5,7 @@ import { ServerActionError } from "@/lib/exceptions/server-action-error"
 import prisma from "@/lib/prisma"
 import { basicNotificationSchema } from "@/schemas/validation/notification-schema"
 import { notificationService } from "@/services/notifications/notification-service"
-import type { eventType } from "@/types/websocket-events"
+import type { EventType } from "@/types/websocket-events"
 
 /**
  * Send a notification to a specific user from a system context (Inngest, webhooks, etc.)
@@ -17,7 +17,7 @@ import type { eventType } from "@/types/websocket-events"
  * @param userId - Target user ID to send notification to
  * @param title - Notification title
  * @param message - Notification message
- * @param eventType - Optional event type for client-side handling
+ * @param EventType - Optional event type for client-side handling
  * @param link - Optional link for the notification
  * @param additionalData - Optional additional data
  */
@@ -25,7 +25,7 @@ export async function sendSystemNotification(
   userId: string,
   title: string,
   message: string,
-  eventType?: eventType,
+  EventType?: EventType,
   link?: string,
   additionalData?: Record<string, unknown>
 ) {
@@ -34,7 +34,7 @@ export async function sendSystemNotification(
     const validatedData = basicNotificationSchema.parse({
       title,
       message,
-      eventType,
+      EventType,
       link,
       additionalData
     })
@@ -59,7 +59,7 @@ export async function sendSystemNotification(
       {
         title: validatedData.title,
         message: validatedData.message,
-        eventType: validatedData.eventType,
+        EventType: validatedData.EventType,
         link: validatedData.link,
         additionalData: validatedData.additionalData,
         targetUserId: userId

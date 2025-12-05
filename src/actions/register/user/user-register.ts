@@ -3,12 +3,11 @@
 import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
-;
-import type { UpdateUserInput} from "@/schemas";
-import { userSchema } from "@/schemas";
-import { ServerActionError } from "@/lib/exceptions/server-action-error";
 import { handlePrismaError } from "@/lib/exceptions/prisma-error-handler";
+import { ServerActionError } from "@/lib/exceptions/server-action-error";
+import prisma from "@/lib/prisma";
+import { userSchema } from "@/schemas";
+import type { UpdateUserInput} from "@/schemas";
 
 
 export async function updateUser(input: UpdateUserInput) {

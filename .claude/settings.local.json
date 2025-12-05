@@ -49,7 +49,9 @@
       "mcp__puppeteer__puppeteer_evaluate",
       "mcp__puppeteer__puppeteer_screenshot",
       "Bash(git diff src/app/(admin)/admin/pagos/page.tsx)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(npm install:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "additionalDirectories": [

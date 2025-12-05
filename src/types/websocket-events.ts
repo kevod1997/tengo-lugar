@@ -1,7 +1,7 @@
 /**
  * WebSocket Event Types for User State Updates
  */
-export type eventType =
+export type EventType =
   // Document Verification Events
   | 'identity_card_verified'
   | 'identity_card_rejected'

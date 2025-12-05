@@ -92,7 +92,7 @@ export class NotificationService {
 
     return {
       type: 'notification_created',
-      eventType: data.eventType,
+      EventType: data.EventType,
       data: {
         senderId,
         timestamp: new Date().toISOString(),
