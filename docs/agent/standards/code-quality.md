@@ -1,8 +1,17 @@
 # Code Quality Standards
 
+## Style Automation
+
+Import organization, naming conventions, and type imports are **automatically enforced by ESLint**.
+
+See [code-style.md](code-style.md) for details on automated style enforcement.
+
+---
+
 ## TypeScript Configuration
 
 ### Strict Mode
+
 TypeScript strict mode is **enabled** for maximum type safety.
 
 ```json
@@ -29,157 +38,34 @@ TypeScript strict mode is **enabled** for maximum type safety.
 
 ---
 
-## Naming Conventions
+## File Naming Conventions
 
-### Files and Folders
+ESLint cannot enforce file names, so follow these conventions:
 
-#### Components (PascalCase)
+### Components (PascalCase)
 ```
 TripCard.tsx
 UserProfile.tsx
 PaymentForm.tsx
 ```
 
-#### Utilities and Helpers (kebab-case)
+### Utilities and Helpers (kebab-case)
 ```
 auth-helper.ts
 date-utils.ts
 string-formatter.ts
 ```
 
-#### Server Actions (kebab-case)
+### Server Actions (kebab-case)
 ```
 create-trip.ts
 update-user.ts
 delete-vehicle.ts
 ```
 
-### Functions
-
-#### Server Actions (camelCase: verb + Noun)
-```typescript
-export async function createTrip(data: TripData) { }
-export async function updateUser(userId: string, data: UserData) { }
-export async function deleteVehicle(vehicleId: string) { }
-export async function getTripDetails(tripId: string) { }
-```
-
-#### React Components (PascalCase)
-```typescript
-export function TripCard({ trip }: TripCardProps) { }
-export function UserProfile({ user }: UserProfileProps) { }
-export function PaymentModal({ isOpen }: PaymentModalProps) { }
-```
-
-#### Utility Functions (camelCase)
-```typescript
-export function formatDate(date: Date): string { }
-export function validatePhone(phone: string): boolean { }
-export function calculateDistance(from: Coords, to: Coords): number { }
-```
-
-#### Event Handlers (handleXxx)
-```typescript
-const handleSubmit = (e: FormEvent) => { };
-const handleClick = () => { };
-const handleChange = (value: string) => { };
-```
-
-### Variables
-
-#### Constants (UPPER_SNAKE_CASE)
-```typescript
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const DEFAULT_CACHE_TTL = 3600;
-const API_TIMEOUT = 30000;
-```
-
-#### Regular Variables (camelCase)
-```typescript
-const userId = session.user.id;
-const tripData = { origin, destination };
-const isValid = validateInput(data);
-```
-
-#### Boolean Variables (is/has/can prefix)
-```typescript
-const isAuthenticated = !!session;
-const hasPermission = user.role === 'admin';
-const canEdit = isOwner || isAdmin;
-```
-
-### Types and Interfaces
-
-#### Interfaces (PascalCase with 'I' prefix optional)
-```typescript
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface TripFormData {
-  origin: string;
-  destination: string;
-  date: Date;
-}
-```
-
-#### Type Aliases (PascalCase)
-```typescript
-type UserRole = 'admin' | 'user';
-type TripStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-type ApiResponse<T> = { success: boolean; data?: T; error?: Error };
-```
-
-#### Props Types (ComponentNameProps)
-```typescript
-interface TripCardProps {
-  trip: Trip;
-  onEdit?: (trip: Trip) => void;
-}
-
-interface UserProfileProps {
-  user: User;
-  editable?: boolean;
-}
-```
-
 ---
 
 ## Code Organization
-
-### File Structure
-
-```typescript
-// 1. 'use client' or 'use server' directive (if needed)
-'use client'
-
-// 2. External library imports
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-
-// 3. Internal utilities and configurations
-import { prisma } from '@/lib/prisma';
-import { ApiHandler } from '@/lib/api-handler';
-import { requireAuthentication } from '@/utils/helpers/auth-helper';
-
-// 4. Types and interfaces
-import type { User } from '@/types/user';
-import type { Trip } from '@prisma/client';
-
-// 5. Components (if applicable)
-import { Button } from '@/components/ui/button';
-import { TripCard } from '@/components/trip/TripCard';
-
-// 6. Constants
-const MAX_TRIPS = 10;
-
-// 7. Component/Function definition
-export function MyComponent() {
-  // Component logic
-}
-```
 
 ### Function Organization
 
@@ -397,23 +283,9 @@ const user = await getUserById(userId);
 
 ---
 
-## TypeScript Best Practices
+## Advanced TypeScript
 
-### 1. Prefer Interfaces for Objects
-
-```typescript
-// ✅ GOOD: Interface for object shape
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-// Type alias for unions
-type UserRole = 'admin' | 'user';
-```
-
-### 2. Use Type Guards
+### 1. Use Type Guards
 
 ```typescript
 function isDriver(user: User): user is User & { driver: Driver } {
@@ -426,7 +298,7 @@ if (isDriver(user)) {
 }
 ```
 
-### 3. Avoid Type Assertions
+### 2. Avoid Type Assertions
 
 ```typescript
 // ❌ BAD: Type assertion
@@ -436,7 +308,7 @@ const user = data as User;
 const user = userSchema.parse(data);
 ```
 
-### 4. Use Generics for Reusable Code
+### 3. Use Generics for Reusable Code
 
 ```typescript
 function getFirstItem<T>(items: T[]): T | undefined {
@@ -491,6 +363,6 @@ const debouncedSearch = debounce((query: string) => {
 
 ## Related Documentation
 
-- [Import Organization](import-organization.md) - Import ordering
-- [Authentication Patterns](../patterns/authentication.md) - Auth code standards
-- [Server Actions](../patterns/server-actions.md) - Server action standards
+- [code-style.md](code-style.md) - Automated style enforcement (ESLint)
+- [authentication.md](../patterns/authentication.md) - Auth code standards
+- [server-actions.md](../patterns/server-actions.md) - Server action standards

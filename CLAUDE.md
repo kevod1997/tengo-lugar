@@ -51,6 +51,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. Handle errors with toast notifications on client
 5. Provide context (fileName, functionName) for all errors
 
+### 🎨 Code Style Rules (AUTOMATED)
+
+1. **Import organization** - Auto-enforced by ESLint (see eslint.config.mjs)
+2. **Naming conventions** - Auto-enforced by ESLint
+3. **Type imports** - Auto-enforced by ESLint
+4. **Run** `npm run lint --fix` to auto-correct violations
+5. **Details**: [code-style.md](docs/agent/standards/code-style.md)
+
 ---
 
 ## Critical Architecture Patterns
@@ -109,30 +117,9 @@ export async function myServerAction(data: any) {
 
 ---
 
-## Development Commands
-
-```bash
-npm run dev              # Development server
-npm run build            # Production build
-npm run lint             # ESLint
-
-npm run prisma:generate  # Generate Prisma client
-npm run prisma:studio    # Database GUI
-```
-
-**See**: [docs/agent/reference/commands.md](docs/agent/reference/commands.md)
-
----
-
 ## First Time Setup
 
-**Minimum required environment variables:**
-1. `DATABASE_URL` - PostgreSQL connection string
-2. `BETTER_AUTH_SECRET` - Session encryption key (generate: `openssl rand -base64 32`)
-3. `BETTER_AUTH_URL` - Application URL (local: `http://localhost:3000`)
-4. `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET_NAME`, `AWS_REGION` - S3 credentials
-
-**Full list**: [docs/agent/reference/environment-vars.md](docs/agent/reference/environment-vars.md)
+See [environment-vars.md](docs/agent/reference/environment-vars.md) for required configuration.
 
 ---
 
@@ -183,7 +170,8 @@ npm run prisma:studio    # Database GUI
 - [troubleshooting.md](docs/agent/operations/troubleshooting.md), [monitoring.md](docs/agent/operations/monitoring.md)
 
 **Standards:**
-- [code-quality.md](docs/agent/standards/code-quality.md), [import-organization.md](docs/agent/standards/import-organization.md)
+- [code-style.md](docs/agent/standards/code-style.md) - Automated style enforcement
+- [code-quality.md](docs/agent/standards/code-quality.md) - Patterns & best practices
 
 ---
 

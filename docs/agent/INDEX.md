@@ -140,14 +140,31 @@ Problem-based navigation guide for Tengo Lugar documentation.
 **Symptoms**: Type errors, `any` complaints, Prisma type issues
 
 **Solution path**:
-1. **Standards**: [code-quality.md](standards/code-quality.md) - TypeScript best practices
-2. **Database**: [database-patterns.md](patterns/database-patterns.md#type-safety) - Prisma type safety
-3. **Schema**: [database-schema.md](reference/database-schema.md) - Data model reference
+1. **Standards**: [code-quality.md](standards/code-quality.md) - TypeScript patterns
+2. **Style**: [code-style.md](standards/code-style.md) - Auto-enforced by ESLint
+3. **Database**: [database-patterns.md](patterns/database-patterns.md#type-safety) - Prisma type safety
+4. **Schema**: [database-schema.md](reference/database-schema.md) - Data model reference
 
 **Quick fixes**:
 - Prisma client generated? (`npm run prisma:generate`)
 - Using proper type guards?
 - Avoiding `any` types?
+
+---
+
+### "Code Style & Formatting"
+
+**Quick answer**: Run `npm run lint --fix` - ESLint auto-corrects style violations
+
+**Solution path**:
+1. **Automated**: [code-style.md](standards/code-style.md) - ESLint enforcement
+2. **Config**: [eslint.config.mjs](../../eslint.config.mjs) - Source of truth
+3. **Patterns**: [code-quality.md](standards/code-quality.md) - Best practices ESLint can't enforce
+
+**Quick fixes**:
+- Run `npm run lint --fix` for auto-correction
+- Import order wrong? (ESLint fixes it)
+- Naming violations? (ESLint warns)
 
 ---
 
