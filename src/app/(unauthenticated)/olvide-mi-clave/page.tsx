@@ -36,7 +36,7 @@ export default function ForgotPassword() {
 
 	const onSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
 		setIsPending(true);
-		const { error } = await authClient.forgetPassword({
+		const { error } = await authClient.requestPasswordReset({
 			email: data.email,
 			redirectTo: "/resetear-clave",
 		});

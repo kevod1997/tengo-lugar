@@ -1,18 +1,18 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import { FlatCompat } from '@eslint/eslintrc';
-import js from '@eslint/js';
 import importX from 'eslint-plugin-import-x';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-  recommendedConfig: js.configs.recommended,
+  baseDirectory: __dirname,
 });
 
 const eslintConfig = [
-  // Extend Next.js configs using FlatCompat
-  ...compat.config({
-    extends: ['next/core-web-vitals', 'next/typescript'],
-  }),
-
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
   // Custom rules for import organization, naming, and type imports
   {
     name: 'tengo-lugar/custom-rules',
@@ -70,6 +70,11 @@ const eslintConfig = [
           format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
           // Allow variables starting with _ (unused/private convention)
           leadingUnderscore: 'allow',
+          // Allow __filename and __dirname (Node.js conventions)
+          filter: {
+            regex: '^(__filename|__dirname)$',
+            match: false,
+          },
         },
         {
           selector: 'function',
@@ -84,6 +89,16 @@ const eslintConfig = [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  // Allow require() in config files
+  {
+    files: ['*.config.ts', '*.config.js', '*.config.mjs'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
+    ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
+  }
 ];
 
 export default eslintConfig;
