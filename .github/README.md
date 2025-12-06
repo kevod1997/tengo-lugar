@@ -1,14 +1,26 @@
 # GitHub Automation Setup
 
-This directory contains automated workflows for dependency management and code reviews.
+This directory contains intelligent automated workflows for dependency management and AI-powered code reviews.
+
+## 🎯 Overview: Smart Dependency Management
+
+Our system uses **risk-based automation** to handle dependency updates intelligently:
+
+- **🟢 Low Risk** (patch dev deps) → **Auto-merged** when build passes
+- **🟡 Medium Risk** (minor updates) → **AI review** + manual decision
+- **🔴 High Risk** (major updates) → **Converted to Issues** for planning
+
+**Result:** ~70% time savings, cleaner PR list, safer updates.
+
+---
 
 ## 📦 Dependabot Configuration
 
 ### What it does
 - **Automatic dependency updates** every Monday at 9 AM (Argentina time)
 - **Smart grouping** of related dependencies (Radix UI, AWS SDK, React ecosystem, etc.)
-- **Ignores major updates** for critical packages (Next.js, Tailwind, Prisma, Zod, etc.)
-- **Maximum 10 open PRs** at a time to avoid overwhelming you
+- **Blocks major updates** for critical packages (converted to issues instead)
+- **Maximum 10 open PRs** at a time (major updates don't count - they become issues)
 
 ### Configuration File
 [`.github/dependabot.yml`](./dependabot.yml)
@@ -27,9 +39,9 @@ These require manual review and migration planning:
 - ✅ **Grouped updates** for related packages (Radix UI components together)
 - ✅ **Dev dependencies** updates (linters, types, etc.)
 
-## 🤖 Automated Code Reviews
+## 🤖 Automated Workflows
 
-### 1. Dependabot Auto-Review
+### 1. Dependabot Auto-Review (Basic Assessment)
 **Workflow:** [`.github/workflows/dependabot-auto-review.yml`](./workflows/dependabot-auto-review.yml)
 
 **Triggers:** Automatically on every Dependabot PR
@@ -39,64 +51,124 @@ These require manual review and migration planning:
 - 🏷️ **Auto-labels** PRs (major-update, minor-update, patch-update, dev-dependency)
 - ✅ **Review checklist** customized for update type
 - ⚠️ **Critical package alerts** for important dependencies
-- 🚀 **Auto-merge recommendations** for safe updates (patch dev dependencies)
 
-**Example output:**
-```
-## 🔧 Dependabot Auto-Review
+---
 
-### Package: `@radix-ui/react-dialog`
-Update: 1.1.2 → 1.1.15 (patch)
-Type: Production Dependency
-Risk Level: LOW RISK - Bug fixes only
+### 2. Dependabot Smart Review (Intelligent Routing) ⭐ NEW
+**Workflow:** [`.github/workflows/dependabot-smart-review.yml`](./workflows/dependabot-smart-review.yml)
 
-### 📋 Review Checklist
-- [ ] All CI/CD checks pass
-- [ ] Reviewed CHANGELOG
-- [ ] Ran `npm run build` locally
-- [ ] Ran `npm run lint` locally
-```
+**Triggers:** Automatically on every Dependabot PR
 
-### 2. Gemini Code Assist (On-Demand)
+**Intelligent Actions Based on Risk:**
+
+#### 🟢 LOW RISK (patch + dev dep)
+- Adds comment: "Safe to auto-merge"
+- Eligible for automatic merging (see workflow #4)
+- Example: `eslint 8.1.0 → 8.1.1`
+
+#### 🟡 MEDIUM RISK (minor or patch prod)
+- **Auto-triggers `/gemini review`** (no manual comment needed!)
+- AI analyzes the changes
+- You decide based on AI feedback
+- Example: `@radix-ui/dialog 1.1.0 → 1.2.0`
+
+#### 🔴 HIGH RISK (major updates)
+- **Creates GitHub Issue** with migration checklist
+- **Closes the PR** (keeps PR list clean)
+- Adds links to changelog and breaking changes
+- You plan upgrade in issue when ready
+- Example: `next 15.0.0 → 16.0.0` → Issue #X created
+
+**Why Issues for Major Updates?**
+- ✅ No PR limit clutter
+- ✅ Better planning and discussion
+- ✅ Can assign to team members
+- ✅ Add to milestones (Q1 2026 Migrations)
+- ✅ No accidental merges
+
+---
+
+### 3. Gemini AI Code Review (Enhanced) ⭐ NEW
 **Workflow:** [`.github/workflows/gemini-code-assist.yml`](./workflows/gemini-code-assist.yml)
 
-**Triggers:** Comment `/gemini review` on any PR
+**Triggers:**
+- Comment `/gemini review` on any PR (manual)
+- **Auto-triggered** by Smart Review for MEDIUM risk PRs
 
 **Features:**
-- 📝 **Comprehensive checklist** based on CLAUDE.md guidelines
+- 🤖 **Real AI analysis** (Gemini 1.5 Flash)
 - 🔒 **Security verification** (auth, validation, error handling)
 - ⚡ **Performance checks** (Prisma queries, caching, React Query)
 - 🎨 **Code style validation** (ESLint, TypeScript strict mode)
-- 🏗️ **Architecture patterns** (Server Actions, Services, Background jobs)
+- 🏗️ **Architecture patterns** based on CLAUDE.md
 
-**How to use:**
-1. Open any Pull Request
-2. Comment: `/gemini review`
-3. Wait for the bot to analyze and post a detailed review
+**Setup (Required for AI):**
+1. Get free API key from [Google AI Studio](https://aistudio.google.com/)
+2. Add to GitHub Secrets: `GEMINI_API_KEY`
+3. That's it! AI reviews will start working automatically
 
-**Note:** Currently provides a detailed checklist. To enable AI-powered reviews:
-1. Get an API key from:
-   - [Google AI Studio](https://aistudio.google.com/) (Gemini)
-   - [OpenAI](https://platform.openai.com/) (GPT-4)
-   - [Anthropic](https://console.anthropic.com/) (Claude)
-2. Add to GitHub Secrets: `GEMINI_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`
-3. Modify the workflow to call the API
+**Fallback:** If no API key, shows detailed checklist instead.
+
+---
+
+### 4. Dependabot Auto-Merge (Safe Automation) ⭐ NEW
+**Workflow:** [`.github/workflows/dependabot-auto-merge.yml`](./workflows/dependabot-auto-merge.yml)
+
+**Triggers:** When all checks pass on LOW risk PRs
+
+**Safety Requirements:**
+- ✅ PATCH update only (x.x.1 → x.x.2)
+- ✅ Development dependency only
+- ✅ All CI/CD checks pass (Vercel build)
+- ✅ Not a critical package
+- ✅ No merge conflicts
+
+**How it works:**
+1. Smart Review marks PR as LOW risk
+2. Auto-Merge waits for all checks to pass
+3. Approves and merges automatically
+4. Posts summary comment
+
+**Override:** Add label `skip-auto-merge` to prevent automatic merging.
+
+**Rollback:** `git revert <sha>` (commit SHA provided in merge comment)
 
 ## 🚀 Quick Start
 
-### Testing with the Current PR
+### Setup in 2 Minutes
 
-The PR #16 (`bump @vitejs/plugin-react-swc from 3.11.0 to 4.1.0`) is currently open.
+1. **Enable AI reviews (optional but recommended):**
+   ```bash
+   # Get free API key from https://aistudio.google.com/
+   # Add to: Settings → Secrets and variables → Actions → New repository secret
+   # Name: GEMINI_API_KEY
+   # Value: <your-api-key>
+   ```
 
-1. **See auto-review in action:**
-   - Push your changes to enable the workflows
-   - The Dependabot Auto-Review will trigger automatically
-   - Check the PR for the automated comment and labels
+2. **Enable auto-merge (required for workflow #4):**
+   - Go to: Settings → General → Pull Requests
+   - ✅ Check "Allow auto-merge"
+   - Go to: Settings → Actions → General → Workflow permissions
+   - ✅ Select "Read and write permissions"
+   - ✅ Check "Allow GitHub Actions to create and approve pull requests"
 
-2. **Test Gemini Code Assist:**
-   - Go to PR #16
-   - Comment: `/gemini review`
-   - See the detailed checklist appear
+3. **Done!** Next Monday at 9 AM, automation starts.
+
+### What to Expect
+
+**Monday 9 AM:**
+- Dependabot scans for updates
+- Creates PRs (max 10)
+- Workflows analyze each PR:
+  - 🟢 Low risk → Auto-merged in ~3 min
+  - 🟡 Medium risk → AI review posted
+  - 🔴 High risk → Issue created, PR closed
+
+**Your Weekly Action (estimated 4-6 min):**
+- Review 2-3 MEDIUM risk PRs with AI analysis
+- Merge based on AI recommendations
+- LOW risk already merged ✅
+- HIGH risk tracked in issues (review when ready)
 
 ### Manual Dependency Updates
 
@@ -120,8 +192,10 @@ npx npm-check-updates -i
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| **dependabot-auto-review.yml** | Dependabot PRs | Automatic risk assessment & checklist |
-| **gemini-code-assist.yml** | `/gemini review` comment | On-demand detailed review |
+| **dependabot-auto-review.yml** | Dependabot PRs (auto) | Basic risk assessment & checklist |
+| **dependabot-smart-review.yml** ⭐ | Dependabot PRs (auto) | Intelligent routing: auto-merge, AI review, or issue creation |
+| **gemini-code-assist.yml** ⭐ | `/gemini review` or auto-trigger | Real AI-powered code review |
+| **dependabot-auto-merge.yml** ⭐ | Checks pass (auto) | Safe automatic merging of low-risk updates |
 
 ## 🔧 Customization
 

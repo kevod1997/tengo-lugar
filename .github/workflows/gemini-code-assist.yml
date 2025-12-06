@@ -79,17 +79,135 @@ jobs:
             core.setOutput('base', pr.base.ref);
             core.setOutput('head', pr.head.ref);
 
-      - name: Review with Gemini (Placeholder)
+      - name: Review with Gemini AI
         id: gemini-review
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # This is a placeholder for actual Gemini API integration
-          # You can replace this with:
-          # 1. Google Cloud Gemini API
-          # 2. OpenAI API
-          # 3. Anthropic Claude API
-          # 4. Any other LLM service
+          # Check if API key is configured
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "⚠️ GEMINI_API_KEY not configured. Using fallback template."
+            USE_AI=false
+          else
+            USE_AI=true
+          fi
 
-          cat > review.md << 'EOF'
+          # Read the PR diff
+          DIFF_CONTENT=$(cat pr.diff | head -c 10000)  # Limit to 10KB for API
+          PR_TITLE="${{ steps.pr-metadata.outputs.title }}"
+          PR_BODY="${{ steps.pr-metadata.outputs.body }}"
+
+          # Prepare the context for AI review
+          CLAUDE_MD_GUIDELINES=$(cat << 'GUIDELINES'
+          ## MANDATORY Development Rules
+
+          ### Security Rules (CRITICAL)
+          1. NEVER manually parse cookies - use betterFetch
+          2. ALWAYS validate session in Server Actions using auth helpers
+          3. ALWAYS use centralized authorization helpers
+          4. ALWAYS sanitize/validate inputs with Zod
+          5. NEVER expose sensitive data in JWT payloads
+
+          ### Performance Rules (CRITICAL)
+          1. Use specific select in Prisma queries
+          2. Implement Redis cache for external APIs
+          3. Use React Query for client-side data fetching
+          4. Optimize images with Sharp before S3 upload
+          5. Use Prisma transactions for complex operations
+
+          ### Error Handling Rules (CRITICAL)
+          1. ALWAYS use ApiHandler.handleError() for consistency
+          2. ALWAYS log errors with LoggingService automatically
+          3. Use error hierarchy: ServerActionError > ServiceError
+          4. Handle errors with toast notifications on client
+          5. Provide context (fileName, functionName) for all errors
+
+          ### Architecture Patterns (MANDATORY)
+          1. Server Actions: Auth → Validation → Transaction → Response
+          2. Authentication helpers: requireAuthentication, requireAuthorization
+          3. State: React Query for server state, NOT Zustand
+          4. Background Jobs: Inngest for async operations
+          5. Notifications: sendSystemNotification for Inngest context
+          GUIDELINES
+          )
+
+          if [ "$USE_AI" = true ]; then
+            # Call Gemini API
+            PROMPT="You are a code reviewer for a Next.js 15 project with strict quality standards.
+
+          Review this pull request and provide analysis based on these project guidelines:
+          $CLAUDE_MD_GUIDELINES
+
+          PR Title: $PR_TITLE
+          PR Description: $PR_BODY
+
+          Diff (first 10KB):
+          \`\`\`diff
+          $DIFF_CONTENT
+          \`\`\`
+
+          Provide a concise review focusing on:
+          1. Security issues (auth, validation, data exposure)
+          2. Performance concerns (queries, caching, optimization)
+          3. Error handling (ApiHandler usage, logging)
+          4. Architecture compliance (Server Actions pattern, services)
+          5. Code quality (TypeScript, imports, naming)
+
+          Format your response as markdown with clear sections and checkboxes for actionable items."
+
+            # Make API request to Gemini
+            REVIEW_RESPONSE=$(curl -s -X POST \
+              "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$GEMINI_API_KEY" \
+              -H 'Content-Type: application/json' \
+              -d "{
+                \"contents\":[{
+                  \"parts\":[{\"text\":$(echo "$PROMPT" | jq -Rs .)}]
+                }],
+                \"generationConfig\":{
+                  \"temperature\":0.3,
+                  \"maxOutputTokens\":2048
+                }
+              }")
+
+            # Extract the AI response
+            AI_REVIEW=$(echo "$REVIEW_RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "❌ Failed to generate AI review"')
+
+            # Create review with AI analysis
+            cat > review.md << EOF
+          ## 🤖 Gemini AI Code Review
+
+          ### 📊 PR Summary
+          **Title:** $PR_TITLE
+          **Author:** @${{ steps.pr-metadata.outputs.author }}
+          **Files Changed:** ${{ steps.get-diff.outputs.file_count }}
+          **Diff Size:** ${{ steps.get-diff.outputs.diff_size }} bytes
+
+          ---
+
+          ### 🔍 AI Analysis
+
+          $AI_REVIEW
+
+          ---
+
+          ### 🔗 Useful Commands
+
+          \`\`\`bash
+          # Test locally
+          npm run build
+          npm run lint
+
+          # Check for type errors
+          npx tsc --noEmit
+          \`\`\`
+
+          ---
+
+          *🤖 Powered by Gemini 1.5 Flash | [Project Guidelines](https://github.com/${{ github.repository }}/blob/master/CLAUDE.md)*
+          EOF
+          else
+            # Fallback to template checklist if no API key
+            cat > review.md << 'EOF'
           ## 🤖 Gemini Code Assist Review
 
           ### 📊 Analysis Summary
@@ -99,16 +217,12 @@ jobs:
           **Files Changed:** ${{ steps.get-diff.outputs.file_count }}
           **Diff Size:** ${{ steps.get-diff.outputs.diff_size }} bytes
 
-          ### 🔍 Code Review
+          ### ⚠️ AI Review Disabled
 
-          To enable AI-powered reviews, you need to:
+          **GEMINI_API_KEY** not configured. To enable AI-powered reviews:
 
-          1. **Add API credentials** to GitHub Secrets:
-             - `GEMINI_API_KEY` (Google AI Studio)
-             - OR `OPENAI_API_KEY` (OpenAI)
-             - OR `ANTHROPIC_API_KEY` (Claude)
-
-          2. **Modify this workflow** to call the AI API
+          1. Get free API key from [Google AI Studio](https://aistudio.google.com/)
+          2. Add to repository secrets: Settings → Secrets → `GEMINI_API_KEY`
 
           ### 📋 Manual Review Checklist
 
@@ -169,8 +283,9 @@ jobs:
 
           ---
 
-          *🤖 To enable AI-powered reviews, configure API keys in repository secrets*
+          *🤖 To enable AI-powered reviews, configure GEMINI_API_KEY in repository secrets*
           EOF
+          fi
 
           cat review.md
 

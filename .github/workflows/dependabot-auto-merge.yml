@@ -1,0 +1,322 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  check_suite:
+    types: [completed]
+  workflow_run:
+    workflows: ["Vercel Production Deployment", "Vercel Preview Deployment"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Get PR details
+        id: pr-check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Get PR number from different event types
+            let prNumber;
+            if (context.payload.pull_request) {
+              prNumber = context.payload.pull_request.number;
+            } else if (context.payload.workflow_run) {
+              const prs = context.payload.workflow_run.pull_requests;
+              if (prs && prs.length > 0) {
+                prNumber = prs[0].number;
+              }
+            } else if (context.payload.check_suite) {
+              const prs = context.payload.check_suite.pull_requests;
+              if (prs && prs.length > 0) {
+                prNumber = prs[0].number;
+              }
+            }
+
+            if (!prNumber) {
+              console.log('No PR found, skipping');
+              core.setOutput('should_process', 'false');
+              return;
+            }
+
+            // Get full PR details
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            // Check if PR is from Dependabot
+            if (pr.user.login !== 'dependabot[bot]') {
+              console.log('PR not from Dependabot, skipping');
+              core.setOutput('should_process', 'false');
+              return;
+            }
+
+            // Check if PR has skip-auto-merge label
+            const hasSkipLabel = pr.labels.some(label => label.name === 'skip-auto-merge');
+            if (hasSkipLabel) {
+              console.log('PR has skip-auto-merge label, skipping');
+              core.setOutput('should_process', 'false');
+              return;
+            }
+
+            // Check if PR is already merged or closed
+            if (pr.state !== 'open') {
+              console.log('PR is not open, skipping');
+              core.setOutput('should_process', 'false');
+              return;
+            }
+
+            // Parse PR title to get update info
+            const titleMatch = pr.title.match(/bump (.+) from (.+) to (.+)/);
+            if (!titleMatch) {
+              console.log('PR title does not match format, skipping');
+              core.setOutput('should_process', 'false');
+              return;
+            }
+
+            const packageName = titleMatch[1].trim();
+            const fromVersion = titleMatch[2].trim();
+            const toVersion = titleMatch[3].trim();
+
+            // Determine update type
+            const fromParts = fromVersion.split('.');
+            const toParts = toVersion.split('.');
+
+            let updateType = 'unknown';
+            if (fromParts[0] !== toParts[0]) {
+              updateType = 'major';
+            } else if (fromParts[1] !== toParts[1]) {
+              updateType = 'minor';
+            } else {
+              updateType = 'patch';
+            }
+
+            // Check if it's a dev dependency
+            const isDevDep = pr.title.includes('deps-dev');
+
+            // Critical packages - never auto-merge
+            const criticalPackages = [
+              'next', 'react', 'react-dom', 'prisma', '@prisma/client',
+              'better-auth', 'zod', 'tailwindcss', '@tanstack/react-query'
+            ];
+            const isCritical = criticalPackages.some(pkg => packageName.includes(pkg));
+
+            console.log(`Package: ${packageName}`);
+            console.log(`Update type: ${updateType}`);
+            console.log(`Is dev dep: ${isDevDep}`);
+            console.log(`Is critical: ${isCritical}`);
+
+            // Determine if eligible for auto-merge
+            // Only PATCH updates for DEV dependencies
+            const isEligible = updateType === 'patch' && isDevDep && !isCritical;
+
+            console.log(`Eligible for auto-merge: ${isEligible}`);
+
+            core.setOutput('should_process', 'true');
+            core.setOutput('pr_number', prNumber);
+            core.setOutput('is_eligible', isEligible);
+            core.setOutput('package_name', packageName);
+            core.setOutput('from_version', fromVersion);
+            core.setOutput('to_version', toVersion);
+            core.setOutput('update_type', updateType);
+
+      - name: Check all status checks
+        id: check-status
+        if: steps.pr-check.outputs.should_process == 'true' && steps.pr-check.outputs.is_eligible == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt('${{ steps.pr-check.outputs.pr_number }}');
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            // Get commit status
+            const { data: status } = await github.rest.repos.getCombinedStatusForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha
+            });
+
+            // Get check runs
+            const { data: checkRuns } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha
+            });
+
+            console.log(`Commit status: ${status.state}`);
+            console.log(`Check runs: ${checkRuns.check_runs.length}`);
+
+            // Check if all statuses passed
+            const allStatusesPassed = status.state === 'success';
+
+            // Check if all check runs passed
+            const allChecksPassed = checkRuns.check_runs.every(run =>
+              run.status === 'completed' && run.conclusion === 'success'
+            );
+
+            // Check for any pending checks
+            const hasPendingChecks = checkRuns.check_runs.some(run =>
+              run.status !== 'completed'
+            );
+
+            console.log(`All statuses passed: ${allStatusesPassed}`);
+            console.log(`All checks passed: ${allChecksPassed}`);
+            console.log(`Has pending checks: ${hasPendingChecks}`);
+
+            const allChecksPassing = allStatusesPassed && allChecksPassed && !hasPendingChecks;
+
+            core.setOutput('all_passing', allChecksPassing);
+            core.setOutput('has_pending', hasPendingChecks);
+
+      - name: Auto-merge PR
+        if: |
+          steps.pr-check.outputs.should_process == 'true' &&
+          steps.pr-check.outputs.is_eligible == 'true' &&
+          steps.check-status.outputs.all_passing == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt('${{ steps.pr-check.outputs.pr_number }}');
+            const packageName = '${{ steps.pr-check.outputs.package_name }}';
+            const fromVersion = '${{ steps.pr-check.outputs.from_version }}';
+            const toVersion = '${{ steps.pr-check.outputs.to_version }}';
+
+            try {
+              // Approve the PR first
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                event: 'APPROVE',
+                body: `## ✅ Auto-Approved
+
+            This low-risk dependency update has been automatically approved.
+
+            **Package:** \`${packageName}\`
+            **Update:** ${fromVersion} → ${toVersion}
+            **Type:** Patch update (dev dependency)
+
+            ### Checks Passed:
+            - ✅ All CI/CD checks passed
+            - ✅ Patch update (bug fixes only)
+            - ✅ Development dependency (no production impact)
+            - ✅ Not a critical package
+
+            **Auto-merging now...**
+
+            ---
+
+            *🤖 Auto-approved by Dependabot Auto-Merge*`
+              });
+
+              console.log('PR approved');
+
+              // Merge the PR
+              const { data: merge } = await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                merge_method: 'squash',
+                commit_title: `chore(deps-dev): bump ${packageName} from ${fromVersion} to ${toVersion}`,
+                commit_message: `Auto-merged by Dependabot Auto-Merge workflow\n\nLow-risk patch update for development dependency.`
+              });
+
+              console.log(`PR merged: ${merge.merged}`);
+
+              if (merge.merged) {
+                // Add success comment
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: `## 🎉 Auto-Merged Successfully
+
+            This PR has been automatically merged.
+
+            **Merge SHA:** \`${merge.sha}\`
+
+            ### Why was this auto-merged?
+            - 🟢 Low-risk patch update
+            - 🟢 Development dependency only
+            - 🟢 All CI/CD checks passed
+            - 🟢 No merge conflicts
+
+            ### Rollback
+            If needed, you can revert this merge:
+            \`\`\`bash
+            git revert ${merge.sha}
+            \`\`\`
+
+            ---
+
+            *🤖 Auto-merged by Dependabot Auto-Merge*`
+                });
+              }
+            } catch (error) {
+              console.error('Failed to auto-merge:', error);
+
+              // Post error comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: `## ❌ Auto-Merge Failed
+
+            Failed to automatically merge this PR.
+
+            **Error:** ${error.message}
+
+            **Manual action required:**
+            - Review the PR
+            - Merge manually if appropriate
+
+            ---
+
+            *🤖 Attempted by Dependabot Auto-Merge*`
+              });
+
+              throw error;
+            }
+
+      - name: Comment if not eligible
+        if: |
+          steps.pr-check.outputs.should_process == 'true' &&
+          steps.pr-check.outputs.is_eligible == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt('${{ steps.pr-check.outputs.pr_number }}');
+            const updateType = '${{ steps.pr-check.outputs.update_type }}';
+
+            console.log('PR not eligible for auto-merge - manual review required');
+
+      - name: Comment if checks pending
+        if: |
+          steps.pr-check.outputs.should_process == 'true' &&
+          steps.pr-check.outputs.is_eligible == 'true' &&
+          steps.check-status.outputs.has_pending == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt('${{ steps.pr-check.outputs.pr_number }}');
+
+            console.log('Checks still pending - will auto-merge when all pass');

@@ -86,12 +86,15 @@ updates:
       - dependency-name: "react-dom"
         update-types: ["version-update:semver-major"]
 
-    # Auto-merge configuration (optional, commented out for safety)
-    # Uncomment these lines if you want to auto-merge patch updates
-    # pull-request-branch-name:
-    #   separator: "/"
-    # commit-message:
-    #   prefix: "chore(deps)"
+    # Auto-merge handled by dependabot-auto-merge.yml workflow
+    # Branch naming for better organization
+    pull-request-branch-name:
+      separator: "/"
+
+    # Commit message configuration
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
 
     # Labels for PRs
     labels:

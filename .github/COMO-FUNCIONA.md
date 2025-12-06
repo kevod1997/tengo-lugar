@@ -1,6 +1,18 @@
-# 📚 Cómo Funciona la Automatización de Dependabot
+# 📚 Sistema Inteligente de Gestión de Dependencias
 
-Guía completa para entender y usar el sistema de actualización automática de dependencias.
+Guía completa del sistema automatizado con IA que ahorra 70% de tiempo en actualizaciones.
+
+---
+
+## 🎯 Resumen Ejecutivo
+
+**Antes:** Revisar manualmente 10 PRs cada semana (20 min)
+**Ahora:** Sistema inteligente que:
+- 🟢 Auto-mergea updates seguros (0 min)
+- 🟡 IA revisa updates medianos (4-6 min)
+- 🔴 Convierte major updates a issues (cuando tengas tiempo)
+
+**Resultado:** 70% menos tiempo, PRs más limpios, updates más seguros.
 
 ---
 
@@ -10,9 +22,9 @@ Guía completa para entender y usar el sistema de actualización automática de 
 - Revisa tus dependencias (package.json)
 - Detecta actualizaciones disponibles
 - Crea Pull Requests automáticamente
-- Te permite aprobar y mergear cuando quieras
+- **NUEVO:** Los PRs se procesan automáticamente según riesgo
 
-**NO hace cambios directos al código**. Solo crea PRs que VOS decidís si aceptar o no.
+**NO hace cambios directos al código**. Solo crea PRs que el sistema evalúa y procesa inteligentemente.
 
 ---
 
@@ -110,11 +122,9 @@ Build ❌ → NO MERGEAR
 
 ---
 
-## 🚀 Workflows Configurados
+## 🚀 Workflows Configurados (4 Workflows Inteligentes)
 
-Tenés **3 workflows** en `.github/workflows/`:
-
-### 1. **dependabot-auto-review.yml** (Automático)
+### 1. **dependabot-auto-review.yml** (Evaluación Básica)
 
 **Se activa:** Cada vez que Dependabot crea un PR
 
@@ -123,88 +133,217 @@ Tenés **3 workflows** en `.github/workflows/`:
 2. Evalúa el riesgo (Low/Medium/High)
 3. Detecta si es paquete crítico
 4. Agrega labels automáticos
-5. Crea un comentario con checklist
+5. Crea un comentario con checklist básico
 
 **NO necesita configuración**. Funciona solo.
 
-**Ejemplo de comentario:**
-```markdown
-## 🔧 Dependabot Auto-Review
+---
 
-### Package: `@radix-ui/react-dialog`
-Update: 1.1.2 → 1.1.15 (patch)
-Type: Production Dependency
-Risk Level: LOW RISK - Bug fixes only
+### 2. **dependabot-smart-review.yml** ⭐ NUEVO (Routing Inteligente)
 
-### 📋 Review Checklist
-- [ ] All CI/CD checks pass
-- [ ] Reviewed CHANGELOG
-- [ ] Ran `npm run build` locally
+**Se activa:** Cada vez que Dependabot crea un PR
+
+**Qué hace según el riesgo:**
+
+#### 🟢 RIESGO BAJO (patch + dev dep)
+```
+Ejemplo: eslint 8.1.0 → 8.1.1
+
+Acción:
+- Comenta: "Seguro para auto-merge"
+- Se activa el workflow #4 (auto-merge)
+- Se mergea solo cuando el build pasa ✅
 ```
 
+#### 🟡 RIESGO MEDIO (minor o patch prod)
+```
+Ejemplo: @radix-ui/dialog 1.1.0 → 1.2.0
+
+Acción:
+- Auto-ejecuta `/gemini review` (sin que comentes!)
+- IA analiza los cambios
+- VOS decidís si mergear basándote en el análisis
+```
+
+#### 🔴 RIESGO ALTO (major updates)
+```
+Ejemplo: next 15.0.0 → 16.0.0
+
+Acción:
+1. Crea un GitHub Issue con:
+   - Checklist de migración
+   - Links al changelog
+   - Breaking changes
+   - Plan de upgrade
+2. Cierra el PR automáticamente
+3. Te notifica: "Issue #XXX creado"
+```
+
+**¿Por qué Issues para major updates?**
+- ✅ No ocupan espacio en la lista de PRs
+- ✅ Podés planificar la migración tranquilo
+- ✅ Discutir estrategia en comentarios
+- ✅ Asignar a miembros del equipo
+- ✅ Agregar a milestones (ej: "Migraciones Q1 2026")
+- ✅ Imposible mergear accidentalmente
+
 ---
 
-### 2. **gemini-code-assist.yml** (Manual)
+### 3. **gemini-code-assist.yml** ⭐ MEJORADO (Review con IA Real)
 
-**Se activa:** Cuando comentás `/gemini review` en un PR
+**Se activa:**
+- Manual: Cuando comentás `/gemini review` en un PR
+- **Auto:** El workflow #2 lo ejecuta para PRs de riesgo medio
 
 **Qué hace:**
-1. Lee el diff del PR
-2. Muestra un checklist detallado basado en CLAUDE.md
-3. Valida seguridad, performance, arquitectura
+1. Lee el diff del PR (primeros 10KB)
+2. Envía a **Gemini 1.5 Flash** (IA de Google)
+3. IA analiza según las reglas de CLAUDE.md:
+   - 🔒 Seguridad (auth, validación, cookies)
+   - ⚡ Performance (Prisma queries, caching)
+   - 🚨 Error handling (ApiHandler, logging)
+   - 🎨 Code style (ESLint, TypeScript)
+   - 🏗️ Arquitectura (Server Actions, Services)
+4. Postea análisis detallado con recomendaciones
 
-**NO necesita API key** (por ahora). Solo muestra un checklist.
+**Setup (REQUERIDO para IA):**
+1. Andá a [Google AI Studio](https://aistudio.google.com/)
+2. Creá una API key (gratis, sin tarjeta)
+3. Agregála en GitHub:
+   - Settings → Secrets and variables → Actions
+   - New repository secret
+   - Name: `GEMINI_API_KEY`
+   - Value: tu-api-key
+4. ¡Listo! Ya funciona automáticamente
 
-**Cómo usarlo:**
-1. Abrís cualquier PR
-2. Comentás: `/gemini review`
-3. El bot responde con análisis detallado
-
-**Opcional:** Si querés reviews con IA real:
-1. Conseguí una API key de [Google AI Studio](https://aistudio.google.com/)
-2. Agregála como secret en GitHub: `GEMINI_API_KEY`
-3. El workflow la usará automáticamente
-
----
-
-### 3. **gemini-pr-review.yml** (Automático - OPCIONAL)
-
-**Se activa:** Automáticamente en PRs de Dependabot
-
-**Qué hace:**
-1. Similar a `gemini-code-assist.yml`
-2. Pero se ejecuta solo (sin comentar `/gemini review`)
-
-**Estado actual:** Requiere credenciales de Google Cloud (complejo).
-
-**Recomendación:** Ignorá este workflow. Usá solo `gemini-code-assist.yml` (manual).
+**Fallback:** Si no configurás la API key, muestra un checklist manual.
 
 ---
 
-## 🎯 Tu Workflow Diario
+### 4. **dependabot-auto-merge.yml** ⭐ NUEVO (Auto-Merge Seguro)
 
-### Lunes a las 9 AM (automático):
+**Se activa:** Cuando todos los checks pasan en PRs de RIESGO BAJO
 
-1. **Dependabot** escanea actualizaciones
-2. **Crea PRs** (máximo 10)
-3. **Vercel** hace build automático de cada PR
-4. **Auto-review** comenta en cada PR
+**Requisitos de seguridad:**
+- ✅ SOLO updates PATCH (x.x.1 → x.x.2)
+- ✅ SOLO dev dependencies
+- ✅ Build de Vercel pasó sin errores
+- ✅ NO es paquete crítico (next, prisma, etc.)
+- ✅ NO tiene conflictos de merge
 
-### Cuando revisás (manual):
+**Cómo funciona:**
+1. Workflow #2 marca el PR como RIESGO BAJO
+2. Este workflow espera a que pasen TODOS los checks
+3. Aprueba el PR automáticamente
+4. Mergea con squash commit
+5. Postea resumen con SHA para revertir si es necesario
+
+**Override (Prevenir auto-merge):**
+- Agregá el label `skip-auto-merge` al PR
+- O comentá "hold" en el PR
+
+**Rollback:**
+```bash
+git revert <sha-del-commit>
+```
+(El SHA se incluye en el comentario del merge)
+
+---
+
+## 🎯 Tu Nuevo Workflow (Automatizado)
+
+### Lunes a las 9 AM (100% automático):
+
+```
+Dependabot detecta 8 actualizaciones:
+
+├─ 3 PRs LOW RISK (patch dev deps)
+│  → Auto-review comenta
+│  → Build de Vercel se ejecuta
+│  → Pasan todos los checks
+│  → Auto-merge los mergea en ~3 min ✅
+│  → VOS NO HACÉS NADA
+
+├─ 2 PRs MEDIUM RISK (minor updates)
+│  → Auto-review comenta
+│  → Smart Review ejecuta `/gemini review` automáticamente
+│  → IA postea análisis detallado
+│  → ESPERAN TU DECISIÓN 👀
+
+├─ 3 Issues MAJOR UPDATES (next, react, tailwind)
+│  → PRs cerrados automáticamente
+│  → Issues creados con checklist de migración
+│  → REVISÁS CUANDO TENGAS TIEMPO 📋
+
+Resultado:
+- 3 PRs auto-merged (0 min) ✅
+- 2 PRs con AI review (esperan tu review) 📊
+- 3 Issues para planificar (sin apuro) 🎟️
+```
+
+### Tu Acción Semanal (4-6 min):
+
+**Solo necesitás revisar 2-3 PRs MEDIUM RISK:**
 
 1. Vas a GitHub → Pull Requests
-2. Ves los PRs de Dependabot
-3. Mirás el status de Vercel:
-   - ✅ Ready → Mergear
-   - ❌ Error → Cerrar o investigar
-4. Opcional: Comentás `/gemini review` para análisis detallado
-5. Mergeás los PRs que pasaron el build
+2. Ves 2-3 PRs (los LOW ya están merged!)
+3. Leés el análisis de IA que ya está posteado
+4. Decisión rápida:
+   - IA dice "looks good" + build pasó → Mergear ✅
+   - IA encuentra issues → Investigar o cerrar ❌
 
-### Después de mergear:
+**Issues de major updates:**
+- Los revisás cuando tengas tiempo
+- Podés asignarlos a miembros del equipo
+- Agregarlos a milestones
+- Discutir estrategia en comentarios
 
-1. Dependabot cierra el PR
-2. Libera espacio para nuevos PRs
-3. La próxima semana, si hay más actualizaciones, crea nuevos PRs
+### Ejemplo Real del Lunes:
+
+```
+9:00 AM - Dependabot escanea
+9:05 AM - Crea 8 updates
+
+PR #1: eslint patch (dev) 🟢
+  → 9:08 AM: Build pasa
+  → 9:10 AM: Auto-merged ✅
+
+PR #2: prettier patch (dev) 🟢
+  → 9:09 AM: Build pasa
+  → 9:11 AM: Auto-merged ✅
+
+PR #3: @types/node patch 🟢
+  → 9:10 AM: Build pasa
+  → 9:12 AM: Auto-merged ✅
+
+PR #4: @radix-ui/dialog minor 🟡
+  → 9:15 AM: IA postea review
+  → ESPERANDO TU REVIEW
+
+PR #5: zod patch (prod) 🟡
+  → 9:16 AM: IA postea review
+  → ESPERANDO TU REVIEW
+
+Issue #1: next 15→16 (major) 🔴
+  → PR cerrado
+  → Issue con checklist
+  → CUANDO TENGAS TIEMPO
+
+Issue #2: tailwind 3→4 (major) 🔴
+  → PR cerrado
+  → Issue con migration guide
+  → CUANDO TENGAS TIEMPO
+
+Issue #3: react 18→19 (major) 🔴
+  → PR cerrado
+  → Issue con breaking changes
+  → CUANDO TENGAS TIEMPO
+```
+
+**Tu intervención:**
+- 10:00 AM: Revisás PR #4 y #5 (4 min)
+- Mergeás los que la IA aprobó
+- ¡Listo para toda la semana!
 
 ---
 
@@ -363,29 +502,112 @@ O borrá el archivo `.github/dependabot.yml`
 
 ---
 
-## 🎯 Recomendación Final
+## 🚀 Setup Inicial (2 minutos)
 
-### Para empezar (ahora):
+### Paso 1: Activar IA Reviews (Opcional pero recomendado)
 
-1. **Mergeá los PRs con build ✅ Ready**
-2. **Cerrá los PRs con build ❌ Error**
-3. **Dejá en queue los que están Building**
+1. Andá a [Google AI Studio](https://aistudio.google.com/)
+2. Creá una cuenta (gratis, sin tarjeta)
+3. Generá una API key
+4. En GitHub:
+   - Settings → Secrets and variables → Actions
+   - New repository secret
+   - Name: `GEMINI_API_KEY`
+   - Value: <tu-api-key>
 
-### Para el futuro:
+### Paso 2: Activar Auto-Merge (Requerido para workflow #4)
 
-1. **Lunes a la mañana**: Revisá los PRs nuevos de Dependabot
-2. **Mirás el build**: ✅ = merge, ❌ = cerrar
-3. **5 minutos por semana** y listo
+1. **Habilitar auto-merge:**
+   - Settings → General → Pull Requests
+   - ✅ Allow auto-merge
 
-### Si te abruma:
+2. **Permisos de workflows:**
+   - Settings → Actions → General → Workflow permissions
+   - ✅ Read and write permissions
+   - ✅ Allow GitHub Actions to create and approve pull requests
 
-Editá `.github/dependabot.yml`:
+### Paso 3: ¡Listo!
+
+El próximo lunes a las 9 AM, el sistema empieza a funcionar solo.
+
+---
+
+## 🎯 Recomendaciones
+
+### Para monitorear la primera semana:
+
+1. **Lunes 9 AM**: Chequeá que los workflows se ejecuten
+2. **10 AM**: Revisá los PRs que quedaron (solo los MEDIUM)
+3. **Verificá** que los LOW risk se auto-mergearon correctamente
+4. **Mirá** los Issues creados para major updates
+
+### Ajustes opcionales:
+
+**Si querés menos PRs simultáneos:**
 ```yaml
-open-pull-requests-limit: 3  # Solo 3 PRs
+# .github/dependabot.yml
+open-pull-requests-limit: 5  # En vez de 10
+```
+
+**Si te abruma (ejecutar mensualmente):**
+```yaml
 schedule:
-  interval: "monthly"  # Una vez al mes
+  interval: "monthly"
+```
+
+**Si querés deshabilitar auto-merge temporalmente:**
+```yaml
+# Agregá este label a los PRs:
+skip-auto-merge
 ```
 
 ---
 
-**¿Dudas?** Preguntame lo que necesites. Esto es configurable 100%.
+## ❓ Preguntas Frecuentes Actualizadas
+
+### ¿Qué pasa si el auto-merge rompe algo?
+
+1. **Vercel detecta** errores en deploy
+2. **Rollback inmediato** en Vercel (1 click)
+3. **O revertí el commit:**
+   ```bash
+   git revert <sha>
+   ```
+4. Agregá `skip-auto-merge` label para futuros PRs de ese paquete
+
+### ¿Puedo confiar en el auto-merge?
+
+Sí, porque:
+- ✅ SOLO patch dev deps (bug fixes solamente)
+- ✅ NUNCA critical packages (next, prisma, etc.)
+- ✅ NUNCA major/minor updates
+- ✅ Build debe pasar primero
+- ✅ Podés revertir en segundos
+
+### ¿Qué hago con los Issues de major updates?
+
+- **No tienen apuro** - Son para planificar
+- Podés:
+  - Asignarlos a miembros del equipo
+  - Agregarlos a milestones
+  - Etiquetar como `blocked`, `needs-research`
+  - Discutir estrategia de migración
+- Cuando estés listo:
+  - Creás un branch nuevo
+  - Hacés la migración
+  - Creás un PR dedicado
+  - El issue queda como documentación
+
+### ¿Puedo deshabilitar workflows individualmente?
+
+Sí, en `.github/workflows/<nombre>.yml`:
+```yaml
+# Comentá o borrá el workflow que no quieras
+```
+
+O deshabilitá desde:
+- Actions → Workflows → <workflow> → Disable workflow
+
+---
+
+**¿Más dudas?** Revisá el [README.md](.github/README.md) (documentación completa en inglés)

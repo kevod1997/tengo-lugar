@@ -1,0 +1,283 @@
+name: Dependabot Smart Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  smart-route:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Analyze PR and route based on risk
+        id: analyze
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const prNumber = pr.number;
+
+            // Extract package info from PR title
+            // Format: "chore(deps): bump @radix-ui/react-dialog from 1.1.2 to 1.1.15"
+            const titleMatch = pr.title.match(/bump (.+) from (.+) to (.+)/);
+
+            if (!titleMatch) {
+              console.log('PR title does not match Dependabot format, skipping');
+              return;
+            }
+
+            const packageName = titleMatch[1].trim();
+            const fromVersion = titleMatch[2].trim();
+            const toVersion = titleMatch[3].trim();
+
+            // Determine if it's a dev dependency
+            const isDevDep = pr.title.includes('deps-dev');
+
+            // Determine update type
+            const fromParts = fromVersion.split('.');
+            const toParts = toVersion.split('.');
+
+            let updateType = 'unknown';
+            if (fromParts[0] !== toParts[0]) {
+              updateType = 'major';
+            } else if (fromParts[1] !== toParts[1]) {
+              updateType = 'minor';
+            } else {
+              updateType = 'patch';
+            }
+
+            // Critical packages that always need manual review
+            const criticalPackages = [
+              'next', 'react', 'react-dom', 'prisma', '@prisma/client',
+              'better-auth', 'zod', 'tailwindcss', '@tanstack/react-query'
+            ];
+            const isCritical = criticalPackages.some(pkg => packageName.includes(pkg));
+
+            // Calculate risk level
+            let riskLevel = 'LOW';
+            if (updateType === 'major' || isCritical) {
+              riskLevel = 'HIGH';
+            } else if (updateType === 'minor' || !isDevDep) {
+              riskLevel = 'MEDIUM';
+            }
+
+            console.log(`Package: ${packageName}`);
+            console.log(`Update: ${fromVersion} → ${toVersion} (${updateType})`);
+            console.log(`Dev dependency: ${isDevDep}`);
+            console.log(`Critical: ${isCritical}`);
+            console.log(`Risk level: ${riskLevel}`);
+
+            core.setOutput('risk_level', riskLevel);
+            core.setOutput('update_type', updateType);
+            core.setOutput('package_name', packageName);
+            core.setOutput('from_version', fromVersion);
+            core.setOutput('to_version', toVersion);
+            core.setOutput('is_dev_dep', isDevDep);
+            core.setOutput('is_critical', isCritical);
+
+      - name: Handle HIGH risk (major updates) - Convert to Issue
+        if: steps.analyze.outputs.risk_level == 'HIGH'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const prNumber = pr.number;
+            const packageName = '${{ steps.analyze.outputs.package_name }}';
+            const fromVersion = '${{ steps.analyze.outputs.from_version }}';
+            const toVersion = '${{ steps.analyze.outputs.to_version }}';
+            const updateType = '${{ steps.analyze.outputs.update_type }}';
+            const isCritical = '${{ steps.analyze.outputs.is_critical }}' === 'true';
+
+            // Create issue body with migration checklist
+            const issueBody = `## 🚨 Major Version Update Detected
+
+            This major update requires careful planning and manual migration.
+
+            ### 📦 Package Details
+            - **Package:** \`${packageName}\`
+            - **Current Version:** ${fromVersion}
+            - **New Version:** ${toVersion}
+            - **Update Type:** ${updateType.toUpperCase()}
+            ${isCritical ? '- **⚠️ CRITICAL PACKAGE** - Extra caution required!' : ''}
+
+            ### 🔗 Links
+            - [Dependabot PR #${prNumber}](${pr.html_url}) (auto-closed)
+            - [Package on npm](https://www.npmjs.com/package/${packageName})
+            - [Changelog](https://github.com/${packageName.replace('@', '')}/blob/main/CHANGELOG.md)
+
+            ### 📋 Migration Checklist
+
+            Before upgrading, complete these steps:
+
+            - [ ] **Review breaking changes** in the [changelog](https://github.com/${packageName.replace('@', '')}/blob/main/CHANGELOG.md)
+            - [ ] **Read migration guide** (if available)
+            - [ ] **Create test branch** for upgrade
+            - [ ] **Run full test suite** after upgrade
+            - [ ] **Check for deprecated APIs** in codebase
+            - [ ] **Test critical features:**
+              - [ ] Authentication flow
+              - [ ] Database operations
+              - [ ] Form validations
+              - [ ] File uploads
+              - [ ] Background jobs
+            - [ ] **Update documentation** if API changes
+            - [ ] **Coordinate with team** if needed
+
+            ### 🎯 When Ready to Upgrade
+
+            1. Create a new branch: \`upgrade-${packageName.replace(/[@\/]/g, '-')}-${toVersion}\`
+            2. Update \`package.json\` manually
+            3. Run \`npm install\`
+            4. Fix any breaking changes
+            5. Test thoroughly
+            6. Create PR for review
+
+            ### 🚀 Alternative: Accept Dependabot PR
+
+            If you've reviewed the changes and want to proceed immediately:
+            1. Reopen PR #${prNumber}
+            2. Remove \`major-update\` label
+            3. Review and merge manually
+
+            ---
+
+            *🤖 Auto-generated by Dependabot Smart Review | Issue created to avoid cluttering PR list*
+            `;
+
+            // Create the issue
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Major Update] ${packageName} ${fromVersion} → ${toVersion}`,
+              body: issueBody,
+              labels: ['major-update', 'needs-planning', 'dependencies']
+            });
+
+            console.log(`Created issue #${issue.data.number}`);
+
+            // Close the PR with explanation
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `## 🎟️ Major Update Converted to Issue
+
+            This major version update requires planning and manual migration.
+
+            **Issue created:** #${issue.data.number}
+
+            ### Why?
+            - Major updates can introduce breaking changes
+            - Better to track migration progress in an issue
+            - Prevents accidental auto-merge
+            - Allows team discussion and planning
+
+            This PR will be closed to keep the PR list clean. When you're ready to upgrade, follow the checklist in issue #${issue.data.number}.
+
+            ---
+
+            *🤖 You can reopen this PR if you want to proceed immediately*`
+            });
+
+            // Close the PR
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              state: 'closed'
+            });
+
+            console.log(`Closed PR #${prNumber}`);
+
+      - name: Handle MEDIUM risk - Auto-trigger AI review
+        if: steps.analyze.outputs.risk_level == 'MEDIUM'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            // Simulate /gemini review command by creating a comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: '/gemini review'
+            });
+
+            console.log('Auto-triggered AI review for MEDIUM risk PR');
+
+            // Also add a notice
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `## 🟡 Medium Risk Update
+
+            This update has been automatically flagged for AI review.
+
+            **What happens next:**
+            - AI review will be posted shortly
+            - Review the AI analysis before merging
+            - If the analysis looks good and build passes, safe to merge
+
+            **Override:** If you want to skip AI review, just merge after build passes.
+
+            ---
+
+            *🤖 Auto-generated by Dependabot Smart Review*`
+            });
+
+      - name: Handle LOW risk - Auto-approve
+        if: steps.analyze.outputs.risk_level == 'LOW'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const packageName = '${{ steps.analyze.outputs.package_name }}';
+            const fromVersion = '${{ steps.analyze.outputs.from_version }}';
+            const toVersion = '${{ steps.analyze.outputs.to_version }}';
+
+            // Add comment indicating low risk
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `## 🟢 Low Risk Update
+
+            This is a **patch update** for a **development dependency**.
+
+            **Package:** \`${packageName}\`
+            **Update:** ${fromVersion} → ${toVersion}
+
+            ### ✅ Safe to Auto-Merge
+
+            - Patch updates contain only bug fixes (no breaking changes)
+            - Development dependencies don't affect production
+            - If CI/CD passes, this is safe to merge automatically
+
+            **Auto-merge will trigger when:**
+            - ✅ All status checks pass (Vercel build)
+            - ✅ No merge conflicts
+            - ✅ PR is up to date with base branch
+
+            **Override:** Add label \`skip-auto-merge\` to prevent automatic merging.
+
+            ---
+
+            *🤖 Auto-generated by Dependabot Smart Review*`
+            });
+
+            console.log('Marked PR as LOW risk - eligible for auto-merge');
