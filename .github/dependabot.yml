@@ -100,3 +100,5 @@ updates:
     labels:
       - "dependencies"
       - "dependabot"
+
+    # Force rescan trigger
