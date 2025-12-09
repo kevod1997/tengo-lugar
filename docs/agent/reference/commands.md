@@ -27,11 +27,12 @@ npm run dev:https
 ```bash
 npm run build
 ```
+- Runs `npm run lint` first (fails on errors)
 - Creates optimized production build
-- Type checking
-- Linting
+- Type checking with TypeScript
 - Asset optimization
 - Static page generation
+- Tree shaking and code splitting
 
 ### Start Production Server
 ```bash
@@ -46,21 +47,65 @@ npm run start
 
 ## Code Quality
 
-### Run ESLint
+### Run ESLint (Standard Check)
 ```bash
 npm run lint
 ```
-- Lints all files
-- Uses Next.js ESLint configuration
-- TypeScript-aware rules
+- Lints all files in `src/` directories
+- Uses ESLint 9 with flat config format
+- Next.js core-web-vitals + TypeScript rules
+- Custom import ordering and naming conventions
+- Stylish format with colors and hierarchy
+- Uses cache for faster subsequent runs
 - Reports errors and warnings
 
 ### Run ESLint with Auto-fix
 ```bash
-npm run lint -- --fix
+npm run lint:fix
 ```
 - Lints and automatically fixes issues
-- Some issues may require manual fixing
+- Modifies files directly
+- Auto-fixes: import order, spacing, quotes, type imports
+- Manual fixes required for: logic errors, type issues, accessibility
+- Stylish format output
+
+### Generate ESLint Reports
+```bash
+npm run lint:report
+```
+- Generates two report files:
+  - `.next/cache/eslint/report.json` - Structured data for scripts
+  - `.next/cache/eslint/report.html` - Interactive HTML report (open in browser)
+- Useful for code reviews and documentation
+- Reports excluded from Git
+
+**View HTML report:**
+```bash
+# Windows
+start .next/cache/eslint/report.html
+
+# Or open in browser manually
+```
+
+### Compact Summary
+```bash
+npm run lint:summary
+```
+- One-line-per-error format
+- Quick overview of all issues
+- Easy to grep/filter:
+  ```bash
+  npm run lint:summary | grep "error"
+  npm run lint:summary | grep "warning"
+  ```
+
+### CI/CD Lint
+```bash
+npm run lint:ci
+```
+- Generates JUnit XML format (`.next/cache/eslint/junit.xml`)
+- For GitHub Actions, GitLab CI, Jenkins
+- Machine-parseable format
 
 ---
 
@@ -356,9 +401,16 @@ npx inngest-cli dev          # Start Inngest dev server (if using background job
 
 ### Before Committing
 ```bash
-npm run lint                 # Check for linting errors
+npm run lint:fix            # Auto-fix linting issues
+npm run lint                # Verify no remaining errors
 npx tsc --noEmit            # Check for type errors
 npm run build               # Ensure build succeeds
+```
+
+**Alternative - Generate report for review:**
+```bash
+npm run lint:report         # Generate HTML/JSON reports
+# Open .next/cache/eslint/report.html to review
 ```
 
 ### Production Deployment
@@ -407,8 +459,79 @@ npm --version
 
 ---
 
+---
+
+## ESLint Workflows
+
+### Daily Development Workflow
+```bash
+# 1. Make changes to code
+# 2. Auto-fix common issues
+npm run lint:fix
+
+# 3. Verify no errors remain
+npm run lint
+
+# 4. If needed, see detailed issues
+npm run lint:summary
+```
+
+### Pre-Commit Workflow
+```bash
+# Complete check before committing
+npm run lint:fix            # Fix auto-fixable issues
+npm run lint                # Verify clean
+npx tsc --noEmit           # Type check
+git add .                   # Stage changes
+git commit -m "message"     # Commit
+```
+
+### Code Review Workflow
+```bash
+# Generate comprehensive report
+npm run lint:report
+
+# Open HTML report in browser
+start .next/cache/eslint/report.html  # Windows
+# Or manually open: .next/cache/eslint/report.html
+
+# Share JSON report if needed
+# File: .next/cache/eslint/report.json
+```
+
+### CI/CD Integration
+```bash
+# In GitHub Actions / GitLab CI
+npm run lint:ci
+
+# Generates: .next/cache/eslint/junit.xml
+# Upload as artifact for test results visualization
+```
+
+### Debugging Lint Issues
+```bash
+# See only errors (no warnings)
+npm run lint:summary | grep "error"
+
+# See only warnings
+npm run lint:summary | grep "warning"
+
+# Count total issues
+npm run lint:summary | wc -l
+
+# Check specific file
+npx eslint src/path/to/file.ts
+
+# Check specific directory
+npx eslint src/actions/
+```
+
+---
+
 ## Related Documentation
 
 - [Tech Stack](tech-stack.md) - Technologies used
 - [Environment Variables](environment-vars.md) - Configuration
 - [Troubleshooting](../operations/troubleshooting.md) - Common issues
+- [Code Style](../standards/code-style.md) - ESLint rules and enforcement
+- [Code Quality](../standards/code-quality.md) - Best practices

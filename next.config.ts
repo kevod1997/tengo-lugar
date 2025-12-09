@@ -23,6 +23,25 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "4.5mb",
     },
   },
+  eslint: {
+    // Lint all custom directories in src/
+    dirs: [
+      'src/actions',
+      'src/app',
+      'src/components',
+      'src/config',
+      'src/emails',
+      'src/hooks',
+      'src/lib',
+      'src/schemas',
+      'src/services',
+      'src/store',
+      'src/types',
+      'src/utils',
+    ],
+    // Disable Next.js built-in linting during builds (using ESLint CLI in scripts instead)
+    ignoreDuringBuilds: true,
+  },
 
   async headers() {
     return [

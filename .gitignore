@@ -28,6 +28,11 @@ postgres_backup/
 /.next/
 /out/
 
+# eslint reports
+/.next/cache/eslint/*.json
+/.next/cache/eslint/*.html
+/.next/cache/eslint/*.xml
+
 # production
 /build
 

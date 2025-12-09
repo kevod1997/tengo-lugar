@@ -2,9 +2,16 @@
 
 ## Style Automation
 
-Import organization, naming conventions, and type imports are **automatically enforced by ESLint**.
+Import organization, naming conventions, and type imports are **automatically enforced by ESLint v9** with flat config.
 
-See [code-style.md](code-style.md) for details on automated style enforcement.
+**Quick Commands**:
+```bash
+npm run lint:fix      # Auto-fix style issues
+npm run lint          # Check for issues
+npm run lint:report   # Generate HTML/JSON reports
+```
+
+See [code-style.md](code-style.md) for complete details on automated style enforcement.
 
 ---
 

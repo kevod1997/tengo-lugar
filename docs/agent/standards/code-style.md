@@ -2,16 +2,34 @@
 
 ## Automated Enforcement
 
-All code style rules are **automatically enforced by ESLint v9** with flat config.
+All code style rules are **automatically enforced by ESLint v9** with flat config format.
 
 - **Configuration**: [eslint.config.mjs](../../../eslint.config.mjs) - Single source of truth
-- **Auto-fix**: `npm run lint --fix` - Automatically corrects violations
-- **CI/CD**: Enforced in build pipeline
+- **Next.js Integration**: Uses `next/core-web-vitals` + `next/typescript` configs
+- **Auto-fix**: `npm run lint:fix` - Automatically corrects violations
+- **Reports**: `npm run lint:report` - Generates HTML/JSON reports for review
+- **CI/CD**: Enforced in build pipeline (`npm run build` runs lint first)
 
 **What ESLint enforces**:
 - Import organization and grouping
 - Naming conventions (camelCase, PascalCase, UPPER_CASE)
 - Type import separation (`import type`)
+- Next.js best practices (React hooks, Image optimization, etc.)
+- TypeScript strict rules
+
+**Available Commands**:
+```bash
+npm run lint          # Check for issues (stylish format)
+npm run lint:fix      # Auto-fix issues
+npm run lint:summary  # Compact one-line-per-error view
+npm run lint:report   # Generate HTML/JSON reports
+npm run lint:ci       # Generate JUnit XML for CI/CD
+```
+
+**Report Locations**:
+- HTML: `.next/cache/eslint/report.html` (open in browser)
+- JSON: `.next/cache/eslint/report.json` (for scripts)
+- JUnit: `.next/cache/eslint/junit.xml` (for CI/CD)
 
 ---
 
@@ -201,7 +219,7 @@ import "./globals.css";
 **Invalid reasons**:
 - ❌ "Linter is annoying" - Fix the code instead
 - ❌ "I prefer my style" - Follow project conventions
-- ❌ "Too hard to fix" - Use `npm run lint --fix`
+- ❌ "Too hard to fix" - Use `npm run lint:fix`
 
 ### Conditional Imports
 
