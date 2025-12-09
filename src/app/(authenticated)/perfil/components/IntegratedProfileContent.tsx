@@ -4,8 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 
 import { useRouter } from 'next/navigation'
 
-import { AlertTriangle, Users, Car, TrendingUp, Settings } from 'lucide-react'
-import { AlertTriangleIcon } from "lucide-react"
+import { AlertTriangle, AlertTriangleIcon, Users, Car, TrendingUp, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { LoadingOverlay } from '@/components/loader/loading-overlay'
