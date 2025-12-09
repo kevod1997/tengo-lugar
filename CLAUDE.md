@@ -51,14 +51,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. Handle errors with toast notifications on client
 5. Provide context (fileName, functionName) for all errors
 
-### 🎨 Code Style Rules (AUTOMATED)
-
-1. **Import organization** - Auto-enforced by ESLint (see eslint.config.mjs)
-2. **Naming conventions** - Auto-enforced by ESLint
-3. **Type imports** - Auto-enforced by ESLint
-4. **Run** `npm run lint --fix` to auto-correct violations
-5. **Details**: [code-style.md](docs/agent/standards/code-style.md)
-
 ---
 
 ## Critical Architecture Patterns
@@ -67,26 +59,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```typescript
 import { requireAuthentication, requireAuthorization } from '@/utils/helpers/auth-helper';
-
-// Basic: requireAuthentication('filename.ts', 'functionName')
-// Role-based: requireAuthorization('admin', 'filename.ts', 'functionName')
-// Multi-role, middleware, route protection → See authentication.md
 ```
 
-**Complete patterns**: [docs/agent/patterns/authentication.md](docs/agent/patterns/authentication.md)
+**See**: [authentication.md](docs/agent/patterns/authentication.md) - Complete patterns for auth/authorization, multi-role, middleware, and route protection
 
 ### 2. Server Actions Pattern (MANDATORY)
 
-```typescript
-'use server'
-export async function myServerAction(data: any) {
-  // 1. Auth → 2. Validation → 3. Transaction → 4. Response
-  // Complete template with logging: server-actions.md
-}
-```
-
 **Pattern**: Auth (requireAuthentication) → Zod validation → Prisma transaction → ApiHandler response
-**Complete template**: [docs/agent/patterns/server-actions.md](docs/agent/patterns/server-actions.md)
+
+**See**: [server-actions.md](docs/agent/patterns/server-actions.md) - Complete templates with logging and error handling
 
 ### 3. Error Handling (MANDATORY)
 
@@ -182,17 +163,3 @@ See [environment-vars.md](docs/agent/reference/environment-vars.md) for required
 **Pattern docs** provide detailed implementation guides - read before implementing features.
 
 **Quick lookup**: Use [INDEX.md](docs/agent/INDEX.md) for problem-based navigation.
-
----
-
-## Important Reminders
-
-- ✅ Authentication helpers BEFORE any data operation
-- ✅ Zod validation for ALL inputs
-- ✅ ApiHandler for ALL error handling
-- ✅ Prisma transactions for complex operations
-- ✅ React Query for server state (NOT Zustand)
-- ✅ TypeScript strict mode (NO `any`)
-- ✅ Reference documentation for implementation details
-- ✅ `sendSystemNotification` for Inngest (no session)
-- ✅ 45s delays between emails in Inngest
