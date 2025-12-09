@@ -7,6 +7,8 @@ interface ProcessedImageData {
     data: ProcessedImageData, 
     fileName: string
   ): File {
-    const blob = new Blob([data.buffer]);
+    // Convert Buffer to Uint8Array for Web API compatibility
+    const uint8Array = new Uint8Array(data.buffer);
+    const blob = new Blob([uint8Array], { type: data.type });
     return new File([blob], fileName, { type: data.type });
   }
