@@ -174,7 +174,7 @@ Problem-based navigation guide for Tengo Lugar documentation.
 
 **Solution path**:
 1. **Reference**: [environment-vars.md](reference/environment-vars.md) - All environment variables
-2. **Setup**: See CLAUDE.md "First Time Setup" - Minimum required vars
+2. **Setup**: See [.claude/CLAUDE.md](../../.claude/CLAUDE.md) "First Time Setup" - Minimum required vars
 3. **Debug**: Check `.env` file exists in project root
 
 **Quick fixes**:
