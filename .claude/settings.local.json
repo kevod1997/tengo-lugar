@@ -51,7 +51,9 @@
       "Bash(git diff src/app/(admin)/admin/pagos/page.tsx)",
       "Bash(dir:*)",
       "Bash(npm install:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "additionalDirectories": [
